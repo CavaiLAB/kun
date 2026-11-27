@@ -1,0 +1,155 @@
+> For AI agents: the complete documentation index is available at /llms.txt, the full documentation bundle is available at /llms-full.txt.
+
+# ADR-010 网关分层
+
+> 本页由构建脚本镜像自仓库 [`docs/adr/ADR-010-gateway-layers.md`](https://github.com/CavaiLAB/kun/blob/main/docs/adr/ADR-010-gateway-layers.md)，请修改源文件，不要改本页。
+
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
+> 修订（2026-11-25，[S1-DEC-041](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-041.md) D4）：匠心工业智能体平台 Web 端里 Agent 工作区的域名，由匠心的工作区服务直接接，不经过 `qian.gateway`。这是对 D10.1 的一处有意的偏离，范围与原因见 §9。正文未改，D10.1 前加了标注。
+
+> 修订（2026-11-26，[S1-DEC-045](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-045.md) D2、D8）：远程授权接口的裁定带出认证上的两处改动：别的系统替人问时交来的本人令牌要由平台自己核对；网关与平台宿主要分得出登录会话与访问令牌。两处都是「要有」已定、怎么做仍是提议，见 §10。正文未改。
+
+> 修订（2026-11-27，[ADR-024](/design/adr/adr-024-model-entry-no-gateway.md)）：产品负责人 2026-11-26 说到 Higress，原话是「评估一下，不需要就不安装了吧。你觉得有这个必要吗？因为它安装起来还是挺复杂的。」评估是整理者做的，结论是不需要；照他这句话里的条件，平台不装 Higress，第三层不再是必装的。模型流量改由平台自己的模型入口接，是 ADR-024 的提议。D10.10 里「不在 S1 把 SSO / S2S 交给 Higress」那一句，对象换成登记成上游的模型网关与推理服务，同 ADR-015 D15.6，是整理者的换法，随 ADR-024 的提议二、四；平台发的调用方凭据由模型入口验，也是提议。MCP 流量那一半随 ADR-016 D16.9、D16.10 的标注：改走平台自己的网关是提议，随 M1 的设计定。正文未改，D10.1、D10.10 前加了标注，§9 末尾加了补记。
+
+> 修订（2026-11-27，[S1-DEC-049](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-049.md)）：产品负责人 2026-11-27 对《决策表》一次定稿，成批的丙批他答「丙按提议推进」。与本文有关的两条：D10.11 不管模型入口（[ADR-024](/design/adr/adr-024-model-entry-no-gateway.md) §10.4）；按域名认租户不进这一期（§7）。模型入口是 Kun 模型组件里的独立服务，照原表第 11 条定了。见 §11。D10.1、D10.10 在 ADR-024 那一轮的标注里写作提议的几处：讲模型入口的定了；MCP 流量那条路按提议推进；平台发的调用方凭据由模型入口验，是整理时的读法。正文未改，D10.1、D10.10、D10.11 与 §7 的一项前加了标注，§9 加了一条补记。
+
+## 1 背景与问题（Context）
+
+现网有两个 IngressClass：`traefik`（业务北向）与 `higress`（AI 南向），各有 MetalLB VIP；集群不直接暴露公网，公网 nginx 终结 TLS 后经 WireGuard 直连；集群内无 cert-manager，Ingress 全 HTTP；Traefik `forwardedHeaders.trustedIPs` 必须配置否则 OIDC issuer 变成 http（基线 K §6.1）。Higress 2.2.3 两副本 + PDB，是模型流量的 chokepoint，对租户无感（基线 K §6.4）。
+
+`Kun.Gateway` 是 YARP 反代 + 外部 JWT 校验（单 issuer）+ `S2sTokenIssuer`（RS256 / 60 秒）+ JWKS + 三种限流策略 + `IS2sPrincipalResolver` + `ForwardedClaimTypes` 白名单 + gRPC-Web，可执行亦可作库；但**默认装配不可上线**：不强制认证、匿名透传下游；`kun-default` 限流未挂到任何路由；IP 分区信任 `X-Forwarded-For`；换私钥须重启；无动态 `IProxyConfigProvider`；网关宿主未接 OTel（基线 K §1 Gateway 行、附录 B-11）。S2S 签发器有三套（网关 RS256 / 60 秒；`Kun.Security.S2SJwt` ES256 / 300 秒含 `scope / session_id / membership_id / project_id`；`Kun.Identity.KunJwtIssuer`），且默认 issuer 值写死为下游产品名（基线 K §1 Security 行、§5.1 第 7 条）。白皮书声称的 `/s2s/issue` 机器身份端点不存在（基线 K 附录 B-13）。gRPC 三个拦截器只覆盖 Unary，流式调用绕过认证与 `tenant_id` 校验（基线 K §2.4 ⑤）。参考平台开放接口用用户级 AppSecret 并允许「公有」免鉴权；接口体 AES 加密中间件本质是混淆（基线 D §9.1 第 8 条；基线 P §B.2）。
+
+## 2 决策（Decision）
+
+- 【经 S1-DEC-041 D4 标注：匠心 Web 端的工作区域名由匠心的工作区服务直接接，不经过 `qian.gateway`，是有意的偏离，见 §9；三层的分工不变】【经 ADR-024 修订（2026-11-27）：平台不装 Higress，模型流量由平台自己的模型入口接，第三层不再是必装的；模型入口与 MCP 流量的新路都是提议，见 ADR-024；本条不改】【S1-DEC-049（2026-11-27）：模型入口已定，模型请求都过平台自己的模型入口（ADR-024 §10）；MCP 流量那条路按提议推进，细节随 M1 的设计；本条不改】**D10.1 三层网关，职责从 S1 画清、不互相承担**：Traefik（北向公网入口）→ `qian.gateway`（业务 API 边界）→ Higress（模型与 MCP 流量）。
+- **D10.2 Traefik 不做鉴权**，只做入口路由与 TLS 终结衔接；`trustedIPs` 必配；ingress 全 HTTP 直到引入 cert-manager。
+- **D10.3 `qian.gateway` 以库方式引用 `Kun.Gateway` 并加固**：认证回退策略（默认拒绝匿名）；路由级 `RateLimiterPolicy` 与全局限流器；可信代理网段；私钥热轮换（JWKS 双钥重叠）；Cookie 会话换 S2S（`IS2sPrincipalResolver` 注入租户 / 应用上下文）；按上游 cluster 铸造 per-service audience；`AddKunObservability`；`/healthz /readyz`；OpenAPI 聚合与能力目录端点（生产不公开 OpenAPI）。
+- **D10.4 S2S 签发器收敛为一套**：保留网关 `S2sTokenIssuer`（短 TTL、JWKS），吸收 `scope / session_id / membership_id / project_id` claim；claim 形状对齐［下游智能体平台］契约 `iss / aud[] / sub / tenant_id / project_id? / roles[] / scope 串 / session_id / iat,nbf,exp,jti`，`exp − iat ≤ 300s`；「新能力授权 = 加 scope 串，不加 claim」；`roles[]` 作为与［下游智能体平台］同形的例外保留，但限定为粗粒度角色代码而非权限点集合，Qian 自身服务不得仅凭 `roles[]` 放行、必须调用 `Kun.Authorization` 决策端口，时效性由 `identity_revision` 管；`project_id` 保留为可选 claim（［下游智能体平台］侧语义，Qian 只透传不解释）（R24）；`Kun.Identity.KunJwtIssuer` 与 `Kun.Security.S2SJwt` 标记废弃；去产品化（issuer 默认值等约 30 处）。
+- **D10.5 机器身份签发**：`client_credentials` 由 `qian.identity` 提供（S1 必做）；后台任务 / 作业以服务自持私钥签发为过渡，S4 前统一经签发端点。
+- **D10.6 多 Pod 共享限流计数**：Redis `PartitionedRateLimiter`，S1 可选、S2 必做。
+- **D10.7 S3 动态路由 provider**：租户目录 × 已安装应用 → YARP routes / clusters，由插件清单 `components.service.protocols` 与 `tenancy` 派生；「未启用」在网关路由、SDK 入口、前端外壳三处同时拦截；域名 → 租户解析 S1 可选 / S3 必做。
+- **D10.8 开放接口凭据**（Q35）：废弃用户级 AppSecret，统一为网关的应用级客户端凭据（`client_credentials` / API Key，经 `qian.identity` 客户端注册表）；取消「公有」免鉴权。
+- **D10.9 gRPC 流式拦截器补齐**（server / client / duplex streaming），`service` 型插件用流式 RPC 前必须完成。
+- 【经 ADR-024 修订（2026-11-27）：平台不装 Higress，本条说的第三层不再是必装的。「不在 S1 把 SSO / S2S 交给 Higress」那一句，对象换成登记成上游的模型网关与推理服务，同 ADR-015 D15.6，是整理者的换法，随 ADR-024 的提议二、四。末句「网关策略类插件直接用 Higress `WasmPlugin` CRD，不自造」随平台不装 Higress 没有了对象。平台发的调用方凭据由模型入口验，是提议，见 ADR-024；本条不改】【S1-DEC-049（2026-11-27）：随提议二、四的换法定了（ADR-024 §10.3）；平台发的调用方凭据由模型入口验，是从原表第 11 条（模型入口是 Kun 模型组件里的独立服务）推出来的，整理时的读法；本条不改】**D10.10 Higress 只管模型与 MCP 流量**，对租户无感；不在 S1 把 SSO / S2S 交给 Higress；网关策略类插件直接用 Higress `WasmPlugin` CRD，不自造。
+- 【S1-DEC-049（2026-11-27）：这一条不管模型入口，按提议推进（成批的丙批），见 ADR-024 §10.4】**D10.11 不做**：接口体 AES 加密中间件（下沉网关 TLS）；网关解析 JSON 体做鉴权（MCP 按 `Mcp-Method / Mcp-Name` 头路由，敏感参数不入头）。
+- **D10.12 gateway 的原生持久化组合**（S1-DEC-030，2026-10-23 负责人确认 A）：完整 Linux NativeAOT 探针已暴露现有 EF Data/Audit 的动态模型与查询阻塞。新增 `NativeData` 连接/事务 Definition 与 `qian.data.native` PostgreSQL Provider，并以 `qian.audit.native` 实现现有 `Audit` 契约；gateway 采用这组原生 Provider，platform / scheduler 保持原 EF/RLS 路径。审计 Schema、规范化哈希、幂等、平台专用角色与事务语义保持一致，在线宿主不执行迁移。完整 Apollo、Redis、受限 PostgreSQL 和网关安全路径通过 Linux 原生运行前，开发模板继续 JIT，GW-001 / DEP-008 的 AOT 门不关闭。证据及拆分边界见 [实施路径](https://github.com/CavaiLAB/kun/blob/97d521b6df237b092990d7bed8586bda18aebbbc/docs/decisions/gateway-native-aot-options.md)。
+
+## 3 理由（Rationale）
+
+- 两个网关是不同层次：`qian.gateway` 是「外部 JWT → S2S」的业务边界，Higress 是模型 / MCP 入口；混用会让租户语义泄漏进 Higress 或让模型流量绕过平台计量（基线 K §6.4 与 `Kun.Gateway` 的关系）。
+- Kun 的安全默认值必须写成内核强制项而不是沿用默认装配，这是基线 P §5 的明确结论。
+- 收敛签发器是插件生态不分裂的前提；选网关签发器是因为它已有 JWKS 与短 TTL 实践，缺的只是 claim 形状（基线 K §5.1 第 7 条）。
+
+## 4 备选方案与放弃原因（Alternatives）
+
+- **Higress 统一所有流量与认证**：Higress 对租户无感，认证收编（Wasm）已被［下游智能体平台］明确延后；会把 S1 的身份边界交给第三方网关。放弃。
+- **单层 Traefik + 服务各自鉴权**：参考平台「鉴权分散」的反例。放弃。
+- **保留 `Kun.Security.S2SJwt` 作唯一签发器**（基线 P §5 的建议）：与网关 JWKS 轮换链路重复；本 ADR 采 K 的方案并吸收其 claim。
+- **每服务独立网关**：三节点集群不可承受。放弃。
+
+## 5 后果与代价（Consequences）
+
+- 正面：匿名流量在 S1 起就被挡在业务边界外；S2S 令牌一种形状；模型流量与业务流量的计量各归其位。
+- 负面：`qian.gateway` 承担动态路由后成为有状态的配置消费者，需与注册表一致性设计；签发器收敛需要 Kun 上游配合或补丁包；Cookie 会话换 S2S 的性能与会话一致性需要验证。
+- 配套：JWKS 双钥轮换运维手册；路由级限流基线值；S3 动态路由的灰度与回滚。
+
+过渡态（2026-10-06）：集群内无 cert-manager、Ingress 全 HTTP；网关宿主未接 OTel；三套签发器并存。S1 完成 D10.3–D10.4 前，Qian 不对外提供任何租户可见 API。
+
+## 6 对各阶段的影响
+
+- **S1**：D10.2–D10.5、D10.9、D10.10；OpenAPI 聚合与能力目录端点。
+- **S2**：Redis 共享限流；低代码数据引擎 API 经网关统一鉴权；外链能力令牌经网关匿名路由 + 服务端校验。
+- **S3**：动态路由 provider；按租户选 IdP 多 issuer（如需）；OPA 粗粒度 ABAC 可选。
+- 【经 S1-DEC-042 D1 标注：M1 之前，确认卡的最小一圈先用替身演示，不经 MCP 路由，是过渡，M1 做好以后撤掉，见 ADR-016 §10；本行不改】**S4**：Higress 托管每租户 MCP 逻辑门面；Agent 一律经 Higress MCP 路由，令牌受众绑定、禁透传。
+
+## 7 待确认事项
+
+- 已裁决（R5）：保留 Kun.Gateway 的 `S2sTokenIssuer`，吸收 `scope / session_id / membership_id / project_id` claim，`Kun.Security.S2SJwt` 与 `Kun.Identity.KunJwtIssuer` 标记废弃（即 D10.4）。
+- 【S1-DEC-049（2026-11-27）：按域名认租户不进这一期，按提议推进（成批的丙批）】域名 → 租户解析是否进入 S1。
+- cert-manager 引入时点（TLS 进集群）。
+
+## 8 参考
+
+- 相关 ADR：ADR-001、ADR-003、ADR-005、ADR-006、ADR-015、ADR-016、ADR-017。
+- PRD：`PRD §07`、`PRD §10`、`PRD §12`、`PRD §13`。
+- 基线：K §1 Gateway / Security 行、§2.4 ④⑤⑥、§5.1 第 4/5/7 条、§6.1、§6.4、附录 B-11/B-13；P §5 主体身份行、§6 `qian.gateway` 行、§8.2 调用、§8.6；D §9.1 第 8 条。
+
+## 9 匠心的工作区域名不经过 `qian.gateway`（2026-11-25）
+
+产品负责人 2026-11-25 定（[S1-DEC-041](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-041.md) D4；平台级裁定 P64，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-25-platform.md)）：匠心工业智能体平台的 Web 端里，Agent 工作区的域名由匠心自己的工作区服务直接接，不经过 `qian.gateway`。问的是「工作区这个域名的入口，由谁来接？」，答「工作区服务直接接」。这是对 §2 D10.1 的一处有意的偏离。工作区服务还没有实现。
+
+是什么：
+
+- 匠心的 Web 端分成两块，放在两个域名上（平台级裁定 P63）。管理系统是多用户的网页应用，它的域名照旧过 `qian.gateway`，D10.3 的 Cookie 会话换 S2S 照旧。
+- Agent 工作区后面是托管的 DSH 实例，每个正在用的人一个。Traefik 按域名把工作区的流量直接交给工作区服务，由它认人，按登录的人找到他的实例并转发，WebSocket 一并转发。
+- 工作区服务装本仓库发布的登录组件 `Kun.Identity.Client` 认人，在工作区的域名下建立自己的会话；登录仍然到身份服务。这个包的说明写明，独立的宿主只装它就能对接任意 OIDC 发行方。本仓库不用为此改代码。
+
+偏离的范围：
+
+- 只有工作区这一个域名上浏览器到 Agent 实例的流量。
+- 三层的分工不变：Traefik 不鉴权（D10.2）；管理系统与平台的业务接口仍以 `qian.gateway` 为边界；Higress 只管模型与 MCP 流量（D10.10）。
+
+原因：
+
+- 现有的网关宿主接不了这条流量。2026-11-25 对着主干（提交 `2ba5eb82e`）实测并读了代码，卡在四处：
+  1. 路由只按路径匹配，接不了第二个域名。
+  2. 一个宿主只有一个登录回调地址，会话 Cookie 只限本主机名，第二个域名登录不了。
+  3. 带着会话 Cookie 的非 GET 请求必须带防伪令牌的请求头，宿主的配置里关不掉，也不能按路由关。DSH 的客户端调用都是 POST，不带这个头，会全部被拒。这一条和域名无关，退回到一个域名、按路径分流也过不去。
+  4. 长连接空闲满 100 秒被掐断，宿主里配不了。DSH 的长连接约半分钟有一次心跳，撑得住，但没有余量。
+- 实测的边界：测的是照测试宿主的办法装起来的同一条网关管线，会话是预置的；没有走真实的登录，也没有经过 Traefik。
+- 定位：Kun 是通用的组件，不负责任何业务（S1-DEC-041 D6）。「把登录的人送到他自己的 Agent 实例」是匠心的业务逻辑，不该写进本仓库的网关。
+
+没有选的另一条路：先给网关宿主补上按主机名路由、多个主机名各自登录、按路由选择防伪的方式、空闲超时可配这几项通用的能力，再让工作区走它。这几项以后做 D10.7 的域名到租户解析时也要补；补完以后要不要把工作区并回来，可以再议。
+
+代价：工作区服务成了直接面向浏览器的入口。可信代理网段、限流、会话存储要它自己装配，可以用本仓库的包。这条流量不经过 `qian.gateway` 的限流与审计。
+
+> 补记（2026-11-27，[ADR-024](/design/adr/adr-024-model-entry-no-gateway.md)）：上面「偏离的范围」写三层的分工不变、Higress 只管模型与 MCP 流量（D10.10）。照 ADR-024，平台不装 Higress；模型流量由平台自己的模型入口接，是提议。工作区域名的这一处偏离本身不受影响。本节上面的句子没有改。
+
+> 补记（2026-11-27，[S1-DEC-049](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-049.md)）：模型流量由平台自己的模型入口接，已定（ADR-024 §10）。
+
+## 10 远程授权接口的裁定带出的两处认证改动（2026-11-26）
+
+产品负责人 2026-11-26 对远程授权接口的十个问题答「远程的授权接口 也按照建议执行」（[S1-DEC-045](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-045.md)；十个问题与答复见 [ADR-006](/design/adr/adr-006-authorization-model.md) §10）。其中两条带出认证上的改动。仓库的约定是新的横切机制要先有决策记录：本节记下已定的部分；怎么做仍是提议，由承接的任务在动手前补进来。「建议」是整理时列给他的，他没有逐条回，条件算进已定是整理者的读法。都还没有实现。
+
+### 10.1 平台自己核对本人的令牌（D2）
+
+已定：别的系统替某个人问权限，缺省带这个人的登录令牌，由平台自己核对；拿不到本人令牌的场合逐个登记成例外。
+
+由此（整理者的读法）：平台要能核对一张不是网关签发的令牌，即身份服务签发给这个人的那一张。这是认证上新加的一条路，只用来确认被判定的是谁，不用来认调用方。裁定说的是「平台自己核对」；核对落在哪个进程、令牌怎么交上来，裁定没有说，下面第二条是草案的设计，仍是提议。
+
+- 现行的写法是下游的服务只认网关签发的内部短期令牌（D10.3、D10.4，`AGENTS.md` 的运行时约定）。这一条不变：远程的调用方照旧经网关进来，平台宿主照旧凭网关签的内部令牌认调用方是谁。
+- 草案的设计：被判定的那个人写在请求体里，他的访问令牌随请求交上来，由平台宿主核验。
+- `AGENTS.md` 写「主体和租户来自已验证的请求身份」。远程的判定里，带着主体令牌时，被判定的主体与租户仍来自核验过的令牌；只报编号时不是。所以只报编号是逐个登记的例外，这样问出来的结果永远不算人本人。
+
+没有定、是提议的，见[契约草案](/design/prd/specs/authz-remote-interface.md)第 4.3、4.5 节。由 [S1-AZ-013](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-013.md) 在动手前补进本文或 ADR-005 的追加小节：
+
+- 走哪条路核验：平台宿主取身份服务的公钥自己验，还是问身份服务的令牌自省端点。只验签名查不到会话有没有吊销，走这条路要另有吊销的来源。
+- 令牌要过哪几条。草案的提议是：只收签发给人的访问令牌；受众里有调用方登记的资源标识；受众里有网关的不收。
+- 调用资格用哪几个 scope 表达、叫什么。D10.4 的「新能力授权 = 加 scope 串，不加 claim」照旧。
+
+### 10.2 网关与平台宿主分得出登录会话与访问令牌（D8）
+
+已定：拿着本人的登录令牌、不经浏览器直接连平台的程序，先一律按不是人本人；做要人确认的操作要等人点，也不能在等人点头的任务上做动作。由此要在网关与平台宿主上补一处区分。这一句写在提问时选项（一）的影响里：照现在的实现两种请求分不出，定了选项（一）就得补。本节把「要补」记成已定。
+
+现状（对着代码读的）：网关按请求里有没有 `Authorization` 头选认证方式，有就按访问令牌认人，没有就按登录会话认人，后者就是 D10.3 的 Cookie 会话换 S2S。两条路换签出来的内部令牌是同一套声明，里面不记这个人是怎么进来的。平台宿主现在分不出这两种请求。
+
+条件：这一条必要而不够，还要保证点「同意」的那个页面不受模型左右。
+
+整理者的读法：「这一条」指上面已定的那一句。落到这处区分上，它分得出请求是不是带着登录会话经网关进来的，页面里是谁在点它看不出，所以单有它不够。页面那一侧属于确认卡与页面的设计，在匠心一侧，不在本仓库。
+
+没有定、是提议的：用哪种办法分清。由 [S1-GW-004](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-GW-004.md) 先写进本文的追加小节，评审以后再实现。草案里提了两种：
+
+- 网关给登录会话来的请求在内部令牌里加一个 scope，平台自己的执行入口与任务动作的端点凭它认。照 D10.4，加的是 scope，不是 claim。
+- 相应的几条路由在网关上只接登录会话，不接访问令牌。
+
+用到这处区分的两个地方都还没有实现，也没有任务承接：平台自己的执行入口按能力上的标记拦（ADR-016 §9），等人点头的任务上的动作只认人（ADR-012 §9）。
+
+与 §9 的关系：匠心的工作区域名不经过 `qian.gateway`，工作区服务自己认人。照草案的提议，它来问权限时走 10.1 的路：用自己的机器身份经网关进来，带着本人的令牌。它后面是各人的 Agent 实例，照 D7 不许登记成「只转达人在界面上的操作」的系统，见 ADR-016 §11。
+
+## 11 模型入口与 D10.11，按域名认租户（2026-11-27）
+
+产品负责人 2026-11-27 对《决策表》一次定稿，登记在 [S1-DEC-049](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-049.md)。与本文有关的：
+
+- 模型入口是 Kun 模型组件里的独立服务（原表第 11 条照建议），不放在 `qian.gateway` 上。它读请求体里的 `model`，用来选上游，也用来校验用户选的模型。D10.11（网关不解析 JSON 体做鉴权）管的是 `qian.gateway`，不管模型入口：这是成批的丙批里的一条，他答「丙按提议推进」。见 [ADR-024](/design/adr/adr-024-model-entry-no-gateway.md) §10.4。
+- 域名到租户的解析不进这一期，同样是丙批按提议推进。§7 那一项前加了标注。

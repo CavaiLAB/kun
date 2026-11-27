@@ -1,0 +1,68 @@
+> For AI agents: the complete documentation index is available at /llms.txt, the full documentation bundle is available at /llms-full.txt.
+
+# Class RedisRateLimitStoreOptions
+
+:::info 生成页
+本页由 DocFX 从 nuget.org 上 `Kun.RateLimit` 2026.11.24 的 XML 注释生成，源码在 kun 仓库 [`src/Kun.RateLimit`](https://github.com/CavaiLAB/kun/tree/v2026.11.24/src/Kun.RateLimit)（`v2026.11.24`）。Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship.md)）；平台集成方式见[内核与平台组件](/sdk/kun/with-qian.md)。
+:::
+
+Namespace: [Kun.RateLimit](/sdk/api/kun/kun-ratelimit/index.md)\
+Assembly: Kun.RateLimit.dll
+
+Configuration for [RedisFixedWindowRateLimitStore](/sdk/api/kun/kun-ratelimit/redisfixedwindowratelimitstore.md).
+
+```csharp
+public sealed class RedisRateLimitStoreOptions
+```
+
+#### Inheritance
+
+[object](https://learn.microsoft.com/dotnet/api/system.object) ←
+[RedisRateLimitStoreOptions](/sdk/api/kun/kun-ratelimit/redisratelimitstoreoptions.md)
+
+#### Inherited Members
+
+[object.GetType()](https://learn.microsoft.com/dotnet/api/system.object.gettype),
+[object.ToString()](https://learn.microsoft.com/dotnet/api/system.object.tostring),
+[object.Equals(object?)](https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals\(system-object\)),
+[object.Equals(object?, object?)](https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals\(system-object-system-object\)),
+[object.ReferenceEquals(object?, object?)](https://learn.microsoft.com/dotnet/api/system.object.referenceequals),
+[object.GetHashCode()](https://learn.microsoft.com/dotnet/api/system.object.gethashcode)
+
+## Constructors
+
+### RedisRateLimitStoreOptions() \{#Kun_RateLimit_RedisRateLimitStoreOptions__ctor}
+
+```csharp
+public RedisRateLimitStoreOptions()
+```
+
+## Fields
+
+### SectionName \{#Kun_RateLimit_RedisRateLimitStoreOptions_SectionName}
+
+Config section name for binding via `Configure<...>`.
+
+```csharp
+public const string SectionName = "Kun:Gateway:RateLimit:Redis"
+```
+
+#### Field Value
+
+[string](https://learn.microsoft.com/dotnet/api/system.string)
+
+## Properties
+
+### KeyPrefix \{#Kun_RateLimit_RedisRateLimitStoreOptions_KeyPrefix}
+
+Redis key prefix. Keys take the form `{KeyPrefix}:{partitionKey}`. Change this
+when the same Redis instance is shared across multiple Kun gateways that must not
+collide (e.g. staging vs prod, tenant-A vs tenant-B clusters). Default `"kun:rl"`.
+
+```csharp
+public string KeyPrefix { get; set; }
+```
+
+#### Property Value
+
+[string](https://learn.microsoft.com/dotnet/api/system.string)

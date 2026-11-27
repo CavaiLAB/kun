@@ -1,0 +1,746 @@
+# Kun 开发文档
+
+> Kun 提供 .NET 内核和平台组件。本站收录组件、SDK、CLI、运维与设计文档。
+
+给大模型的读法：要写调用 Kun 的代码，先读「从这里开始」一节，照那几页写；那几页的步骤在本机跑通过，页里写明了核对时的 Kun 版本。
+每一行的链接就是该页的 Markdown，全站正文合在同一目录的 llms-full.txt 里。
+接口的精确签名查「Kun · SDK」一节里的 API 参考，它只收内核档的包。
+「平台 · 设计与路线」是需求与决策记录，讲为什么这样设计，里面有不少规划，不是用法；哪些能力已有、哪些还是规划，看「指南」一页的表。
+前端框架 Qian 的仓库已归档，它的组件页不在本站；「前端框架 Qian（已归档）」开头的几节只有一页说明（组件文档在归档仓库的哪个标签里）与它的设计规格。
+
+## 从这里开始
+
+- [上手：在 ASP.NET Core 里用上 Kun](/start/getting-started.md): 从一个空的 ASP.NET Core 项目开始，用 nuget.org 上的两个 Kun 内核包写一个命令，出错时返回统一的 ErrorDetail；不需要任何令牌。
+- [写一个组件](/start/guides/write-a-component.md): 用组件开发包写一个带代码的组件：声明服务与能力，手写清单，用清单工具从代码派生其余字段，再装进宿主；另附无代码组件怎么起步。
+- [在 .NET 里接权限](/start/guides/authorization-dotnet.md): 给命令与 HTTP 端点声明权限点，在业务代码之前判定：内核包接命令入口，平台档的包接 HTTP 入口；再看权限引擎的平台模式与还没有的部分。
+- [指南](/start/guides/index.md): Kun 使用文档的现状（哪些已经能照着做，哪些因依赖的能力没有实现还写不了），以及 Agent 栈、后端模式、多 profile 组合、安全、连接器与集成：每篇的要点与权威来源。
+- [组件](/start/concepts/component.md): 组件是分发与安装的单位：文件夹 + 清单 + 声明式表面 + 可选代码；运行时形态叫插件。
+- [组件清单 plugin.json](/cli/plugin-json.md): .qian-plugin/plugin.json 的示例、字段逐项表与 JSON Schema 骨架。
+- [qian 命令](/cli/commands.md): qian CLI 的十个命令、npx 一键形式、安装过程、幂等与回滚、管理面端点。
+- [API 参考](/sdk/api/index.md): 由工具生成的 API 参考：Kun.* 已上线，平台档 NuGet 包、前端包与平台 HTTP API 另按 S1-DOCS-002 交付。
+- [Kun 框架](/sdk/kun/index.md): 匠心智能体平台的企业级后端框架：为 Agent 时代构建的多租户平台框架，.NET 10。
+- [版本矩阵](/start/versions.md): 当前文档版本对应的 Kun、平台包、@cavailab/qian-*、.NET SDK、Node 与 K3s 基线，由仓库钉版文件生成。
+
+## 平台 · 开始
+
+- [开始](/start/index.md): 从空白 ASP.NET Core 项目开始使用 Kun 组件，了解组件、表面、scope、seam 与 profile。
+- [上手：在 ASP.NET Core 里用上 Kun](/start/getting-started.md): 从一个空的 ASP.NET Core 项目开始，用 nuget.org 上的两个 Kun 内核包写一个命令，出错时返回统一的 ErrorDetail；不需要任何令牌。
+- [30 分钟上手](/start/quickstart.md): 构建 Kun 命令行，在独立 ASP.NET Core 宿主验收组件的还原、挂载和卸载。
+- [宿主与框架](/start/hosts.md): 在独立宿主或平台宿主中装配 Kun 组件，了解旧 Kun 外壳归档源码如何通过 Qian 0.2.1 加载界面。
+- [产品族](/start/family.md): Kun 内核与平台组件的源码、版本、许可与文档；前端框架 Qian 的仓库已归档。
+- [版本矩阵](/start/versions.md): 当前文档版本对应的 Kun、平台包、@cavailab/qian-*、.NET SDK、Node 与 K3s 基线，由仓库钉版文件生成。
+- [组件](/start/concepts/component.md): 组件是分发与安装的单位：文件夹 + 清单 + 声明式表面 + 可选代码；运行时形态叫插件。
+- [表面](/start/concepts/surface.md): 表面是组件对外暴露的一类声明式内容：skills、agents、commands、hooks、MCP、tools、ui、metadata、schemas、patch 与 S2 的低代码表面。
+- [scope](/start/concepts/scope.md): 任一注册的归属：全局，或一个租户、应用或 Agent 会话；两层扁平、不继承，被过滤的组件与不存在无法区分。
+- [seam](/start/concepts/seam.md): 一项能力的缝合点：Service Definition + Provider + Consumer；换 Provider 不改调用方，组件之间只经 Abstractions 引用。
+- [profile 与 patch](/start/concepts/profile.md): 环境 = profile + 分层 patch：组合包、profile patch、home patch、命令行 overlay 依次叠加，运行中再叠租户 scope patch。
+- [指南](/start/guides/index.md): Kun 使用文档的现状（哪些已经能照着做，哪些因依赖的能力没有实现还写不了），以及 Agent 栈、后端模式、多 profile 组合、安全、连接器与集成：每篇的要点与权威来源。
+- [写一个组件](/start/guides/write-a-component.md): 用组件开发包写一个带代码的组件：声明服务与能力，手写清单，用清单工具从代码派生其余字段，再装进宿主；另附无代码组件怎么起步。
+- [在 .NET 里接权限](/start/guides/authorization-dotnet.md): 给命令与 HTTP 端点声明权限点，在业务代码之前判定：内核包接命令入口，平台档的包接 HTTP 入口；再看权限引擎的平台模式与还没有的部分。
+
+## 平台 · 组件目录
+
+- [组件目录](/components/index.md): 每个组件一页：怎么装、怎么配、暴露了什么；现在收录的是平台插件。
+- [平台插件](/components/platform/index.md): 身份、鉴权、租户、文件、配置、事件、审计等平台插件的目录。
+- [qian.registry 注册表](/components/platform/qian.registry.md): 平台插件三件套之一：清单解析与校验、注册表、租户 scope patch 持久化、修订保留与回切记录；只进 platform profile。
+- [qian.lifecycle 生命周期](/components/platform/qian.lifecycle.md): 平台插件三件套之一：制品 → 修订 → 激活与回切，租户级开通、升级、卸载，强制验签。
+- [qian.capabilities 能力目录](/components/platform/qian.capabilities.md): 平台插件三件套之一：命令 / 查询 / 事件 / 实体四类能力目录、扩展点与契约仓库、OpenAPI 聚合。
+- [qian.hooks 钩子](/components/platform/qian.hooks.md): 把组件 hooks.json 里的 command / http 监听器转成同模式的进程内监听器。
+- [qian.tenancy 租户目录与生命周期](/components/platform/qian.tenancy.md): 租户主档、隔离策略装配（默认共享库 + tenant_id + RLS）、显式状态机与开通编排。
+- [qian.identity 身份与 SSO](/components/platform/qian.identity.md): OIDC / OAuth2 端点、Person + Membership 双层账号、统一登录流水线，连接器 oidc / wecom。
+- [qian.authz 鉴权引擎](/components/platform/qian.authz.md): 权限点注册表、租户域 RBAC 与插件默认角色模板。
+- [qian.data 数据存储默认安全装配](/components/platform/qian.data.md): RLS 拦截器、租户与软删过滤、审计字段、并发令牌与同库 Outbox 的默认装配。
+- [qian.files 文件存储](/components/platform/qian.files.md): 租户前缀与配额、预签名上传下载、强制附件下载；对象存储 / S3 兼容 / 本地三种 Provider。
+- [qian.config 配置中心](/components/platform/qian.config.md): Apollo Provider（长轮询、访问密钥签名、本地缓存）、配置源顺序与先校验后生效的热更新。
+- [qian.gateway 业务 API 网关](/components/platform/qian.gateway.md): 网关防护：强制认证、路由级限流、可信代理、出网 SSRF 基线。
+- [qian.events 事件总线](/components/platform/qian.events.md): Outbox 同事务写入与可靠发布、至少一次消费、幂等表、死信与租户回灌。
+- [qian.audit 审计](/components/platform/qian.audit.md): 命令级哈希链审计与实体级同事务审计，actor 含 agent。
+- [qian.observability 可观测](/components/platform/qian.observability.md): OTel、租户 / 用户 / 插件 baggage 与计量事件。
+- [qian.notify 通知](/components/platform/qian.notify.md): 消息类型注册、模板与发送配置、异步投递，首批三个渠道。
+- [qian.scheduler 调度](/components/platform/qian.scheduler.md): PG 持久化的作业与触发器、集群安全领取、按业务键可取消。
+- [qian.realtime 实时推送](/components/platform/qian.realtime.md): 可选（P1）：WebSocket / SSE 会话、一次性握手票据、Redis 背板扇出与在线状态。
+- [qian.entitlement 授权 v0](/components/platform/qian.entitlement.md): 「租户 × 插件 × 计划」授权表、运营手工授予与权益查询 API。
+- [qian.shell 前端外壳](/components/platform/qian.shell.md): Kun 旧应用外壳的静态制品与 API，包括 MF2 宿主、共享依赖和版本化插槽注册表。
+- [qian.model-gateway 模型服务网关底座](/components/platform/qian.model-gateway.md): 可选（P1）：GPUStack 注册为 Higress 上游、Provider Adapter、逻辑模型目录。
+- [qian.docs 文档生成器](/components/platform/qian.docs.md): 开发态组件：qian docs generate 从代码生成配置目录、模块图与事件图。
+- [qian.workflow 流程与自动化](/components/platform/qian.workflow.md): 审批内核与触发器：一套 JSON 定义、节点树视图设计器。
+
+## 平台 · SDK
+
+- [SDK](/sdk/index.md): 写组件的编程模型与 API：底座 Kun 框架、后端 .NET、前端 TypeScript 与 AI SDK；组件怎么用见组件目录。
+- [内核与平台组件](/sdk/kun/with-qian.md): Kun 内核包、平台组件、宿主的调用关系与历史版本记录。
+- [后端 SDK（.NET）](/sdk/dotnet/index.md): Kun.Runtime 的编程模型：插件、共享上下文 ctx、服务注册与注入、类型化事件、可逆副作用与 scope。
+- [能力与函数](/sdk/dotnet/capabilities.md): 能力目录收录命令、查询、事件、实体四类能力，按调用者权限与 scope 过滤；function 表面（Wasm）为 S2 可选。
+- [事件与中间件](/sdk/dotnet/events.md): 事件在 Definition 包里定义并标注五种分发模式之一；waterfall 即环绕中间件，鉴权、租户校验等强制执行点都是它。
+- [前端 SDK](/sdk/frontend/index.md): @cavailab/qian-runtime 与 @cavailab/qian-plugin-sdk 的编程模型：外壳是一棵插件树，插件界面以 MF2 远程模块加载并挂到版本化插槽。
+- [AI SDK](/sdk/ai/index.md): 在插件与前端里调模型与 Embedding，写 skills / agents / commands / hooks / tools 表面，声明工具副作用与策略；Qian 不写 Agent loop。
+- [模型网关](/sdk/ai/gateway.md): 一个 OpenAI 兼容端点调所有模型：逻辑模型名、按租户的配额与限流、计量；并入现有 Higress / MaaS 基础设施，不自写模型代理。
+- [Agent 运行时对接](/sdk/ai/agent-runtime.md): Qian 是能力提供方与业务主数据权威，Agent 运行时为下游智能体平台；本页只写接入方式，不写 Agent loop。
+- [MCP](/sdk/ai/mcp.md): 组件附带的 .mcp.json 表面（S1）与每租户 MCP 能力门面（S4）；MCP 以 2026-07-28 版为目标。
+- [沙箱](/sdk/ai/sandbox.md): 隔离执行不可信或 Agent 生成的代码：S4 对接 CubeSandbox（E2B 兼容 API），Qian 自己不写沙箱。
+- [API 参考](/sdk/api/index.md): 由工具生成的 API 参考：Kun.* 已上线，平台档 NuGet 包、前端包与平台 HTTP API 另按 S1-DOCS-002 交付。
+
+## 平台 · CLI 与规格
+
+- [CLI 与规格](/cli/index.md): qian 命令与 plugin.json、marketplace.json、profile / patch 的字段参考，从组件模型规格同步。
+- [qian 命令](/cli/commands.md): qian CLI 的十个命令、npx 一键形式、安装过程、幂等与回滚、管理面端点。
+- [组件清单 plugin.json](/cli/plugin-json.md): .qian-plugin/plugin.json 的示例、字段逐项表与 JSON Schema 骨架。
+- [组件文件夹布局](/cli/layout.md): 组件文件夹的目录树、表面一览、无代码组件与带代码组件。
+- [声明式表面的文件格式](/cli/surfaces.md): skills、agents、commands、hooks、MCP、tools、ui 与 patch 的文件格式。
+- [profile、组合包与 patch](/cli/profile-patch.md): 分层模型、qian.profile.yml、组合包、qian.patch.yml 与 dump-config 输出。
+- [目录市场 marketplace.json](/cli/marketplace-json.md): .qian/marketplace.json 的示例、字段表、多市场优先级与社区发现。
+- [校验与 TCK](/cli/validation.md): 清单与表面校验器、运行时语义 TCK 与 CI 门禁。
+
+## 平台 · 运维
+
+- [运维](/ops/index.md): profile 部署到 K3s、Apollo 配置、升级与回切、模型网关接线、监控与审计。
+- [GitOps 部署](/ops/deploy.md): 沿用 Argo CD app-of-apps 与 Kustomize：镜像与插件制品推 Harbor，按 digest 写回部署仓库，Argo CD 收敛到集群。
+- [发布、灰度与回切](/ops/release.md): 发布保护：制品验签、修订回切、灰度开关；灰度发布：IFeatureFlags 灰度 + profile 滚动更新。
+- [密钥](/ops/secrets.md): 密钥只以 secretRef:// 引用出现，使用时由配置 seam 解析、按声明范围授权并审计；仓库只存模板、键名与引用。
+- [模型网关接线](/ops/model-gateway.md): 把 GPUStack 注册为 Higress 的 OpenAI 兼容上游，供应商与逻辑模型名映射入 Git，绑定配额、限流与统计插件。
+
+## 平台 · 市场与 ISV
+
+- [市场与 ISV](/marketplace/index.md): 组件上架流程、信任等级、签名与租户私有市场的规则；市场本身在 S3 开放，S3 前只放规则。
+
+## 平台 · 设计与路线
+
+- [Kun 平台文档索引](/design/index.md): Kun 分内核档与平台档，.NET 运行时为 Kun.Runtime。Qian 的前端组件库和 TypeScript 运行时由 CavaiLAB/qian 发布，运行时包是 @cavailab/qian-runtime。平台组件 ID 使…
+- [Qian 阶段路线图](/design/roadmap.md): 阶段之间的关系：后一阶段只在前一阶段的契约上叠加，不推翻；退出标准未达成不进入下一阶段的功能开发（允许并行设计与 PoC）。
+- [Kun 的包、文档、示例与站点导航的去向](/design/package-and-docs-disposition.md): 状态：讲现状的清单，2026-11-27 起草，随整理改写。去向里标「提议」的是整理时的提议，没有问过产品负责人；动它会改变对外承诺的几项列在第 10 节，等他定。登记在 S1-DEC-051。
+- [Qian 架构决策记录（ADR）索引](/design/adr/index.md): 01 愿景 · 02 设计原则 · 03 核心概念模型 · 04 形态与市场 · 05 差异化 · 06 用户与场景 · 07 S1 技术底座功能规格 · 08 S2 低代码构建 · 09 S3 面向客户 · 10 S4 Agent 与模…
+- [Qian 与 Kun 的关系：Kun 是底座 SDK，Qian 内核自成一层](/design/adr/adr-001-kun-relationship.md): Kun 是团队自研的 .NET 10 微服务开发框架：32 个 Kun.* 模块约 2.1 万行 C#，MIT 许可，CalVer 发布到 NuGet，事实上单人维护，提交节奏自 2026 年 7 月起明显放缓（基线 K §1）。它在网关…
+- [插件模型：kind × role × distribution 三轴，平台自带能力也是插件，第三方代码永不进共享进程](/design/adr/adr-002-plugin-model.md): Qian 以「插件思维」组织一切能力，但 Kun 决定了插件的物理形态：Kun 是「每个能力一个 NuGet、一个 AddKunXxx() 入口、显式注册、严格 AOT、禁动态加载」的框架，对 AOT 候选模块强制 EnableDynam…
+- [内核边界与 S1 服务拆分：内核只留契约、强制执行点与注册表；S1 共 5 个可部署服务 + 18 个系统插件](/design/adr/adr-003-kernel-boundary-s1-services.md): 「内核 = 插件运行时 + 注册表 + 契约，其余皆插件」是插件思维的第一条可检验原则：内核代码里不出现业务名词，内核对外 API 可枚举且有 PublicAPI 清单（基线 P §1.1 P1）。基线 P §5 逐项评估了内核最小集与 …
+- [数据库与租户隔离：PostgreSQL 唯一一等库；默认共享库 + RLS；schema-per-service](/design/adr/adr-004-database-tenant-isolation.md): Kun 的多租户数据层由 EF 全局过滤（IMultiTenant 自动过滤、新增行自动填 TenantId、租户模型缓存键）与 PostgreSQL RLS 双拦截器（连接版 + 事务版，PgBouncer 事务池可用）组成，支持 Sh…
+- [身份与 SSO：基于 OpenIddict 自建 qian.identity 作平台唯一 issuer，外部 IdP 一律做成连接器插件](/design/adr/adr-005-identity-sso.md): Kun 只做依赖方（RP）一侧：OIDC 发现 + 授权码 + PKCE 跳转、id_token 验签、Cookie 不透明会话、外部 Bearer 校验、网关换发 S2S（基线 K §2.2）。已确认缺口 G1–G8：无鉴权抽象；外部 …
+- [鉴权模型：Kun 只加判定端口，Qian 自建权限引擎；权限不进令牌；UI/API/MCP 唯一判定入口](/design/adr/adr-006-authorization-model.md): Kun 对鉴权全无：src/ 中没有任何 IAuthorizationHandler、策略或权限抽象；Mediator 没有授权行为；只有 roles claim 透传；IPermissionChecker 被 Kun 的 ADR 两次推…
+- [配置中心：Apollo 作 L1 共享组件，自研 AOT 友好的 .NET provider；只存非敏感配置与密钥引用；租户级配置不进 Apollo](/design/adr/adr-007-config-center-apollo.md): Apollo 是硬性要求。Kun 的 Kun.Configuration 只做 AddKunOptions<T> 绑定 + 校验，无任何配置源，全仓无 apollo；现网没有 Apollo、没有 MySQL、没有任何配置中心被应用消费；N…
+- [事件与消息：RabbitMQ 上 K3s；修复 Outbox 丢消息与至少一次语义；事件信封对齐［下游智能体平台］契约](/design/adr/adr-008-events-messaging.md): Kun 的 Kun.EventBus + .RabbitMQ 提供 Outbox 表 / 发布器 / 锁（默认 Null 锁，可 Redis）、稳定事件 ID 注册表 + JSON Schema 导出工具、幂等装饰器、RabbitMQ t…
+- [审计：只留一套——命令级哈希链落 PostgreSQL + 实体级同事务写入；actor 含 agent](/design/adr/adr-009-audit.md): Kun 的审计能力分裂为多条并行路径：① 命令级 SHA-256 哈希链 AuditEntry{PrevHash, ContentHash}，但 IAuditSink / IAuditChainState 只有 InMemory 实现、单…
+- [网关分层：Traefik（北向入口）→ qian.gateway（Kun.Gateway 加固，业务 API 边界）；Higress 只管模型与 MCP 流量](/design/adr/adr-010-gateway-layers.md): 现网有两个 IngressClass：traefik（业务北向）与 higress（AI 南向），各有 MetalLB VIP；集群不直接暴露公网，公网 nginx 终结 TLS 后经 WireGuard 直连；集群内无 cert-man…
+- [元数据与动态数据层：元数据驱动运行时为主；动态表走「物理主表 + JSON 列」混合存储、不走 EF 模型；统一 Filter AST；正式 Schema Migrator；代码生成退化为可选薄壳](/design/adr/adr-011-metadata-dynamic-data.md): Kun 的世界观是「编译期已知、显式注册、AOT 零反射、强类型 EF 模型」，低代码的日常是「运行时按元数据建表、动态列、动态校验、动态事件」。Kun 用 IsAotCandidate 开关把不能 AOT 的模块隔离成「非 AOT 孤岛…
+- [流程引擎：自研 .NET 轻量审批内核；简单/标准流程合并为一套 JSON 定义；S2 只做节点树视图设计器](/design/adr/adr-012-workflow-engine.md): 参考平台是「.NET 业务编排 + Java Flowable 令牌推进」双进程双库：Flowable 只回答「当前在哪、下一步能去哪」，条件全在 .NET 算，跳转靠改引擎内部实体，失败靠补偿对齐；真正「引擎」相关代码 .NET 侧不到…
+- [前端与［前端框架］：React 19 + Vite + Tailwind v4 + Base UI + shadcn 源码自有化；六层分层；一套表单/表格/弹层引擎；Module Federation 2 外壳](/design/adr/adr-013-frontend-framework.md): 参考平台前端是「两套并存」的反面教材：Vue 3 + 开源后台模板内核之上叠加另一套 UI 库封装与第三方表格，弹窗、表单、表格、Tree、Loading 都有两到三套实现；去重后组件与设计器全集约 251 条目，其中真正的设计器 8 个…
+- [应用市场形态：应用 = 插件包（bundle）；template / managed 两种分发；S1 就定下包格式、升级与冲突处理、权益 API](/design/adr/adr-014-marketplace.md): 应用市场本身是 S3 的普通插件，但它所依赖的「包格式、授权、隔离」必须在 S1 进内核或系统插件，否则之后几乎改不了（基线 P §0 第 9 条、§7.2）。参考平台的导出包是反例：单功能与整应用导出都不含菜单 / 权限 / 数据接口 …
+- [模型服务网关：并入团队现有 Higress / MaaS 基础设施；GPUStack 作 OpenAI 兼容上游 + Provider Adapter；不自写模型代理；不把 SSO 交给 Higress](/design/adr/adr-015-model-gateway.md): 模型服务网关是本期唯一的 AI 范围。现网（2026-10-03 合入）已有 Higress 2.2.3（gateway 2 副本 + PDB，console 内网）、McpBridge 上游注册（DashScope 与 OpenRout…
+- [与［下游智能体平台］的边界：Qian = 能力提供方 + 业务主数据权威；［下游智能体平台］ = Agent 运行时 + AI 资产控制面；Qian 不写任何 Agent loop](/design/adr/adr-016-agent-boundary.md): ［下游智能体平台］是团队基于 Kun 的 Agent 产品（C# 四服务 + Python Harness，React 19 前端）。其 Agent 运行时（Harness Agent loop、Sub-agent / Workflow、…
+- [部署：沿用现有 K3s / ArgoCD / Kustomize / Harbor 约定；Qian 独立命名空间 + 专属 PG/Redis；不以 per-tenant namespace 为默认](/design/adr/adr-017-deployment.md): Kun 仓库没有 Dockerfile、compose、Helm、manifest、健康端点映射或镜像构建脚本；K8s 只出现在文档假设（基线 K §2.5）。团队另有成熟的部署约定（［部署仓库］）：单集群 K3s v1.35 三节点全 …
+- [阶段切分与 S1 范围：S1 技术底座 → S2 低代码构建 → S3 面向客户 → S4 AI 原生 Agent 平台；每阶段有可验收的退出标准](/design/adr/adr-018-stages-s1-scope.md): 七份基线都以同一阶段口径分级，但对若干能力的阶段归属有分歧：流程内核原语归 S1 还是 S2；企微 / 钉钉 / 飞书连接器 S1 必做、可选还是 S2；refresh 令牌与单点登出；审计路径；Wasm function；打印；工作台；…
+- [库优先（Library-first）：每个 Qian 系统组件首先是可独立安装使用的 NuGet 包，其次才经清单成为插件；插件 = 库 + 清单](/design/adr/adr-019-library-first-packages.md): ADR-002 / ADR-003 把 Qian 的一切能力组织为插件，S1 的 18 个系统插件以 kind: module 编译期并入 qian-platform 等宿主。在此前的表述下，一个外部系统若想复用 Qian 的文件、鉴权、…
+- [组件模型 v2：一切皆插件、声明式组件、一键安装、目录市场](/design/adr/adr-020-component-model-v2.md): 2026-10-06 产品负责人给出两条连续的方向修正：第一，通用组件（登录、权限、文件上传等）要做到「别人安装一个包就能直接用」；第二，组件化设计要对标当代 Agent 生态里的三类做法，「不要再做传统设计」。所指的三类做法分别是：
+- [产品族结构：Kun / Qian / ［前端框架］的定位、仓库关系与统一文档](/design/adr/adr-021-product-family-structure.md): 三个名字已经在用：Kun（底座框架）、Qian（平台）、［前端框架］（前端组件库），周边还有官方市场仓库 qian-plugins、兄弟系统［下游智能体平台］、部署仓库与模型服务仓库。它们之间的层次关系、仓库怎么关联、Kun 文档从哪来，…
+- [统一 Rspress 组件文档与验收](/design/adr/adr-022-rspress-unified-component-docs.md): S1-YUE-005 按原验收交付了 51 个组件入口、manifest 和 Storybook；平台文档已使用 Rspress 2.0.23。两套文档入口使使用者需要切换导航、搜索和预览。2026-10-14 产品负责人明确要求「统一使…
+- [Qian 并入 Kun 并重新定位 Kun：合并蓝图](/design/adr/adr-023-kun-qian-merge-blueprint.md): 2026-11-17 产品负责人提问「Kun 和 Qian 是否可以合并为一个框架」。合仓此前被否决过三次：ADR-001 §4、ADR-021 D21.2、框架细化备忘录 §3.3 (d)。按当日代码重核，当时的理由大多已不成立（对照表…
+- [模型服务：平台不装 Higress；额度的单位用积分，积分系统可以选择启用或不启用，周期可以选择；模型请求改由平台自己的模型入口转发（提议；2026-11-27 照原表第 5 条的建议定了，见 §10）](/design/adr/adr-024-model-entry-no-gateway.md): 本文说的「模型入口」，指平台一侧接调用方的模型请求、转给上游的那一处；「现成的模型网关」，指 Higress 这一类另外安装的网关；「推理服务」指自己管 GPU 与模型的推理服务，现行的选型是 GPUStack（ADR-015 D15.2…
+- [匠心工业智能体平台产品需求文档（PRD）](/design/prd/index.md): 本 PRD 的 S1–S4 是产品需求。已实现的后端包查迁移对照，组件装配与骨架状态查组件目录，前端已发布包查工作区版本目录。
+- [1. 愿景与定位](/design/prd/01-vision.md): 把这句话拆开：
+- [2. 设计原则](/design/prd/02-principles.md): 本章把平台的设计原则写成可检验的条目。每条给出 定义、关键区分 / 澄清 与 铁律；铁律是不可违背的约束，违反即为缺陷而非权衡。原则分四组：插件思维（2.1–2.7；2.7a–2.7b 为组件模型 v2 新增，ADR-020）、Agent…
+- [3. 核心概念模型](/design/prd/03-concepts.md): 本章定义平台的十个核心概念，3.4a 另列组件模型 v2（ADR-020）新增的六个概念。每个概念给出 定义、例子、承诺；承诺用四种符号：✅ 可做 · ❌ 不可做 · ⚠️ 有条件 · 🔒 保留与隔离。概念之间的关系见 3.0 的总图；易…
+- [4. 形态与目标市场](/design/prd/04-market.md): 本章回答「平台长什么样、卖给谁、怎么交付」。架构图只到 profile（可部署单元 = profile，ADR-020）、组合包与共享组件一级，内部结构见 §07–§10；部署细节见 ADR-017；市场数字一律写「待定」或区间，不编造。
+- [5. 核心差异化](/design/prd/05-differentiators.md): 每根支柱：名称（起始阶段）→ 承诺一句 → 具体措施清单。措施只写「做什么、到什么程度」，实现细节与接口见 §07–§10。支柱之间的关系：支柱 1 是方法，支柱 2 是面向未来的契约层，支柱 3 是面向开发者的交付面，支柱 4 是不可绕…
+- [6. 用户与场景](/design/prd/06-users-scenarios.md): 本章先定义七类角色，再给每个阶段一个可演示的 Demo 场景。场景按「指令原文 / 操作 → 编号执行流 → 体验要点」书写；执行流只到用户可感知的粒度，接口与数据结构见 §07–§10。
+- [§07 S1 技术底座功能规格](/design/prd/07-s1-foundation.md): S1 的唯一目标是把平台做成一个开发人员可以在其上用代码写出多租户应用的平台底座。按 ADR-018，S1 的退出标准有两条，缺一不可：
+- [§08 S2 低代码构建](/design/prd/08-s2-lowcode.md): 本章是 S2 设计。元数据、动态数据、表单、流程、设计器及其示意包名是待交付能力。现有基础库为 Kun.Data.Abstractions、Kun.Authorization.Rbac.Abstractions 和 Qian 已发布的组件…
+- [§09 S3 面向客户](/design/prd/09-s3-customer.md): 把 S2 的「平台运营方帮租户装应用」变成租户自助：租户能从应用市场选购并开通应用、自助配置身份源与品牌；ISV 能上架；平台能计量计费。市场形态按 ADR-014 演进：S3 初私有目录型（M2）→ S3 中开放 ISV 与在线交易（M…
+- [§10 S4 AI 原生 Agent 平台与模型服务网关](/design/prd/10-s4-agent.md): 组件模型 v2 口径（ADR-020 D20.9）。Agent 表面从 S1 起即是一等公民：skills / agents / commands / hooks / MCP / tools 是组件文件夹里的声明式表面（§07 7.2.2…
+- [11. 体验原则与产品词表](/design/prd/11-ux-glossary.md): 本章分两部分：11.1 是跨角色、跨阶段都成立的体验原则，每条给「原则 → 在产品里的样子 → 反例」；11.2 是产品词表，所有章节与界面文案用词以此为准。词表「状态」列：已定义 = 术语与语义已由决策或本 PRD 定稿；规划中 = 术…
+- [§12 能力边界](/design/prd/12-boundaries.md): S1 退出标准（ADR-018；ADR-020 §6 新增末句）：开发人员用代码在平台上写出一个多租户应用，登录/SSO、鉴权、数据存储、文件上传、配置、网关、事件、审计全部由平台提供；一个官方 module 插件能独立出修订、逐租户迁移…
+- [§13 权限与安全](/design/prd/13-security.md): 一个请求的审计主体链写法：actor（实际执行者）+ on_behalf_of（代表谁）+ channel（来源通道 UI / API / MCP / A2A / job / event）。人直接操作时 actor = on_behalf…
+- [§14 质量与评估](/design/prd/14-quality.md): 首屏 script 体积预算（PR 阻断，error 级）：外壳首屏 script 压缩后传输体积 ≤ 250 KB，由 Lighthouse CI 的 resource-summary:script:size 断言；S1-YUE-003…
+- [15. 演进路线（指针）](/design/prd/15-roadmap.md): 阶段、里程碑与退出标准的唯一真相源是 /docs/ROADMAP.md。 本章只保留阶段总览表与指针，避免双向维护；任何对阶段内容的修改只在 ROADMAP 进行，本章随之更新表格而不新增叙述。
+- [16. 成功指标](/design/prd/16-metrics.md): 本章分两部分：16.1 是各阶段的退出准则——直接采用 ADR-018 的表述并细化为可测项，每项写明测法与 PASS 条件，是进入下一阶段功能开发的门禁；16.2 是各阶段的可量化 KPI——用于衡量做得好不好，不构成门禁。原则：能用自…
+- [17. 借鉴声明](/design/prd/17-references.md): 本章说明平台借鉴了哪些外部项目、以什么许可证、借鉴了什么、以及我们的态度。态度分四种：引入代码（作为依赖或搬运代码，须遵守其许可证）；只借鉴设计（不引入任何代码，含许可证限制与我们主动选择两种原因）；运维侧使用（作为基础设施运行，不进入产…
+- [认证页族设计规格（登录 / 第二因子 / 租户选择与切换 / 强制改密 / 绑定 / 设备码 / 授权同意）](/design/prd/specs/auth-pages.md): 状态：草案 2026-10-21，待产品负责人确认（§8 D1–D14）。合成自三份设计（企业后台派为主线，发行方视角派与无密码多渠道派并入）与九份评审，纠错记录见 §9。
+- [远程授权接口与客户端包：契约草案（十个问题已裁定，其余是提议）](/design/prd/specs/authz-remote-interface.md): 本文答一件事：不在平台宿主里的系统，怎么问 Kun「这个主体能不能对这个资源做这个动作」。「平台宿主」指 Kun 的平台进程（hosts/Kun.Platform.Host），下同。照「权限都走这一套」的整理读法（第 1.2 节），这样的…
+- [专题 spec · 组件模型 v2（清单 · 表面 · 运行时 · profile · 市场 · CLI）](/design/prd/specs/component-model.md): 本规格同时给出当前实现、示意清单与规划 API。示例的包版本和市场地址仅说明格式。实际 .NET 包、组件状态、前端依赖分别见迁移对照、组件目录、工作区版本目录。
+- [数据过滤与记录扩展契约 v1](/design/prd/specs/data-contracts.md): 本文是 S1-DATA-004 的权威规格，落实 ADR-011 D11.7 与 §07 7.6；供数据过滤、高级查询、数据权限、按钮启用规则、流程条件五处共用。源文件位于 contracts/data/v1/，C# 类型、嵌入 Sche…
+- [文档站信息架构与规范（Rspress 2.0）](/design/prd/specs/docs-site.md): 本站是 Kun 的组件文档站。【经 S1-DEC-043 D8 标注：平台总览的文档站 2026-11-26 起只放匠心自己的文档，不再汇集别的仓库的文档；本仓库的文档只在本仓库和本站。本句不改】产品总览和跨仓文档由 CavaiLAB/j…
+- [模型服务的标准接口：契约草案（提议）](/design/prd/specs/model-service-interface.md): 状态：照产品负责人 2026-11-27 的裁定改定，尚未实现。2026-11-26 起草；2026-11-27 先照他 2026-11-26 的答复与 ADR-024 改写，同一天再照他对《决策表》的答复改定（ADR-024 §10，S…
+- [专题 spec · 插件清单 v1（`qian-plugin.yaml`）](/design/prd/specs/plugin-manifest.md): 现行组件使用 v2 JSON Schema。旧清单的包名、生成器入口与属性只用于迁移对照；当前 .NET 包见迁移指南。
+- [租户自助开通：注册申请、平台审核与首次进入](/design/prd/specs/tenant-signup.md): 开通服务由 Kun 平台组件 qian.tenancy.signup 提供。公共页面与运营界面由本仓库的界面包实现，并消费 Qian 前端框架。见开通组件。
+- [Qian 调研基线要点汇编](/design/research/baseline-digest.md): K · Kun 能力与差距。 Kun 是「微服务开发框架」而非平台内核：可生产级只有 Kun.Core 与 Kun.Mediator，关键路径有多处正确性缺口（丢消息、at-most-once、丢租户、无锁、网关不强制认证、gRPC 流式…
+- [配置目录](/design/generated/config-catalog.md): 由 qian docs generate 派生；profile： platform 。请修改输入后重新生成。
+- [事件图](/design/generated/event-graph.md): 由 qian docs generate 派生；profile： platform 。请修改输入后重新生成。
+- [模块图](/design/generated/module-graph.md): 由 qian docs generate 派生；profile： platform 。请修改输入后重新生成。
+- [seam 图](/design/generated/seam-graph.md): 由 qian docs generate 派生；profile： platform 。请修改输入后重新生成。
+- [配置开发、运行与故障处置（S1-CFG-001 / 002 / 003）](/design/ops/configuration-runbook.md): 配置源顺序与引导项见 Kun.Configuration.Platform。本手册描述已实现客户端的行为；L0–L4 为配置运维状态，与权限模型分层无关。
+- [K3s 控制面故障处置（S1-DEP-007）](/design/ops/k3s-control-plane-recovery.md): 2026-10 试点集群的控制面出现崩溃循环：控制面节点上的 k3s 反复退出重启，apiserver 间歇返回 ServiceUnavailable。本文记录现象、根因判断、方案取舍、通用的处置步骤与结论；执行与验收的记录见 S1-DE…
+- [staging 首次部署：平台与身份同进程（S1-DEP-011）](/design/ops/staging-first-deploy.md): 「初步可用」里程碑期间（S1-DEC-033 D2，R143），staging 按过渡形状部署：
+
+## 平台 · Others
+
+- [站点地图](/sitemap.md): 按七个部分列出本站全部页面。
+
+## Kun · SDK
+
+- [Kun 框架](/sdk/kun/index.md): 匠心智能体平台的企业级后端框架：为 Agent 时代构建的多租户平台框架，.NET 10。
+- [Getting Started with Kun Framework](/sdk/kun/getting-started.md): This tutorial takes about 10 minutes. By the end you will have the full sample stack running locally, have sent an orde…
+- [模块地图](/sdk/kun/modules.md): Version：0.1.0-phase1（2026-04-23 发布）。该版本建立了初始矩阵。持久化与租户模块按当前源码更新。任何下游仓库对 Kun.* 的消费都应以本表为 SoT（Single Source of Truth）。
+- [Gateway 限流策略指南](/sdk/kun/guides/gateway-rate-limit.md): Kun.Gateway.RateLimiting 把 ASP.NET Core 内置的 RateLimiter 包装成策略 × 分区的两维组合：三种分区解析（partition resolver）× 三种限流策略（limiter poli…
+- [Identity 客户端、浏览器会话与迁移](/sdk/kun/guides/identity-client.md): 内核 Kun.Identity 提供 OIDC 依赖方协议与会话端口。平台包 Kun.Identity.Server 提供基于 OpenIddict 的身份服务，Kun.Identity.Client 将平台会话接入宿主。S2S 的唯一新…
+- [Outbox + Integration Events 指南](/sdk/kun/guides/outbox-and-integration-events.md): 怎么在一个 Kun 服务里把一条领域事件翻译成跨服务的 Integration Event，让它原子地落库、异步地发到 RabbitMQ，并且在消费端幂等。参考：docs/adr/kun/ADR-015-Outbox-pattern.md…
+- [NuGet 包迁移指南](/sdk/kun/guides/package-migration.md): 首个合并版发布后，从平台 0.x 或内核 2026.10.25 升级的项目可按以下步骤选择版本。内核档从 nuget.org 还原，平台档从 CavaiLAB 的 GitHub Packages 还原。beta 版本的两档包均从 GitH…
+- [Read-Side Patterns: Writing Query Handlers](/sdk/kun/guides/read-side-patterns.md): This guide covers the recommended patterns for query handlers in Kun. It assumes you understand the write/read split; f…
+- [SaaS 多租户策略选型指南](/sdk/kun/guides/saas-multitenancy.md): Kun Framework 通过 Kun.Core.MultiTenancy + Kun.EntityFrameworkCore.MultiTenancy 提供三种 SaaS 数据隔离策略：Row / Schema / Database。…
+- [Schema-per-service with KunDbContext](/sdk/kun/guides/schema-per-service.md): Scope: how to run multiple Kun-based services against a single PostgreSQL instance by giving each service its own schem…
+- [Tracing Tour: Reading Distributed Traces in the Aspire Dashboard](/sdk/kun/guides/tracing-tour.md): This document walks through the OpenTelemetry traces you will see when running the Kun sample stack via dotnet run --pr…
+- [Command 校验指南（Kun.Validation）](/sdk/kun/guides/validating-commands.md): 怎么在一个 Command/Query Handler 上挂校验，并且让失败以 Result.Fail(...)（错误码 INPUT_INVALID，带逐项字段错误）而不是异常的形式流到调用方。参考：docs/adr/kun/ADR-01…
+- [命令审计与实体审计](/sdk/kun/security/audit-log.md): 成功命令的哈希链由 qian.audit 组件维护。需要记录业务实体变化的宿主可以另外启用实体审计。
+- [Multi-Tenancy: Row-Level Security as Defence in Depth](/sdk/kun/security/multi-tenancy-rls.md): Kun enforces tenant isolation at two independent layers:
+- [Service-to-Service JWT Authentication](/sdk/kun/security/s2s-jwt.md): This document explains how Kun's zero-trust service mesh works, what the Gateway signs, what downstream services verify…
+- [Why Kun Splits Writes from Reads](/sdk/kun/architecture/why-cqrs.md): Kun enforces a hard boundary between the write side and the read side of every bounded context. This is not a stylistic…
+- [Why Kun Uses the Outbox Pattern](/sdk/kun/architecture/why-outbox.md): When a service saves a business entity and publishes an integration event, those are two separate I/O operations. The O…
+- [When to use ICurrentUser vs IAuthenticatedUser](/sdk/kun/architecture/when-to-use-currentuser.md): The host selects the authentication scheme and registers a request-scoped adapter. Choose the interface by the data and…
+- [ADR-001: Do Not Introduce a New Kun.Identity Module](/sdk/kun/architecture/adr-001-kun-identity-module-decision.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-001」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [ADR-003: Introduce Kun.Audit and Kun.Audit.EntityFrameworkCore Modules](/sdk/kun/architecture/adr-003-kun-audit-module.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-003」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [ADR-004: Introduce Kun.Observability Module](/sdk/kun/architecture/adr-004-kun-observability-module.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-004」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [ADR-005: Introduce Kun.Caching Module](/sdk/kun/architecture/adr-005-kun-caching-module.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-005」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [ADR-006: Introduce Kun.RateLimit Module](/sdk/kun/architecture/adr-006-kun-ratelimit-module.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-006」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [ADR-007: Introduce Kun.MultiTenancy and Kun.MultiTenancy.EntityFrameworkCore Modules](/sdk/kun/architecture/adr-007-kun-multitenancy-module.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-007」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [ADR-008: Introduce Kun.Identity Module — Reversing ADR-001](/sdk/kun/architecture/adr-008-kun-identity-module.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-008」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [ADR-009: Introduce Kun.Configuration Module](/sdk/kun/architecture/adr-009-kun-configuration-module.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-009」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [ADR-010: Add Cookie Session + IAuthenticatedUser to Kun.Identity](/sdk/kun/architecture/adr-010-kun-identity-cookie-session.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-010」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [ADR-011: Result<T> composition extensions (sync + async)](/sdk/kun/architecture/adr-011-result-async-extensions.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-011」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [ADR-012: Introduce Kun.Testing module](/sdk/kun/architecture/adr-012-kun-testing-module.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-012」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [ADR-013: Baggage-driven activity enricher for Kun.Observability](/sdk/kun/architecture/adr-013-kun-observability-enricher.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-013」。2026-11-18 搬入本仓库，正文照原文。
+- [ADR-014: Result-returning validation pipeline behavior](/sdk/kun/architecture/adr-014-validation-result-behavior.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-014」。2026-11-18 搬入本仓库，正文照原文。
+- [ADR-015: Outbox pattern design for Kun.EventBus](/sdk/kun/architecture/adr-015-outbox-pattern.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-015」。2026-11-18 搬入本仓库，正文照原文。
+- [ADR-016 配置可靠性、权限端口与能力目录](/sdk/kun/architecture/adr-016-platform-ports.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-016」。2026-11-18 搬入本仓库，正文照原文。
+- [ADR: P2-D SaaS 多租户 3-策略架构](/sdk/kun/architecture/adr-p2d-multitenancy.md): 本文是原 Kun 的决策记录，2026-11-18 搬入本仓库，正文照原文。
+- [ADR-S02: Introduce Kun.Sandbox Module — E2B-compatible sandbox abstraction for Kun consumers](/sdk/kun/architecture/adr-s02-kun-sandbox-module.md): 本文是原 Kun 的决策记录，引用时写「Kun ADR-S02」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+- [Kun Framework 架构设计与产品白皮书](/sdk/kun/whitepaper.md): "北冥有鱼，其名为鲲。鲲之大，不知其几千里也；化而为鸟，其名为鹏。" ——《庄子·逍遥游》
+- [Kun 版本记录](/sdk/kun/releases/index.md): 2026.11.21 的事件与审计各节没有写全的行为变化与删除项，补记如下：
+- [Kun 0.1.0 历史发布说明](/sdk/kun/releases/v0-1-0-phase1.md): 原始发布说明和同仓版本记录的入口。
+- [Kun API 参考](/sdk/api/kun/index.md): Kun 2026.11.24 的 42 个 Kun.* 包、92 个命名空间、431 个公开类型的 API 参考，DocFX 生成
+- [Kun.AspNetCore.Endpoints](/sdk/api/kun/kun-aspnetcore-endpoints/index.md): 命名空间 Kun.AspNetCore.Endpoints：1 个公开类型（Kun.AspNetCore）
+- [KunEndpointRouteBuilderExtensions（Class）](/sdk/api/kun/kun-aspnetcore-endpoints/kunendpointroutebuilderextensions.md): Extension methods on IEndpointRouteBuilder for mapping Kun CQRS requests to Minimal API endpoints in an AOT-safe manner.
+- [Kun.Audit.Postgres](/sdk/api/kun/kun-audit-postgres/index.md): 命名空间 Kun.Audit.Postgres：4 个公开类型（Kun.Audit.Postgres）
+- [NativeAuditComponent（Class）](/sdk/api/kun/kun-audit-postgres/nativeauditcomponent.md): 原生 PostgreSQL 审计的唯一组件入口。
+- [NativeAuditPlugin（Class）](/sdk/api/kun/kun-audit-postgres/nativeauditplugin.md): 服务与审计策略同属 Apply 效果栈，卸载取消并排空在途调用。
+- [NativeAuditRoles（Class）](/sdk/api/kun/kun-audit-postgres/nativeauditroles.md): 离线迁移和在线核验共用的专用角色声明；角色名不是凭据。
+- [NativeAuditStorage（Class）](/sdk/api/kun/kun-audit-postgres/nativeauditstorage.md): 原生审计的离线迁移和固定安全声明。在线 Provider 只校验，不调用迁移。
+- [AuditChainEntry（Class）](/sdk/api/kun/kun-audit/auditchainentry.md): 持久化的链节点；序号和前序都参与哈希验证。
+- [AuditChainVerification（Class）](/sdk/api/kun/kun-audit/auditchainverification.md): 全链验证结果；BrokenAt 指出最早不一致的位置，不回显敏感记录。
+- [AuditDefinition（Class）](/sdk/api/kun/kun-audit/auditdefinition.md): 组件间的审计 seam，不是客户端可直接调用的审计写入 HTTP API。
+- [AuditErrors（Class）](/sdk/api/kun/kun-audit/auditerrors.md): 审计组件的稳定错误码。
+- [AuditInputProjection（Class）](/sdk/api/kun/kun-audit/auditinputprojection.md): 由可信能力契约构造的输入审计策略；元数据不能来自调用请求。脱敏后才计算输入哈希。
+- [AuditProtocol（Class）](/sdk/api/kun/kun-audit/auditprotocol.md): 审计 v1 的确定性 JSON：键按 ordinal 排序，精确十进制数规整，数组顺序保留，重复键拒绝。
+- [AuditRecord（Class）](/sdk/api/kun/kun-audit/auditrecord.md): 进入审计链的不可变记录；输入只保留脱敏后的哈希，Payload 须由可信调用方按审计契约构造。
+- [IAuditReader（Interface）](/sdk/api/kun/kun-audit/iauditreader.md): 组件内读取端口；面向用户的查询必须由宿主另行鉴权并审计。
+- [IAuditService（Interface）](/sdk/api/kun/kun-audit/iauditservice.md): Audit seam 的读写服务。
+- [IAuditWriter（Interface）](/sdk/api/kun/kun-audit/iauditwriter.md): 可信组件生成记录后的追加端口；独立追加不替代业务同事务写入。
+- [Kun.Audit](/sdk/api/kun/kun-audit/index.md): 命名空间 Kun.Audit：11 个公开类型（Kun.Audit.Abstractions）
+- [NativeAuditErrors（Class）](/sdk/api/kun/kun-audit/nativeauditerrors.md): 原生审计 Provider 的安全装配错误，不包含连接凭据。
+- [AuthorizationSubject（Class）](/sdk/api/kun/kun-authorization/authorizationsubject.md): 统一授权主体；权限集合不从令牌直接推导。
+- [FieldDecision（Class）](/sdk/api/kun/kun-authorization/fielddecision.md): 字段可读、可写与需要脱敏的集合。
+- [IDataPermissionFilter（Interface）](/sdk/api/kun/kun-authorization/idatapermissionfilter.md): 本地数据过滤端口，不依赖 EF 包或具体数据库。
+- [IFieldPolicy（Interface）](/sdk/api/kun/kun-authorization/ifieldpolicy.md): 字段权限端口；输出给服务端投影与写入白名单。
+- [Kun.Authorization](/sdk/api/kun/kun-authorization/index.md): 命名空间 Kun.Authorization：11 个公开类型（Kun.Authorization）
+- [IPermissionChecker（Interface）](/sdk/api/kun/kun-authorization/ipermissionchecker.md): 权限判定端口；框架不提供 RBAC、ABAC 或持久化引擎。
+- [IPermissionEnforcementInterceptor（Interface）](/sdk/api/kun/kun-authorization/ipermissionenforcementinterceptor.md): 标识在调用 gRPC 处理器前执行端点权限要求的拦截器。
+- [IPermissionEnforcementRequirement（Interface）](/sdk/api/kun/kun-authorization/ipermissionenforcementrequirement.md): 标识端点授权策略里执行某个权限点的要求。宿主的权限回调给端点加上这样的要求，构造端点时据此核对权限点确实接上了执行点；自定义执行点让自己的授权要求实现本接口。
+- [IPermissionProtectedRequest（Interface）](/sdk/api/kun/kun-authorization/ipermissionprotectedrequest.md): 命令在编译期声明全部所需权限，避免从用户提交的 JSON 改写权限点。
+- [PermissionDecision（Class）](/sdk/api/kun/kun-authorization/permissiondecision.md): 可解释判定；Allow=false 是缺省语义。
+- [PermissionRequest（Class）](/sdk/api/kun/kun-authorization/permissionrequest.md): 权限点与可选资源实例；Permission 使用稳定的资源动作编码。
+- [RequiresPermissionAttribute（Class）](/sdk/api/kun/kun-authorization/requirespermissionattribute.md): HTTP/gRPC 端点的静态权限元数据。
+- [IKunCache（Interface）](/sdk/api/kun/kun-caching-abstractions/ikuncache.md): Unified cache abstraction for Kun Framework consumers. Implementations back to an in-process IMemoryCache or to a distr…
+- [IKunCacheSerializer（Interface）](/sdk/api/kun/kun-caching-abstractions/ikuncacheserializer.md): Pluggable serializer used by the Redis-backed cache to convert cache entries to and from byte arrays. The default regis…
+- [Kun.Caching.Abstractions](/sdk/api/kun/kun-caching-abstractions/index.md): 命名空间 Kun.Caching.Abstractions：2 个公开类型（Kun.Caching）
+- [Kun.Caching.Configuration](/sdk/api/kun/kun-caching-configuration/index.md): 命名空间 Kun.Caching.Configuration：1 个公开类型（Kun.Caching）
+- [KunCachingOptions（Class）](/sdk/api/kun/kun-caching-configuration/kuncachingoptions.md): Configuration for AddKunCaching.
+- [Kun.Caching.DependencyInjection](/sdk/api/kun/kun-caching-dependencyinjection/index.md): 命名空间 Kun.Caching.DependencyInjection：2 个公开类型（Kun.Caching）
+- [KunCachingBuilder（Class）](/sdk/api/kun/kun-caching-dependencyinjection/kuncachingbuilder.md): Fluent builder returned from AddKunCaching.
+- [KunCachingServiceCollectionExtensions（Class）](/sdk/api/kun/kun-caching-dependencyinjection/kuncachingservicecollectionextensions.md): Service-collection extensions that register Kun.Caching backends.
+- [Kun.Caching.Implementations](/sdk/api/kun/kun-caching-implementations/index.md): 命名空间 Kun.Caching.Implementations：3 个公开类型（Kun.Caching）
+- [MemoryKunCache（Class）](/sdk/api/kun/kun-caching-implementations/memorykuncache.md): In-process IKunCache backed by IMemoryCache. Stores values directly — no serialization round-trip — so mutations on cac…
+- [RedisKunCache（Class）](/sdk/api/kun/kun-caching-implementations/rediskuncache.md): Distributed IKunCache backed by an IDistributedCache instance (typically Microsoft.Extensions.Caching.StackExchangeRedi…
+- [SystemTextJsonCacheSerializer（Class）](/sdk/api/kun/kun-caching-implementations/systemtextjsoncacheserializer.md): Default IKunCacheSerializer backed by JsonSerializer. Uses web-style options (camelCase, case-insensitive reads) and re…
+- [ApolloConfigurationDescription（Class）](/sdk/api/kun/kun-configuration-apollo/apolloconfigurationdescription.md): 已装配的 Apollo 配置源与其脱敏的发布记录。
+- [ApolloConfigurationExtensions（Class）](/sdk/api/kun/kun-configuration-apollo/apolloconfigurationextensions.md): 显式添加 Apollo；源顺序由宿主按 appsettings、Apollo、Secret、环境变量、命令行安排。
+- [ApolloConfigurationProvider（Class）](/sdk/api/kun/kun-configuration-apollo/apolloconfigurationprovider.md): 通过公开协议获取服务级配置；无网络且无缓存时启动失败，不以空配置继续。
+- [ApolloConfigurationSource（Class）](/sdk/api/kun/kun-configuration-apollo/apolloconfigurationsource.md): Apollo 标准 IConfiguration 源。
+- [ApolloOptions（Class）](/sdk/api/kun/kun-configuration-apollo/apollooptions.md): 平台／服务级 Apollo 引导配置；不承载租户级配置或明文业务密钥。
+- [ApolloReleaseRecord（Class）](/sdk/api/kun/kun-configuration-apollo/apolloreleaserecord.md): 一份快照的发布结果，仅含资源标识、变更数量、原因码与脱敏摘要。
+- [Kun.Configuration.Apollo](/sdk/api/kun/kun-configuration-apollo/index.md): 命名空间 Kun.Configuration.Apollo：8 个公开类型（Kun.Configuration.Apollo）
+- [KunApolloConfigurationExtensions（Class）](/sdk/api/kun/kun-configuration-apollo/kunapolloconfigurationextensions.md): 固定配置源顺序，复用 Kun 的协议、缓存、签名与重载实现。
+- [KunConfigurationOptions（Class）](/sdk/api/kun/kun-configuration-apollo/kunconfigurationoptions.md): 配置装配参数；引导值来自宿主源，Apollo 不能改变自己的访问地址或访问密钥引用。
+- [Kun.Configuration.Attributes](/sdk/api/kun/kun-configuration-attributes/index.md): 命名空间 Kun.Configuration.Attributes：3 个公开类型（Kun.Configuration）
+- [NonEmptyStringConfigAttribute（Class）](/sdk/api/kun/kun-configuration-attributes/nonemptystringconfigattribute.md): Validates that the string value is non-null and non-whitespace. Combine with RequiredConfigAttribute when the key must …
+- [RequiredConfigAttribute（Class）](/sdk/api/kun/kun-configuration-attributes/requiredconfigattribute.md): RequiredAttribute tuned for configuration errors — rejects null values and produces an error message that names the mis…
+- [UrlConfigAttribute（Class）](/sdk/api/kun/kun-configuration-attributes/urlconfigattribute.md): Validates that the string value parses as an absolute URI via TryCreate. Accepts null — pair with RequiredConfigAttribu…
+- [Kun.Configuration.Extensions](/sdk/api/kun/kun-configuration-extensions/index.md): 命名空间 Kun.Configuration.Extensions：1 个公开类型（Kun.Configuration）
+- [KunConfigurationServiceCollectionExtensions（Class）](/sdk/api/kun/kun-configuration-extensions/kunconfigurationservicecollectionextensions.md): Service-collection extensions that register Kun typed-options validation.
+- [Kun.Configuration.Secrets](/sdk/api/kun/kun-configuration-secrets/index.md): 命名空间 Kun.Configuration.Secrets：7 个公开类型（Kun.Configuration.Secrets）
+- [KubernetesSecretLocation（Class）](/sdk/api/kun/kun-configuration-secrets/kubernetessecretlocation.md): 可信引导中的 Kubernetes 文件定位，不作为公开组件引用。
+- [MountedSecretStore（Class）](/sdk/api/kun/kun-configuration-secrets/mountedsecretstore.md): 读取受信任根目录中的 K8s 投射文件，支持根内的 ..data 原子轮换。
+- [SecretAccessPolicy（Class）](/sdk/api/kun/kun-configuration-secrets/secretaccesspolicy.md): 调用方的声明与审批策略，两者都必须允许访问。
+- [SecretBinding（Class）](/sdk/api/kun/kun-configuration-secrets/secretbinding.md): 公开引用到 Kubernetes 挂载文件的可信绑定。
+- [SecretResolverFactory（Class）](/sdk/api/kun/kun-configuration-secrets/secretresolverfactory.md): 不可变策略与按需文件读取的组合；不缓存已解析值。
+- [SecretResolverOptions（Class）](/sdk/api/kun/kun-configuration-secrets/secretresolveroptions.md): 只来自可信宿主引导，不从请求或模型输入建立授权。
+- [SecretServiceExtensions（Class）](/sdk/api/kun/kun-configuration-secrets/secretserviceextensions.md): 独立宿主与平台共用的安全解析装配。
+- [ConfigDefinition（Class）](/sdk/api/kun/kun-configuration/configdefinition.md): 平台/服务级只读配置 seam；租户设置由 Tenancy 管理。
+- [ConfigErrors（Class）](/sdk/api/kun/kun-configuration/configerrors.md): 配置组件的稳定错误词汇。
+- [ConfigEvents（Class）](/sdk/api/kun/kun-configuration/configevents.md): 配置组件的事件与审计词汇；只含稳定标识，不含任何配置值。
+- [ConfigReloadFailed（Class）](/sdk/api/kun/kun-configuration/configreloadfailed.md): 重载失败告警（ConfigEvents.ReloadFailedType）：options 类型与名称、配置节、失败条数与错误码；不含任何配置值，也不含校验消息原文（自定义校验器的消息可能带值）。
+- [ConfigRuntimeEvents（Class）](/sdk/api/kun/kun-configuration/configruntimeevents.md): Config seam 的进程内扩展事件（组件模型规格 §6.4）。
+- [FeatureFlagDraft（Class）](/sdk/api/kun/kun-configuration/featureflagdraft.md): 草稿操作输入；目标环境、应用、namespace、操作员与秘密引用均由可信宿主固定。
+- [FeatureFlagDraftResult（Class）](/sdk/api/kun/kun-configuration/featureflagdraftresult.md): 草稿写入回执，不含 Token 或规则内容。
+- [FeatureFlagManagement（Class）](/sdk/api/kun/kun-configuration/featureflagmanagement.md): 可选平台管理组件的声明；只保存 Apollo 草稿，发布仍由 Portal 操作员完成。
+- [FeatureFlagPolicy（Class）](/sdk/api/kun/kun-configuration/featureflagpolicy.md): 固定灰度规则；没有表达式、外部地址或任意配置键。
+- [FeatureFlagRule（Class）](/sdk/api/kun/kun-configuration/featureflagrule.md): 从快照读取的一份开关规则。
+- [FeatureFlagRules（Class）](/sdk/api/kun/kun-configuration/featureflagrules.md): 解析并校验配置快照中的特性开关规则。
+- [IConfigService（Interface）](/sdk/api/kun/kun-configuration/iconfigservice.md): 供受信任代码读取配置；不提供写入入口，也不自动公开为模型工具。
+- [IFeatureFlagDrafts（Interface）](/sdk/api/kun/kun-configuration/ifeatureflagdrafts.md): 平台专用草稿写入；实现每次重新检查已认证主体、确认、权限与审计。
+- [IFeatureFlags（Interface）](/sdk/api/kun/kun-configuration/ifeatureflags.md): 只读租户灰度求值；不读取权益，不改变租户 scope 的组件挂载。
+- [IKunConfigurationValidator<TOptions>（Interface）](/sdk/api/kun/kun-configuration/ikunconfigurationvalidator-1.md): Reflection-free options validator — the AOT-safe alternative to DataAnnotations. Register one per options type via serv…
+- [Kun.Configuration](/sdk/api/kun/kun-configuration/index.md): 命名空间 Kun.Configuration：28 个公开类型（Kun.Configuration.Abstractions）
+- [ISecretAccessObserver（Interface）](/sdk/api/kun/kun-configuration/isecretaccessobserver.md): 可替换的审计接收端；写入失败不得返回密钥。
+- [ISecretResolver（Interface）](/sdk/api/kun/kun-configuration/isecretresolver.md): 已绑定调用方权限的按需密钥解析端口。
+- [ISecretResolverFactory（Interface）](/sdk/api/kun/kun-configuration/isecretresolverfactory.md): 宿主根据已审批策略创建解析器；平台调用方身份取自真实插件上下文。
+- [OptionsReloadFailure（Class）](/sdk/api/kun/kun-configuration/optionsreloadfailure.md): 一次被拒绝的候选配置，仅包含登记信息和失败条数。
+- [OptionsSchema（Class）](/sdk/api/kun/kun-configuration/optionsschema.md): 由源生成 JSON 元数据导出的配置契约，不包含任何运行时配置值。
+- [SecretAccessEvent（Class）](/sdk/api/kun/kun-configuration/secretaccessevent.md): 一次解析审计，只含引用名、调用方、租户和结果，不含值。
+- [SecretDiagnostic（Class）](/sdk/api/kun/kun-configuration/secretdiagnostic.md): 不含原值的配置扫描诊断。
+- [SecretErrors（Class）](/sdk/api/kun/kun-configuration/secreterrors.md): 秘密解析的统一错误，不把输入值或物理路径放进错误文案。
+- [SecretGrant（Class）](/sdk/api/kun/kun-configuration/secretgrant.md): 与 policy.permissions.secrets 条目对应的权限，不因声明本身而自动获批。
+- [SecretReference（Class）](/sdk/api/kun/kun-configuration/secretreference.md): 公开的规范引用；Kubernetes 定位只在受信任存储绑定中使用。
+- [SecretSafety（Class）](/sdk/api/kun/kun-configuration/secretsafety.md): 配置契约级敏感数据扫描，可供发布门禁与 Apollo 快照验证共用。
+- [SecretValue（Class）](/sdk/api/kun/kun-configuration/secretvalue.md): 密钥的受控内存副本；默认打印和 JSON 序列化不暴露内容。
+- [SecretValueJsonConverter（Class）](/sdk/api/kun/kun-configuration/secretvaluejsonconverter.md): 禁止把已解析密钥当作普通 JSON 数据。
+- [ICommand<TResponse>（Interface）](/sdk/api/kun/kun-core-cqrs/icommand-1.md): Command：写操作请求，带返回值。
+- [ICommand（Interface）](/sdk/api/kun/kun-core-cqrs/icommand.md): Command：写操作请求，无返回值（仍通过 Result 标识成败）。
+- [Kun.Core.Cqrs](/sdk/api/kun/kun-core-cqrs/index.md): 命名空间 Kun.Core.Cqrs：5 个公开类型（Kun.Core）
+- [IQuery<TResponse>（Interface）](/sdk/api/kun/kun-core-cqrs/iquery-1.md): Query：只读请求。应当在读侧走 Dapper AOT 等高性能路径。
+- [IRequest<TResponse>（Interface）](/sdk/api/kun/kun-core-cqrs/irequest-1.md): 请求标记，包含返回类型信息。由 Kun.Mediator 调度。
+- [IRequestHandler<TRequest, TResponse>（Interface）](/sdk/api/kun/kun-core-cqrs/irequesthandler-2.md): Handler 通用基类：处理 TRequest 并返回 TResponse。
+- [AggregateRoot<TKey>（Class）](/sdk/api/kun/kun-core-domain/aggregateroot-1.md): 便捷重载：审计用户 ID 默认为 Guid。
+- [AggregateRoot<TKey, TUserKey>（Class）](/sdk/api/kun/kun-core-domain/aggregateroot-2.md): DDD 聚合根基类。
+- [Entity<TKey>（Class）](/sdk/api/kun/kun-core-domain/entity-1.md): DDD 实体基类。实体的相等性由 Entity<TKey>.Id 决定，而非属性集合（这是实体与值对象的核心区别）。
+- [IAggregateRoot<TKey>（Interface）](/sdk/api/kun/kun-core-domain/iaggregateroot-1.md): 带强类型 Key 的聚合根标记接口。
+- [IAggregateRoot（Interface）](/sdk/api/kun/kun-core-domain/iaggregateroot.md): 聚合根标记接口（非泛型）。用于框架内部通过 ChangeTracker 按类型筛选。
+- [IAuditedObject<TUserKey>（Interface）](/sdk/api/kun/kun-core-domain/iauditedobject-1.md): 带用户标识的审计接口。 TUserKey 可以是 Guid、string、long 等，以兼容本地用户、外部 IdP 的 sub、数据库自增等不同场景。
+- [IAuditedObject（Interface）](/sdk/api/kun/kun-core-domain/iauditedobject.md): 通用审计接口，记录创建/修改时间。
+- [IDomainEvent（Interface）](/sdk/api/kun/kun-core-domain/idomainevent.md): 标记领域事件。领域事件由聚合根内部产生，表示业务上发生的重要事实。领域事件仅在聚合根边界内同步分发；若需跨服务传递，请在事件处理器中转换为 IIntegrationEvent。
+- [IDomainEventDispatcher（Interface）](/sdk/api/kun/kun-core-domain/idomaineventdispatcher.md): Dispatches domain events to their in-process handlers.
+- [IIntegrationEvent（Interface）](/sdk/api/kun/kun-core-domain/iintegrationevent.md): 集成事件标记接口。集成事件用于跨服务、跨进程的异步通知，与领域事件不同，集成事件通过 Outbox + 消息总线传递，具备版本演进能力。
+- [IMultiTenant（Interface）](/sdk/api/kun/kun-core-domain/imultitenant.md): 标记实体支持多租户隔离。由 KunDbContext 自动附加 TenantId 全局过滤器。
+- [Kun.Core.Domain](/sdk/api/kun/kun-core-domain/index.md): 命名空间 Kun.Core.Domain：13 个公开类型（Kun.Core）
+- [ISoftDelete（Interface）](/sdk/api/kun/kun-core-domain/isoftdelete.md): 标记实体支持软删除。由基础设施层在持久化时挂载全局查询过滤器。
+- [ValueObject（Class）](/sdk/api/kun/kun-core-domain/valueobject.md): DDD 值对象基类。值对象没有独立标识，相等性由其所有组成属性决定。值对象应当是不可变的——修改应返回新实例，而非改变现有实例。
+- [Kun.Core.MultiTenancy](/sdk/api/kun/kun-core-multitenancy/index.md): 命名空间 Kun.Core.MultiTenancy：6 个公开类型（Kun.Core）
+- [ITenantContext（Interface）](/sdk/api/kun/kun-core-multitenancy/itenantcontext.md): 租户上下文，从当前请求的认证信息（S2S JWT 的 tenant_id claim）中解析。
+- [ITenantProvisioner（Interface）](/sdk/api/kun/kun-core-multitenancy/itenantprovisioner.md): 租户生命周期钩子：开户（ITenantProvisioner.ProvisionAsync）与注销（ITenantProvisioner.DeprovisionAsync）。
+- [NullTenantContext（Class）](/sdk/api/kun/kun-core-multitenancy/nulltenantcontext.md): ITenantContext implementation for non-multi-tenant hosts or background jobs that operate without a tenant scope.
+- [NullTenantProvisioner（Class）](/sdk/api/kun/kun-core-multitenancy/nulltenantprovisioner.md): ITenantProvisioner 的 no-op 默认实现，用于 Shared 策略或不需要租户生命周期钩子的宿主。两个方法都立即返回 CompletedTask。
+- [TenantInfo（Class）](/sdk/api/kun/kun-core-multitenancy/tenantinfo.md): 不可变的租户身份元信息，作为 ITenantProvisioner 等生命周期 API 的入参。
+- [TenantIsolation（Enum）](/sdk/api/kun/kun-core-multitenancy/tenantisolation.md): 多租户数据隔离策略。数值用于宿主配置，小写 JSON 值用于租户契约。
+- [Kun.Core.Results](/sdk/api/kun/kun-core-results/index.md): 命名空间 Kun.Core.Results：5 个公开类型（Kun.Core）
+- [Result<T>（Struct）](/sdk/api/kun/kun-core-results/result-1.md): 带返回值的 Result。Handler 成功时携带 T，失败时携带 Error。
+- [Result（Struct）](/sdk/api/kun/kun-core-results/result.md): 无返回值的 Result。Handler 在不需要返回数据时使用。失败时携带 Error：一个登记在错误码目录里的错误码，加文案参数与出错位置。
+- [ResultExtensions（Class）](/sdk/api/kun/kun-core-results/resultextensions.md): Synchronous railway-oriented extensions for Result and Result<T>. Follows ADR-011.
+- [TaskResultExtensions（Class）](/sdk/api/kun/kun-core-results/taskresultextensions.md): Asynchronous railway-oriented extensions for Task receivers whose result type is Result or Result<T>. Follows ADR-011.
+- [ValueTaskResultExtensions（Class）](/sdk/api/kun/kun-core-results/valuetaskresultextensions.md): Asynchronous railway-oriented extensions for ValueTask receivers whose result type is Result or Result<T>. Follows ADR-…
+- [AnonymousCurrentUser（Class）](/sdk/api/kun/kun-core-security/anonymouscurrentuser.md): ICurrentUser implementation used when no authentication context is available (for instance, before S2S JWT validation o…
+- [ICurrentUser（Interface）](/sdk/api/kun/kun-core-security/icurrentuser.md): 当前用户上下文，从 S2S JWT 的 sub / roles claim 中解析。
+- [Kun.Core.Security](/sdk/api/kun/kun-core-security/index.md): 命名空间 Kun.Core.Security：3 个公开类型（Kun.Core）
+- [ITracedCurrentUser（Interface）](/sdk/api/kun/kun-core-security/itracedcurrentuser.md): Extension of ICurrentUser that exposes the ambient OpenTelemetry trace id. Cast or inject this sub-interface when trace…
+- [Kun.Core.Time](/sdk/api/kun/kun-core-time/index.md): 命名空间 Kun.Core.Time：2 个公开类型（Kun.Core）
+- [ISystemClock（Interface）](/sdk/api/kun/kun-core-time/isystemclock.md): Abstraction over the system clock. Used by Kun framework and business code in place of UtcNow so tests can inject a det…
+- [SystemClock（Class）](/sdk/api/kun/kun-core-time/systemclock.md): Default ISystemClock implementation backed by System.
+- [Kun.Data.Native.Postgres](/sdk/api/kun/kun-data-native-postgres/index.md): 命名空间 Kun.Data.Native.Postgres：5 个公开类型（Kun.Data.Native.Postgres）
+- [NativeDataAccess（Enum）](/sdk/api/kun/kun-data-native-postgres/nativedataaccess.md): 宿主批准的连接用途，不能由请求或插件 JSON 改变。
+- [NativeDataBinding（Class）](/sdk/api/kun/kun-data-native-postgres/nativedatabinding.md): 受信任宿主的具名连接绑定。凭据工厂仅在组件挂载时读取，密钥轮换后重挂载；对象打印不暴露工厂或凭据。
+- [NativeDataComponent（Class）](/sdk/api/kun/kun-data-native-postgres/nativedatacomponent.md): qian.data.native 唯一入口；仅挂载于 global，提供独立 NativeData 键。
+- [NativeDataHosting（Class）](/sdk/api/kun/kun-data-native-postgres/nativedatahosting.md): 只登记宿主信任的绑定；组件挂载时才校验数据库并提供 NativeData。
+- [NativeDataTable（Class）](/sdk/api/kun/kun-data-native-postgres/nativedatatable.md): 固定迁移契约：精确的 pg_get_expr 输出必须来自受审查的迁移真相源，不能从当前数据库学习后回填。
+- [INativeDataService（Interface）](/sdk/api/kun/kun-data-native/inativedataservice.md): 仅访问受信任宿主登记的连接绑定；不接受连接串或任意角色名。
+- [INativeDataSession（Interface）](/sdk/api/kun/kun-data-native/inativedatasession.md): 拥有连接与事务的会话。命令只能来自可信组件；释放回滚未完成事务、清理会话并释放连接，组件卸载同样释放活动会话。
+- [Kun.Data.Native](/sdk/api/kun/kun-data-native/index.md): 命名空间 Kun.Data.Native：4 个公开类型（Kun.Data.Native.Abstractions）
+- [NativeDataDefinition（Class）](/sdk/api/kun/kun-data-native/nativedatadefinition.md): 原生连接与事务的独立 seam，不实现或替代 EF Data。
+- [NativeDataErrors（Class）](/sdk/api/kun/kun-data-native/nativedataerrors.md): 不含连接凭据的原生数据错误词汇。
+- [Kun.EntityFrameworkCore.Behaviors](/sdk/api/kun/kun-entityframeworkcore-behaviors/index.md): 命名空间 Kun.EntityFrameworkCore.Behaviors：1 个公开类型（Kun.EntityFrameworkCore）
+- [UnitOfWorkPipelineBehavior<TRequest, TResponse>（Class）](/sdk/api/kun/kun-entityframeworkcore-behaviors/unitofworkpipelinebehavior-2.md): Mediator pipeline behavior that commits the unit-of-work after a command handler returns successfully. Place this behav…
+- [Kun.EntityFrameworkCore.Conventions](/sdk/api/kun/kun-entityframeworkcore-conventions/index.md): 命名空间 Kun.EntityFrameworkCore.Conventions：2 个公开类型（Kun.EntityFrameworkCore）
+- [KunDataConventions（Class）](/sdk/api/kun/kun-entityframeworkcore-conventions/kundataconventions.md): 数据层的列命名、Guid v7 主键与 PostgreSQL xmin 并发约定。
+- [KunGuidV7ValueGenerator（Class）](/sdk/api/kun/kun-entityframeworkcore-conventions/kunguidv7valuegenerator.md): 只为未赋值的 Guid 主键生成有时间顺序的版本 7 标识。
+- [Kun.EntityFrameworkCore.DependencyInjection](/sdk/api/kun/kun-entityframeworkcore-dependencyinjection/index.md): 命名空间 Kun.EntityFrameworkCore.DependencyInjection：2 个公开类型（Kun.EntityFrameworkCore）
+- [KunEntityFrameworkCoreServiceCollectionExtensions（Class）](/sdk/api/kun/kun-entityframeworkcore-dependencyinjection/kunentityframeworkcoreservicecollectionextensions.md): Registers Kun EF Core write-side services into the DI container.
+- [KunMultiTenancyEntityFrameworkCoreServiceCollectionExtensions（Class）](/sdk/api/kun/kun-entityframeworkcore-dependencyinjection/kunmultitenancyentityframeworkcoreservicecollectionextensions.md): Service-collection extensions for the EF Core side of Kun.MultiTenancy.
+- [Kun.EntityFrameworkCore.Extensions](/sdk/api/kun/kun-entityframeworkcore-extensions/index.md): 命名空间 Kun.EntityFrameworkCore.Extensions：2 个公开类型（Kun.EntityFrameworkCore）
+- [KunDbContextOptionsBuilderExtensions（Class）](/sdk/api/kun/kun-entityframeworkcore-extensions/kundbcontextoptionsbuilderextensions.md): Provides Kun-opinionated configuration helpers for DbContextOptionsBuilder.
+- [KunSaveChangesResultExtensions（Class）](/sdk/api/kun/kun-entityframeworkcore-extensions/kunsavechangesresultextensions.md): 在 Result 边界显式处理乐观并发冲突，其他系统异常仍抛出。
+- [AuditFieldsSaveChangesInterceptor（Class）](/sdk/api/kun/kun-entityframeworkcore-interceptors/auditfieldssavechangesinterceptor.md): 在业务保存前填充审计字段，保留创建字段，拒绝无法转换的已认证主体。
+- [Kun.EntityFrameworkCore.Interceptors](/sdk/api/kun/kun-entityframeworkcore-interceptors/index.md): 命名空间 Kun.EntityFrameworkCore.Interceptors：4 个公开类型（Kun.EntityFrameworkCore）
+- [SchemaConsistencyInterceptor（Class）](/sdk/api/kun/kun-entityframeworkcore-interceptors/schemaconsistencyinterceptor.md): Fails fast when a KunDbContext's DefaultSchema diverges from the EF Core MigrationsHistoryTable schema. Throws at the f…
+- [TenantRlsConnectionInterceptor（Class）](/sdk/api/kun/kun-entityframeworkcore-interceptors/tenantrlsconnectioninterceptor.md): Defence-in-depth interceptor that pushes the current ITenantContext.TenantId into the PostgreSQL session variable app.c…
+- [TenantRlsTransactionInterceptor（Class）](/sdk/api/kun/kun-entityframeworkcore-interceptors/tenantrlstransactioninterceptor.md): Emits set_config('app.current_tenant_id', @tenant, true) at the start of every EF Core transaction so PostgreSQL Row-Le…
+- [DatabasePerTenantProvisioner<TContext>（Class）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/databasepertenantprovisioner-1.md): ITenantProvisioner for the TenantIsolation.Database strategy. Runs EF Core migrations against the tenant's dedicated da…
+- [IDbConnectionResolver（Interface）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/idbconnectionresolver.md): Resolves the connection string for a given tenant. Used by the TenantIsolation.Database strategy to dispatch DbContext …
+- [IKunMultiTenantDbContext（Interface）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/ikunmultitenantdbcontext.md): Marker interface for DbContexts that want the KunMultiTenantModelCacheKeyFactory to partition EF Core's compiled-model …
+- [Kun.EntityFrameworkCore.MultiTenancy](/sdk/api/kun/kun-entityframeworkcore-multitenancy/index.md): 命名空间 Kun.EntityFrameworkCore.MultiTenancy：12 个公开类型（Kun.EntityFrameworkCore）
+- [ITenantDbContextFactory<TContext>（Interface）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/itenantdbcontextfactory-1.md): Builds a TContext instance bound to a specific tenant's schema or database. Used by SchemaPerTenantProvisioner<TContext…
+- [KunMultiTenancyModelBuilderExtensions（Class）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/kunmultitenancymodelbuilderextensions.md): ModelBuilder extensions that attach the Kun multi-tenant global query filter to every IMultiTenant entity.
+- [KunMultiTenancyOptions（Class）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/kunmultitenancyoptions.md): Configuration for AddKunMultiTenancy. Selects the isolation strategy and tunes the few knobs the framework exposes acro…
+- [KunMultiTenancyServiceCollectionExtensions（Class）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/kunmultitenancyservicecollectionextensions.md): DI entry point for Kun's SaaS multi-tenancy strategy selection. Dispatches based on KunMultiTenancyOptions.Strategy.
+- [KunMultiTenantModelCacheKeyFactory（Class）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/kunmultitenantmodelcachekeyfactory.md): IModelCacheKeyFactory that emits a distinct compiled model per tenant when the DbContext implements IKunMultiTenantDbCo…
+- [KunTenantSaveChangesInterceptor（Class）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/kuntenantsavechangesinterceptor.md): EF Core SaveChangesInterceptor that walks newly added IMultiTenant entities and, when their IMultiTenant.TenantId is nu…
+- [OptionsBasedTenantConnectionResolver（Class）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/optionsbasedtenantconnectionresolver.md): Default IDbConnectionResolver backed by TenantsConnectionOptions. Reads the current snapshot on every call via IOptions…
+- [SchemaPerTenantProvisioner<TContext>（Class）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/schemapertenantprovisioner-1.md): ITenantProvisioner implementation for the TenantIsolation.Schema strategy. On SchemaPerTenantProvisioner<TContext>.Prov…
+- [TenantsConnectionOptions（Class）](/sdk/api/kun/kun-entityframeworkcore-multitenancy/tenantsconnectionoptions.md): Static tenant → connection-string mapping consumed by OptionsBasedTenantConnectionResolver. Suitable for small deployme…
+- [Kun.EntityFrameworkCore.PostgreSQL](/sdk/api/kun/kun-entityframeworkcore-postgresql/index.md): 命名空间 Kun.EntityFrameworkCore.PostgreSQL：1 个公开类型（Kun.EntityFrameworkCore.PostgreSQL）
+- [KunTenantRlsMigrationsExtensions（Class）](/sdk/api/kun/kun-entityframeworkcore-postgresql/kuntenantrlsmigrationsextensions.md): 装配与判定 Kun 的 PostgreSQL 迁移 SQL 生成器：建租户表时紧接着打开行级安全并建租户策略。
+- [DataDefinition（Class）](/sdk/api/kun/kun-entityframeworkcore/datadefinition.md): 数据 seam 的稳定服务键；业务组件只依赖 Definition。
+- [EfUnitOfWork（Class）](/sdk/api/kun/kun-entityframeworkcore/efunitofwork.md): EF Core-backed IUnitOfWork that atomically persists aggregate changes, dispatches domain events in-process, and writes …
+- [IDataContextCatalog（Interface）](/sdk/api/kun/kun-entityframeworkcore/idatacontextcatalog.md): 宿主经 AddKunData 登记的全部业务上下文；Outbox 投递等宿主级组件据此逐个处理各上下文的表。
+- [IDataService（Interface）](/sdk/api/kun/kun-entityframeworkcore/idataservice.md): 创建独立工作单元；不把不同业务上下文绑定到一个全局 KunDbContext。
+- [IDataSession<TContext>（Interface）](/sdk/api/kun/kun-entityframeworkcore/idatasession-1.md): 同一上下文中的业务变更、领域通知与 Outbox 保存边界。
+- [Kun.EntityFrameworkCore](/sdk/api/kun/kun-entityframeworkcore/index.md): 命名空间 Kun.EntityFrameworkCore：15 个公开类型（Kun.EntityFrameworkCore）
+- [InProcessDomainEventDispatcher（Class）](/sdk/api/kun/kun-entityframeworkcore/inprocessdomaineventdispatcher.md): Dispatches domain events to in-process Mediator notification handlers. Domain events that also implement INotification …
+- [IUnitOfWork（Interface）](/sdk/api/kun/kun-entityframeworkcore/iunitofwork.md): Atomic unit-of-work boundary for command handlers.
+- [KunApplicationRoleInterceptor（Class）](/sdk/api/kun/kun-entityframeworkcore/kunapplicationroleinterceptor.md): 在线应用连接只能使用受 RLS 约束的 PostgreSQL 角色；迁移管理员通过独立连接执行 DDL。
+- [KunDataMisconfiguredException（Class）](/sdk/api/kun/kun-entityframeworkcore/kundatamisconfiguredexception.md): 在构造上下文或启动宿主时拒绝不安全的数据层配置。
+- [KunDataModelExtensions（Class）](/sdk/api/kun/kun-entityframeworkcore/kundatamodelextensions.md): 安装不可由派生上下文遗漏的 Kun 模型约定。
+- [KunDbContext（Class）](/sdk/api/kun/kun-entityframeworkcore/kundbcontext.md): Base EF Core DbContext for Kun Framework services.
+- [KunSoftDeleteInterceptor（Class）](/sdk/api/kun/kun-entityframeworkcore/kunsoftdeleteinterceptor.md): 将直接删除改为软删除，填充删除主体与时间；必须在 Kun 审计字段拦截器之前运行。
+- [KunStrictDbContext（Class）](/sdk/api/kun/kun-entityframeworkcore/kunstrictdbcontext.md): 带安全装配门禁的数据上下文。租户过滤与 Outbox 继承 Kun 的行为。
+- [NoOpDomainEventDispatcher（Class）](/sdk/api/kun/kun-entityframeworkcore/noopdomaineventdispatcher.md): Default no-op domain event dispatcher. Users replace this with a real implementation (e.g. one backed by Kun.Mediator.I…
+- [OutboxMessageConfiguration（Class）](/sdk/api/kun/kun-entityframeworkcore/outboxmessageconfiguration.md): EF Core mapping for OutboxMessage.
+- [Kun.Errors.AspNetCore](/sdk/api/kun/kun-errors-aspnetcore/index.md): 命名空间 Kun.Errors.AspNetCore：3 个公开类型（Kun.Errors.AspNetCore）
+- [KunErrorResult（Class）](/sdk/api/kun/kun-errors-aspnetcore/kunerrorresult.md): 写出 ErrorDetail 的 IResult。
+- [KunErrorsExtensions（Class）](/sdk/api/kun/kun-errors-aspnetcore/kunerrorsextensions.md): 装配 Kun 结构化错误（ErrorDetail）。
+- [KunResults（Class）](/sdk/api/kun/kun-errors-aspnetcore/kunresults.md): 端点返回错误的结果工厂。
+- [AllowedValues（Class）](/sdk/api/kun/kun-errors/allowedvalues.md): 构造 allowed（允许的取值，1–100 个 JSON 值）。
+- [Error（Class）](/sdk/api/kun/kun-errors/error.md): 一次出错：哪个错误码、文案参数、出错位置与允许值。进程内由 Kun.Core.Results.Result 携带或随 ErrorException 抛出；对外由 ErrorCatalog.CreateDetail 渲染为 ErrorDet…
+- [ErrorCatalog（Class）](/sdk/api/kun/kun-errors/errorcatalog.md): 错误码目录：全局唯一的错误码登记处，渲染 ErrorDetail，并导出 contracts/v0/error-catalog.schema.json 格式的 JSON（错误码与多语言文案）。
+- [ErrorCode（Class）](/sdk/api/kun/kun-errors/errorcode.md): 一个登记在错误码目录里的稳定错误码：类别、状态码、归属组件与多语言文案。组件在自己的 Definition 包里以 static readonly 字段定义，挂载时登记到 ErrorCatalog。
+- [ErrorDetail（Class）](/sdk/api/kun/kun-errors/errordetail.md): 错误响应体（contracts/v0/error-detail.schema.json）：RFC 9457 problem+json 的 Kun 配置文件。由 ErrorCatalog.CreateDetail 生成；序列化用 Error…
+- [ErrorDetailJson（Class）](/sdk/api/kun/kun-errors/errordetailjson.md): ErrorDetail 的 JSON 序列化（源生成，AOT 可用；空成员不输出；中文不转义）。
+- [ErrorException（Class）](/sdk/api/kun/kun-errors/errorexception.md): 携带 ErrorException.Error 的异常，Kun 只有这一个带错误码的异常：业务代码直接抛出，或由 Result<T>.EnsureSuccess() 在失败时抛出；HTTP 宿主由 Kun.Errors.AspNetCor…
+- [ErrorKind（Enum）](/sdk/api/kun/kun-errors/errorkind.md): 错误码类别（contracts/v0/error-catalog.schema.json 的 kind）。
+- [ErrorPointer（Class）](/sdk/api/kun/kun-errors/errorpointer.md): 构造 pointer：RFC 6901 JSON Pointer 的 URI 片段形式，可带文档前缀。请求输入写 #/items/0/qty；文件写 .qian-plugin/plugin.json#/runtime/nuget/0。
+- [FieldError（Class）](/sdk/api/kun/kun-errors/fielderror.md): errors[] 中的一项：字段级或业务错误码 + 出错位置。
+- [FieldErrorDetail（Class）](/sdk/api/kun/kun-errors/fielderrordetail.md): ErrorDetail.Errors 中的一项。
+- [Kun.Errors](/sdk/api/kun/kun-errors/index.md): 命名空间 Kun.Errors：12 个公开类型（Kun.Errors）
+- [PlatformErrors（Class）](/sdk/api/kun/kun-errors/platformerrors.md): 平台内置错误码（归属 qian.runtime），冻结在 contracts/v0/error-codes.json。协议错误覆盖宿主框架会产生的全部状态码；业务错误只有两个通用兜底，具体业务错误码由各组件在 Definition 包登记。
+- [Kun.EventBus.Background](/sdk/api/kun/kun-eventbus-background/index.md): 命名空间 Kun.EventBus.Background：2 个公开类型（Kun.EventBus）
+- [IOutboxLockProvider（Interface）](/sdk/api/kun/kun-eventbus-background/ioutboxlockprovider.md): Provides a distributed lease that prevents multiple pods from publishing the same outbox batch simultaneously.
+- [RedisOutboxLockProvider（Class）](/sdk/api/kun/kun-eventbus-background/redisoutboxlockprovider.md): Redis-backed IOutboxLockProvider using SET key value NX EX semantics. Safe for multi-pod deployments: only one pod hold…
+- [Kun.EventBus.DependencyInjection](/sdk/api/kun/kun-eventbus-dependencyinjection/index.md): 命名空间 Kun.EventBus.DependencyInjection：2 个公开类型（Kun.EventBus）
+- [KunEventBusBuilder（Class）](/sdk/api/kun/kun-eventbus-dependencyinjection/kuneventbusbuilder.md): Fluent builder for configuring the Kun event bus.
+- [KunEventBusServiceCollectionExtensions（Class）](/sdk/api/kun/kun-eventbus-dependencyinjection/kuneventbusservicecollectionextensions.md): Registers Kun event bus services.
+- [EventsPlugin（Class）](/sdk/api/kun/kun-eventbus-entityframeworkcore/eventsplugin.md): qian.events 的真实 Provider：挂载时核对组件配置与宿主装配一致，提供 Events 服务键；卸载撤销服务与错误码。
+- [Kun.EventBus.EntityFrameworkCore](/sdk/api/kun/kun-eventbus-entityframeworkcore/index.md): 命名空间 Kun.EventBus.EntityFrameworkCore：4 个公开类型（Kun.EventBus.EntityFrameworkCore）
+- [KunEventRelayExtensions（Class）](/sdk/api/kun/kun-eventbus-entityframeworkcore/kuneventrelayextensions.md): Registers the EF-backed event relay and its host settings.
+- [KunEventsOptions（Class）](/sdk/api/kun/kun-eventbus-entityframeworkcore/kuneventsoptions.md): Outbox 投递的宿主级设置；组件配置 outbox.lock 必须与 KunEventsOptions.OutboxLock 一致。
+- [OutboxLockMode（Enum）](/sdk/api/kun/kun-eventbus-entityframeworkcore/outboxlockmode.md): Outbox 领取的互斥方式。
+- [Kun.EventBus.Idempotency](/sdk/api/kun/kun-eventbus-idempotency/index.md): 命名空间 Kun.EventBus.Idempotency：3 个公开类型（Kun.EventBus）
+- [InMemoryProcessedMessageStore（Class）](/sdk/api/kun/kun-eventbus-idempotency/inmemoryprocessedmessagestore.md): In-memory implementation of IProcessedMessageStore backed by a ConcurrentDictionary. Intended for testing and single-in…
+- [IProcessedMessageStore（Interface）](/sdk/api/kun/kun-eventbus-idempotency/iprocessedmessagestore.md): Tracks message IDs that have already been successfully processed by a given consumer, enabling idempotent at-least-once…
+- [RedisProcessedMessageStore（Class）](/sdk/api/kun/kun-eventbus-idempotency/redisprocessedmessagestore.md): Redis-backed implementation of IProcessedMessageStore using SET … NX EX for atomic first-write semantics. Suitable for …
+- [IIntegrationEventOutbox（Interface）](/sdk/api/kun/kun-eventbus-outbox/iintegrationeventoutbox.md): Appends outbox messages to the current unit-of-work boundary.
+- [Kun.EventBus.Outbox](/sdk/api/kun/kun-eventbus-outbox/index.md): 命名空间 Kun.EventBus.Outbox：6 个公开类型（Kun.EventBus.Abstractions）
+- [IntegrationEventBuffer（Class）](/sdk/api/kun/kun-eventbus-outbox/integrationeventbuffer.md): In-memory accumulator for outbox messages within a single unit-of-work scope.
+- [IOutboxBufferBinding（Interface）](/sdk/api/kun/kun-eventbus-outbox/ioutboxbufferbinding.md): 替换 Kun 默认累加器的 Outbox 写入端（如事件组件的信封写入端）声明自己写入的缓冲器；数据会话只接受写入当前 scope 缓冲器的实现，保证事件随同一次保存落库。
+- [IOutboxWriter（Interface）](/sdk/api/kun/kun-eventbus-outbox/ioutboxwriter.md): Writer primitive for enqueuing integration events from non-aggregate collaborators (e.g. audit interceptors, storage-ev…
+- [OutboxMessage（Class）](/sdk/api/kun/kun-eventbus-outbox/outboxmessage.md): Persisted Outbox message row. Created when an integration event is enqueued inside a SaveChangesAsync transaction; publ…
+- [OutboxStatus（Enum）](/sdk/api/kun/kun-eventbus-outbox/outboxstatus.md): Lifecycle state of a persisted Outbox message.
+- [Kun.EventBus.RabbitMQ](/sdk/api/kun/kun-eventbus-rabbitmq/index.md): 命名空间 Kun.EventBus.RabbitMQ：3 个公开类型（Kun.EventBus.RabbitMQ）
+- [KunEventsRabbitMqExtensions（Class）](/sdk/api/kun/kun-eventbus-rabbitmq/kuneventsrabbitmqextensions.md): Registers the RabbitMQ envelope publisher and subscribers.
+- [KunEventsSubscriberBuilder（Class）](/sdk/api/kun/kun-eventbus-rabbitmq/kuneventssubscriberbuilder.md): 订阅登记（PRD 7.10 的 Subscribe<TEvent, THandler>()）：每次登记把一个 Kun handler 挂到一个订阅上。同一订阅可以覆盖多个事件，但一个事件在同一订阅里只有一个 handler；广播订阅共用实…
+- [KunEventsSubscriberOptions（Class）](/sdk/api/kun/kun-eventbus-rabbitmq/kuneventssubscriberoptions.md): 消费端的宿主级设置。重试语义与 Outbox 投递侧不同：这里的 KunEventsSubscriberOptions.MaxRetries 是首投之外的重试次数，默认首投 1 次 + 重试 5 次，第 6 次仍失败即进死信队列。
+- [EventActor（Class）](/sdk/api/kun/kun-eventbus/eventactor.md): 触发事件的主体；取值与 S2S principal_kind、审计 actor_type 一致。
+- [EventActorKind（Enum）](/sdk/api/kun/kun-eventbus/eventactorkind.md): 事件主体类型；agent 为 S4 Agent 触发器预留，S1 已可写入信封。
+- [EventEnvelopeScope（Class）](/sdk/api/kun/kun-eventbus/eventenvelopescope.md): 当前异步流的事件来源。集成事件只能在命令 handler 的同一作用域内发出（ADR-008 D8.2）： SDK 命令管道在执行 handler 与保存期间打开它，Outbox 写入端缺少来源时拒绝发布。定时作业、生命周期控制器等不经命…
+- [EventOrigin（Class）](/sdk/api/kun/kun-eventbus/eventorigin.md): 集成事件的来源：谁、以哪个组件的名义、因哪一次调用发布。信封的 producer、actor 与因果链取自这里。
+- [EventsDefinition（Class）](/sdk/api/kun/kun-eventbus/eventsdefinition.md): 事件 seam 的稳定服务键；业务组件只依赖 Definition。
+- [EventsErrors（Class）](/sdk/api/kun/kun-eventbus/eventserrors.md): 事件组件的稳定错误码定义。
+- [EventSubscriptionDescriptor（Class）](/sdk/api/kun/kun-eventbus/eventsubscriptiondescriptor.md): 订阅目录中的一项，与 IntegrationEventDescriptor 按事件 ID 对齐，是事件目录「订阅者」的来源。
+- [EventSubscriptionMode（Enum）](/sdk/api/kun/kun-eventbus/eventsubscriptionmode.md): 订阅模式（PRD 7.10、ADR-008 D8.9）。
+- [EventTypeRegistry（Class）](/sdk/api/kun/kun-eventbus/eventtyperegistry.md): Immutable, O(1) event-type registry backed by FrozenDictionary.
+- [IEventsService（Interface）](/sdk/api/kun/kun-eventbus/ieventsservice.md): 事件 Provider 的只读视图。发布不经过这里：命令 handler 通过同一数据会话的 Outbox 写入端发布，信封由 Provider 在入队时按 EventEnvelopeScope 生成。
+- [IEventTypeRegistrar（Interface）](/sdk/api/kun/kun-eventbus/ieventtyperegistrar.md): Fluent builder for populating the IEventTypeRegistry.
+- [IEventTypeRegistry（Interface）](/sdk/api/kun/kun-eventbus/ieventtyperegistry.md): Maps stable event-type tokens to their CLR types at runtime.
+- [IIntegrationEventBus（Interface）](/sdk/api/kun/kun-eventbus/iintegrationeventbus.md): High-level façade for publishing integration events via the Outbox pattern.
+- [IIntegrationEventHandler<TEvent>（Interface）](/sdk/api/kun/kun-eventbus/iintegrationeventhandler-1.md): Handles a strongly-typed integration event received from the broker.
+- [IIntegrationEventPublisher（Interface）](/sdk/api/kun/kun-eventbus/iintegrationeventpublisher.md): Broker-specific transport that publishes a single OutboxMessage to the message bus. Implementations live in broker adap…
+- [Kun.EventBus](/sdk/api/kun/kun-eventbus/index.md): 命名空间 Kun.EventBus：26 个公开类型（Kun.EventBus.Abstractions）
+- [IntegrationEventDescriptor（Class）](/sdk/api/kun/kun-eventbus/integrationeventdescriptor.md): 事件目录中的一项：稳定 ID、subject、payload 版本与由 JsonTypeInfo 导出的 payload Schema。
+- [IntegrationEventIdAttribute（Class）](/sdk/api/kun/kun-eventbus/integrationeventidattribute.md): Declares the stable event-type identifier (token) for an integration event CLR type. Use with IEventTypeRegistrar.Regis…
+- [IntegrationEventSchemas（Class）](/sdk/api/kun/kun-eventbus/integrationeventschemas.md): 由登记时的源生成 JsonTypeInfo 导出 payload 的 JSON Schema（2020-12），与 Outbox 实际写出的 JSON 同一份契约；不用反射序列化补位：没有 JsonTypeInfo 的事件不能发布，也不进…
+- [IntegrationEventTypes（Class）](/sdk/api/kun/kun-eventbus/integrationeventtypes.md): 稳定事件 ID（[IntegrationEventId] 的值）与信封 subject 的换算规则。
+- [IOutboxPublisher（Interface）](/sdk/api/kun/kun-eventbus/ioutboxpublisher.md): Dispatches pending outbox messages to the underlying broker.
+- [KunEventDelivery（Class）](/sdk/api/kun/kun-eventbus/kuneventdelivery.md): 订阅器正在派发的一次投递：已解析、已与 AMQP 属性核对过的 v1 信封，以及订阅与重试计数。订阅器为每条消息新建一个依赖注入作用域，handler 可在构造函数里注入本类型读取 producer、actor 与因果链；幂等键、发生时间…
+- [KunEventEnvelope（Class）](/sdk/api/kun/kun-eventbus/kuneventenvelope.md): 跨进程集成事件信封 v1，与 contracts/v0/event-envelope.schema.json 同形：Outbox 行与 RabbitMQ 消息体都是这份 JSON。 payload 由事件目录里该 KunEventEnve…
+- [KunEventsException（Class）](/sdk/api/kun/kun-eventbus/kuneventsexception.md): 事件装配、发布或消费被拒绝；携带可渲染为 ErrorDetail 的错误。
+- [KunEventsExtensions（Class）](/sdk/api/kun/kun-eventbus/kuneventsextensions.md): Registers the event envelope writer and event catalog.
+- [KunEventTopology（Class）](/sdk/api/kun/kun-eventbus/kuneventtopology.md): RabbitMQ 拓扑命名（PRD 7.10）：topic exchange qian.events，路由键为信封 subject；竞争消费用每服务一个 quorum 队列 q.<service>.<subscription>，广播用每实…
+- [MessageContext（Class）](/sdk/api/kun/kun-eventbus/messagecontext.md): Metadata accompanying an integration event during handler dispatch.
+- [Kun.Gateway.DependencyInjection](/sdk/api/kun/kun-gateway-dependencyinjection/index.md): 命名空间 Kun.Gateway.DependencyInjection：1 个公开类型（Kun.Gateway）
+- [KunGatewayServiceCollectionExtensions（Class）](/sdk/api/kun/kun-gateway-dependencyinjection/kungatewayservicecollectionextensions.md): Extension methods for registering Kun Gateway services with an IServiceCollection.
+- [Kun.Gateway.Endpoints](/sdk/api/kun/kun-gateway-endpoints/index.md): 命名空间 Kun.Gateway.Endpoints：3 个公开类型（Kun.Gateway）
+- [JwkDto（Class）](/sdk/api/kun/kun-gateway-endpoints/jwkdto.md): A single JSON Web Key entry in the JWKS response.
+- [JwksEndpoint（Class）](/sdk/api/kun/kun-gateway-endpoints/jwksendpoint.md): Extension methods for mapping the public JWKS endpoint.
+- [JwksResponse（Class）](/sdk/api/kun/kun-gateway-endpoints/jwksresponse.md): JSON Web Key Set response model.
+- [Kun.Gateway.Identity](/sdk/api/kun/kun-gateway-identity/index.md): 命名空间 Kun.Gateway.Identity：2 个公开类型（Kun.Gateway）
+- [IS2sPrincipalResolver（Interface）](/sdk/api/kun/kun-gateway-identity/is2sprincipalresolver.md): Optional enrichment hook invoked by S2sTokenIssuer after the external IdP principal authenticates and before the intern…
+- [NoOpS2sPrincipalResolver（Class）](/sdk/api/kun/kun-gateway-identity/noops2sprincipalresolver.md): Default IS2sPrincipalResolver that returns the authenticated external principal unchanged. Consumers that do not need p…
+- [Kun.Gateway.Jwks](/sdk/api/kun/kun-gateway-jwks/index.md): 命名空间 Kun.Gateway.Jwks：2 个公开类型（Kun.Gateway）
+- [JwksResponseBuilder（Class）](/sdk/api/kun/kun-gateway-jwks/jwksresponsebuilder.md): Caches the JWKS response keyed on (public-key path + file last-write time). Re-reads the PEM, rebuilds the JsonWebKey, …
+- [KunInternalJwksEndpoint（Class）](/sdk/api/kun/kun-gateway-jwks/kuninternaljwksendpoint.md): Extension methods for mapping the internal-network JWKS endpoint, separate from the always-on public /.well-known/jwks.…
+- [Kun.Gateway.RateLimiting.Resolvers](/sdk/api/kun/kun-gateway-ratelimiting-resolvers/index.md): 命名空间 Kun.Gateway.RateLimiting.Resolvers：3 个公开类型（Kun.Gateway）
+- [IpRateLimitPartitionResolver（Class）](/sdk/api/kun/kun-gateway-ratelimiting-resolvers/ipratelimitpartitionresolver.md): Resolves the rate-limit partition key from the remote IP address. Reads the peer normalized by trusted ForwardedHeaders…
+- [TenantRateLimitPartitionResolver（Class）](/sdk/api/kun/kun-gateway-ratelimiting-resolvers/tenantratelimitpartitionresolver.md): Resolves the rate-limit partition key from the tenant_id claim of the authenticated user. Falls back to "anonymous" whe…
+- [UserPrincipalRateLimitPartitionResolver（Class）](/sdk/api/kun/kun-gateway-ratelimiting-resolvers/userprincipalratelimitpartitionresolver.md): Resolves the rate-limit partition key from the authenticated user's sub claim (the per-user identifier in S2S JWTs and …
+- [Kun.Gateway.RateLimiting](/sdk/api/kun/kun-gateway-ratelimiting/index.md): 命名空间 Kun.Gateway.RateLimiting：4 个公开类型（Kun.Gateway）
+- [IRateLimitPartitionResolver（Interface）](/sdk/api/kun/kun-gateway-ratelimiting/iratelimitpartitionresolver.md): Resolves the rate-limit partition key for an incoming HTTP request. Implement this interface to plug in a custom partit…
+- [KunRateLimiterExtensions（Class）](/sdk/api/kun/kun-gateway-ratelimiting/kunratelimiterextensions.md): Extension methods for registering Kun rate limiting services.
+- [KunSlidingWindowOptions（Class）](/sdk/api/kun/kun-gateway-ratelimiting/kunslidingwindowoptions.md): Tunable parameters for AddKunSlidingWindowRateLimiter. Sliding-window divides each window into segments and shifts one …
+- [KunTokenBucketOptions（Class）](/sdk/api/kun/kun-gateway-ratelimiting/kuntokenbucketoptions.md): Tunable parameters for AddKunTokenBucketRateLimiter. Token-bucket smooths bursty traffic by accumulating tokens at a st…
+- [GatewayCluster（Class）](/sdk/api/kun/kun-gateway/gatewaycluster.md): 静态下游；Id 同时是 S2S 的唯一受众。
+- [GatewayConfiguration（Class）](/sdk/api/kun/kun-gateway/gatewayconfiguration.md): 网关声明式配置；只允许一个身份发行方，密钥值从不进入配置，PEM 路径指向宿主的 Secret 投射。
+- [GatewayDefinition（Class）](/sdk/api/kun/kun-gateway/gatewaydefinition.md): 网关 seam；Provider 安装到 gateway profile，业务组件只消费本契约。
+- [GatewayHosting（Class）](/sdk/api/kun/kun-gateway/gatewayhosting.md): 网关宿主装配；Identity.Client 的 Provider 由宿主独立组合，组件库不直接依赖其他 Provider。
+- [GatewayRateLimits（Class）](/sdk/api/kun/kun-gateway/gatewayratelimits.md): 代理路由的 Redis 固定窗口限额；同一逻辑网关的副本必须使用相同配置。
+- [GatewayRoute（Class）](/sdk/api/kun/kun-gateway/gatewayroute.md): 受保护路由；不开放匿名策略覆盖。
+- [IGatewayService（Interface）](/sdk/api/kun/kun-gateway/igatewayservice.md): 网关只读状态；路由配置在构建宿主时固定，未挂载时禁止代理请求。
+- [Kun.Gateway](/sdk/api/kun/kun-gateway/index.md): 命名空间 Kun.Gateway：8 个公开类型（Kun.Gateway.Abstractions）
+- [S2sTokenIssuer（Class）](/sdk/api/kun/kun-gateway/s2stokenissuer.md): Issues the closed, short-lived S2S claim contract with RS256 and the shared rotating JWKS ring. An authenticated princi…
+- [Kun.Grpc.DependencyInjection](/sdk/api/kun/kun-grpc-dependencyinjection/index.md): 命名空间 Kun.Grpc.DependencyInjection：1 个公开类型（Kun.Grpc）
+- [KunGrpcServiceCollectionExtensions（Class）](/sdk/api/kun/kun-grpc-dependencyinjection/kungrpcservicecollectionextensions.md): Extension methods for registering Kun gRPC services with an IServiceCollection.
+- [Kun.Grpc.Interceptors](/sdk/api/kun/kun-grpc-interceptors/index.md): 命名空间 Kun.Grpc.Interceptors：2 个公开类型（Kun.Grpc）
+- [TenantGrpcClientInterceptor（Class）](/sdk/api/kun/kun-grpc-interceptors/tenantgrpcclientinterceptor.md): 从当前可信租户上下文添加 gRPC tenant_id 元数据；认证令牌由宿主的身份客户端另行提供。
+- [TenantGrpcServerInterceptor（Class）](/sdk/api/kun/kun-grpc-interceptors/tenantgrpcserverinterceptor.md): 租户 gRPC 服务入口；宿主先完成 JWT 认证，再核对传播元数据，覆盖全部四种调用形态。
+- [GrpcErrorTrailers（Class）](/sdk/api/kun/kun-grpc/grpcerrortrailers.md): 以 HTTP 错误契约的同一份详情生成 gRPC 响应尾部。
+- [Kun.Grpc](/sdk/api/kun/kun-grpc/index.md): 命名空间 Kun.Grpc：1 个公开类型（Kun.Grpc）
+- [ChallengeHelper（Class）](/sdk/api/kun/kun-identity-aspnetcore/challengehelper.md): Builds the /authorize redirect URL for an OIDC provider registered via AddKunIdentity(id => id.AddOidcClient(...)). Gen…
+- [ChallengePayload（Class）](/sdk/api/kun/kun-identity-aspnetcore/challengepayload.md): Payload written to the one-shot challenge cookie by ChallengeHelper.BuildLoginUrlAsync. Consumer callback handlers read…
+- [Kun.Identity.AspNetCore](/sdk/api/kun/kun-identity-aspnetcore/index.md): 命名空间 Kun.Identity.AspNetCore：10 个公开类型（Kun.Identity.AspNetCore）
+- [KunCookieAuthApplicationBuilderExtensions（Class）](/sdk/api/kun/kun-identity-aspnetcore/kuncookieauthapplicationbuilderextensions.md): IApplicationBuilder extensions for the Kun cookie middleware.
+- [KunCookieAuthMiddleware（Class）](/sdk/api/kun/kun-identity-aspnetcore/kuncookieauthmiddleware.md): Middleware that hydrates HttpContext.User from a ISessionStore entry keyed by the session cookie. Requests without a va…
+- [KunCurrentUser（Class）](/sdk/api/kun/kun-identity-aspnetcore/kuncurrentuser.md): Request-scoped IAuthenticatedUser (and ICurrentUser) resolver. Reads claims off HttpContext.User — which UseKunCookieAu…
+- [KunIdentityAspNetCoreServiceCollectionExtensions（Class）](/sdk/api/kun/kun-identity-aspnetcore/kunidentityaspnetcoreservicecollectionextensions.md): Registers the browser identity helpers without replacing the host's authentication scheme.
+- [OidcLoginService（Class）](/sdk/api/kun/kun-identity-aspnetcore/oidcloginservice.md): Completes the protected browser transaction before creating a local session.
+- [OidcLogoutEndpoint（Class）](/sdk/api/kun/kun-identity-aspnetcore/oidclogoutendpoint.md): Back-channel logout mapping; authentication comes from the signed provider token, not a browser cookie.
+- [OidcLogoutService（Class）](/sdk/api/kun/kun-identity-aspnetcore/oidclogoutservice.md): Validates provider logout instructions before atomically revoking local sessions.
+- [SignInHelper（Class）](/sdk/api/kun/kun-identity-aspnetcore/signinhelper.md): Turns a successful OIDC code-exchange into a signed-in browser session: writes the SessionData into the configured ISes…
+- [IdentitySessionTokens（Class）](/sdk/api/kun/kun-identity-client/identitysessiontokens.md): 当前浏览器会话的访问令牌。到期前用 refresh token 换新：同一进程内同一会话只发一次刷新请求，跨副本用 Kun 会话注册表的一次性标记互斥（发行方开启了 refresh 轮换与复用检测，并发复用会吊销整族）；刷新结果只续写仍然…
+- [Kun.Identity.Client](/sdk/api/kun/kun-identity-client/index.md): 命名空间 Kun.Identity.Client：1 个公开类型（Kun.Identity.AspNetCore）
+- [Kun.Identity.Configuration](/sdk/api/kun/kun-identity-configuration/index.md): 命名空间 Kun.Identity.Configuration：7 个公开类型（Kun.Identity）
+- [KunCookieAuthOptions（Class）](/sdk/api/kun/kun-identity-configuration/kuncookieauthoptions.md): Options for the cookie session layer wired by AddKunIdentity(id => id.AddCookieSession(...)). The defaults encode the z…
+- [KunCookieSecurePolicy（Enum）](/sdk/api/kun/kun-identity-configuration/kuncookiesecurepolicy.md): Secure-policy for KunCookieAuthOptions.Secure. Mirrors ASP.NET Core's CookieSecurePolicy shape without taking a depende…
+- [KunCookieSessionBuilder（Class）](/sdk/api/kun/kun-identity-configuration/kuncookiesessionbuilder.md): Configuration surface exposed by KunIdentityBuilder.AddCookieSession(opts => ...). Inherits every KunCookieAuthOptions …
+- [KunIdentityBuilder（Class）](/sdk/api/kun/kun-identity-configuration/kunidentitybuilder.md): Fluent builder surfaced by AddKunIdentity.
+- [KunJwtBearerOptions（Class）](/sdk/api/kun/kun-identity-configuration/kunjwtbeareroptions.md): Validation parameters for external Bearer JWTs issued by an OIDC provider (Authentik, Keycloak, Auth0, Azure AD, …). Fe…
+- [KunOidcClientOptions（Class）](/sdk/api/kun/kun-identity-configuration/kunoidcclientoptions.md): Per-provider configuration for KunOidcClient.
+- [KunSameSiteMode（Enum）](/sdk/api/kun/kun-identity-configuration/kunsamesitemode.md): SameSite policy for KunCookieAuthOptions.SameSite. Mirrors ASP.NET Core's SameSiteMode shape without taking a dependenc…
+- [Kun.Identity.DependencyInjection](/sdk/api/kun/kun-identity-dependencyinjection/index.md): 命名空间 Kun.Identity.DependencyInjection：1 个公开类型（Kun.Identity）
+- [KunIdentityServiceCollectionExtensions（Class）](/sdk/api/kun/kun-identity-dependencyinjection/kunidentityservicecollectionextensions.md): Service-collection extensions that register Kun.Identity.
+- [Kun.Identity.Implementations.Session](/sdk/api/kun/kun-identity-implementations-session/index.md): 命名空间 Kun.Identity.Implementations.Session：2 个公开类型（Kun.Identity）
+- [InMemorySessionStore（Class）](/sdk/api/kun/kun-identity-implementations-session/inmemorysessionstore.md): Process-local session registry for tests/development; all index, renewal and revocation changes share a lock.
+- [RedisSessionStore（Class）](/sdk/api/kun/kun-identity-implementations-session/redissessionstore.md): Redis session registry with atomic user/provider indexes, renewal and logout replay protection.
+- [Kun.Identity.Implementations](/sdk/api/kun/kun-identity-implementations/index.md): 命名空间 Kun.Identity.Implementations：2 个公开类型（Kun.Identity）
+- [KunJwtValidator（Class）](/sdk/api/kun/kun-identity-implementations/kunjwtvalidator.md): IJwtValidator backed by JsonWebTokenHandler. Resolves signing keys from the configured JWKS URI via ConfigurationManage…
+- [KunOidcClient（Class）](/sdk/api/kun/kun-identity-implementations/kunoidcclient.md): OIDC protocol client with bounded metadata caching and signed, issuer/audience/nonce-bound ID Tokens.
+- [IAuthenticatedUser（Interface）](/sdk/api/kun/kun-identity/iauthenticateduser.md): Browser-flow extension of ICurrentUser. Adds the multi-tenant identifier, profile claims, and direct access to the ambi…
+- [IJwtValidator（Interface）](/sdk/api/kun/kun-identity/ijwtvalidator.md): Validates a Bearer JWT against the configured issuer / audience / signing keys and returns the resulting ClaimsPrincipa…
+- [Kun.Identity](/sdk/api/kun/kun-identity/index.md): 命名空间 Kun.Identity：10 个公开类型（Kun.Identity）
+- [IOidcClient（Interface）](/sdk/api/kun/kun-identity/ioidcclient.md): OpenID Connect client for discovery, PKCE code exchange, token refresh, client credentials and signed back-channel logo…
+- [ISessionRegistry（Interface）](/sdk/api/kun/kun-identity/isessionregistry.md): Atomic session lifecycle operations. Renewing a revoked session must never recreate it.
+- [ISessionStore（Interface）](/sdk/api/kun/kun-identity/isessionstore.md): Backend for cookie-based session data. Implementations ship in Kun.Identity.Implementations.Session (in-memory for test…
+- [OidcCodeExchange（Class）](/sdk/api/kun/kun-identity/oidccodeexchange.md): Authorization code and the original browser transaction's PKCE verifier and nonce.
+- [OidcConfiguration（Class）](/sdk/api/kun/kun-identity/oidcconfiguration.md): Subset of an OpenID Connect discovery document surfaced by IOidcClient.DiscoverAsync.
+- [OidcLogoutToken（Class）](/sdk/api/kun/kun-identity/oidclogouttoken.md): Validated back-channel logout instruction. Subject or SessionId (or both) identifies sessions within Issuer.
+- [OidcTokenResponse（Class）](/sdk/api/kun/kun-identity/oidctokenresponse.md): Result of an OIDC authorization-code exchange.
+- [SessionData（Class）](/sdk/api/kun/kun-identity/sessiondata.md): Serialized payload held by ISessionStore implementations. The session cookie carries only an opaque session id; the rec…
+- [Kun.Mediator.Behaviors](/sdk/api/kun/kun-mediator-behaviors/index.md): 命名空间 Kun.Mediator.Behaviors：6 个公开类型（Kun.Mediator）
+- [LoggingBehavior<TRequest, TResponse>（Class）](/sdk/api/kun/kun-mediator-behaviors/loggingbehavior-2.md): Pipeline behavior that logs the request name on entry and the elapsed time on exit. Logs at Debug for normal completion…
+- [PerformanceBehavior<TRequest, TResponse>（Class）](/sdk/api/kun/kun-mediator-behaviors/performancebehavior-2.md): Pipeline behavior that logs a warning when the handler pipeline exceeds a duration threshold. The threshold is currentl…
+- [PerformanceBehaviorOptions（Class）](/sdk/api/kun/kun-mediator-behaviors/performancebehavioroptions.md): 慢命令告警的可配置阈值。
+- [PermissionBehaviorExtensions（Class）](/sdk/api/kun/kun-mediator-behaviors/permissionbehaviorextensions.md): 为静态声明权限的命令装配判定行为，缺失引擎时拒绝执行。
+- [PermissionBehaviorOptions（Class）](/sdk/api/kun/kun-mediator-behaviors/permissionbehavioroptions.md): 权限行为取权限判定器与当前主体的方式；缺省都从请求作用域的服务里取，取不到即拒绝。
+- [TracingBehavior<TRequest, TResponse>（Class）](/sdk/api/kun/kun-mediator-behaviors/tracingbehavior-2.md): Pipeline behavior that starts an Activity for each dispatched request using the "Kun.Mediator" ActivitySource. Compatib…
+- [Kun.Mediator.DependencyInjection](/sdk/api/kun/kun-mediator-dependencyinjection/index.md): 命名空间 Kun.Mediator.DependencyInjection：1 个公开类型（Kun.Mediator）
+- [KunMediatorServiceCollectionExtensions（Class）](/sdk/api/kun/kun-mediator-dependencyinjection/kunmediatorservicecollectionextensions.md): Extension methods for registering KunMediator with an IServiceCollection.
+- [Kun.Mediator](/sdk/api/kun/kun-mediator/index.md): 命名空间 Kun.Mediator：9 个公开类型（Kun.Mediator）
+- [INotification（Interface）](/sdk/api/kun/kun-mediator/inotification.md): Marker interface for cross-cutting notifications broadcast to many handlers.
+- [INotificationHandler<TNotification>（Interface）](/sdk/api/kun/kun-mediator/inotificationhandler-1.md): Handler for a specific INotification.
+- [IPipelineBehavior<TRequest, TResponse>（Interface）](/sdk/api/kun/kun-mediator/ipipelinebehavior-2.md): Pipeline behavior wrapping a IRequestHandler<TRequest, TResponse>. Behaviors form a nested "onion": outer behaviors see…
+- [IPublisher（Interface）](/sdk/api/kun/kun-mediator/ipublisher.md): Publishes a notification to all registered handlers.
+- [IScopedPublisher（Interface）](/sdk/api/kun/kun-mediator/iscopedpublisher.md): 由事务宿主显式指定作用域，保证通知处理器复用同一 DbContext 与 Outbox 缓冲。
+- [ISender（Interface）](/sdk/api/kun/kun-mediator/isender.md): Dispatches a single request to its registered handler.
+- [KunMediator（Class）](/sdk/api/kun/kun-mediator/kunmediator.md): Reflection-free CQRS dispatcher. Handler lookup is O(1) via a pre-built FrozenDictionary. All handler types are explici…
+- [KunMediatorBuilder（Class）](/sdk/api/kun/kun-mediator/kunmediatorbuilder.md): Fluent builder used to register request handlers, pipeline behaviors, and notification handlers with KunMediator. All r…
+- [RequestHandlerDelegate<TResponse>（Delegate）](/sdk/api/kun/kun-mediator/requesthandlerdelegate-1.md): Delegate passed to a pipeline behavior representing the next step in the chain.
+- [Kun.MultiTenancy.Abstractions](/sdk/api/kun/kun-multitenancy-abstractions/index.md): 命名空间 Kun.MultiTenancy.Abstractions：1 个公开类型（Kun.MultiTenancy）
+- [ITenantContextPropagator（Interface）](/sdk/api/kun/kun-multitenancy-abstractions/itenantcontextpropagator.md): 事件/作业 JSON 与 gRPC 文本元数据共用的租户传播端口；不替代传输层认证。
+- [Kun.MultiTenancy.DependencyInjection](/sdk/api/kun/kun-multitenancy-dependencyinjection/index.md): 命名空间 Kun.MultiTenancy.DependencyInjection：1 个公开类型（Kun.MultiTenancy）
+- [KunMultiTenancyServiceCollectionExtensions（Class）](/sdk/api/kun/kun-multitenancy-dependencyinjection/kunmultitenancyservicecollectionextensions.md): 租户上下文的服务登记。
+- [Kun.MultiTenancy.Middleware](/sdk/api/kun/kun-multitenancy-middleware/index.md): 命名空间 Kun.MultiTenancy.Middleware：2 个公开类型（Kun.MultiTenancy）
+- [KunMultiTenancyApplicationBuilderExtensions（Class）](/sdk/api/kun/kun-multitenancy-middleware/kunmultitenancyapplicationbuilderextensions.md): Registration extensions for TenantContextMiddleware.
+- [TenantContextMiddleware（Class）](/sdk/api/kun/kun-multitenancy-middleware/tenantcontextmiddleware.md): 为 HTTP 请求打开租户作用域。
+- [AsyncLocalTenantContext（Class）](/sdk/api/kun/kun-multitenancy/asynclocaltenantcontext.md): ITenantContext implementation backed by an AsyncLocal so the tenant id flows with the async call graph across thread ho…
+- [Kun.MultiTenancy](/sdk/api/kun/kun-multitenancy/index.md): 命名空间 Kun.MultiTenancy：4 个公开类型（Kun.MultiTenancy）
+- [TenantContextPropagator（Class）](/sdk/api/kun/kun-multitenancy/tenantcontextpropagator.md): 复用唯一 ITenantContext；传播字段只携带租户，不授予调用权限。
+- [TenantRequestBoundary（Class）](/sdk/api/kun/kun-multitenancy/tenantrequestboundary.md): 按已认证主身份的 tenant_id 建立本次请求的租户作用域。
+- [TenantRequestMode（Enum）](/sdk/api/kun/kun-multitenancy/tenantrequestmode.md): 请求入口允许的主体范围。
+- [Kun.Observability.Abstractions](/sdk/api/kun/kun-observability-abstractions/index.md): 命名空间 Kun.Observability.Abstractions：1 个公开类型（Kun.Observability）
+- [KunObservabilityOptions（Class）](/sdk/api/kun/kun-observability-abstractions/kunobservabilityoptions.md): Configuration for AddKunObservability. Every option has a safe default; the zero-arg call yields a trace + metric + log…
+- [Kun.Observability.Enrichment](/sdk/api/kun/kun-observability-enrichment/index.md): 命名空间 Kun.Observability.Enrichment：1 个公开类型（Kun.Observability）
+- [KunBaggageKeys（Class）](/sdk/api/kun/kun-observability-enrichment/kunbaggagekeys.md): Canonical baggage key names the Kun activity enricher mirrors onto Kun-sourced span tags at Activity.Start time. See do…
+- [Kun.Observability.Extensions](/sdk/api/kun/kun-observability-extensions/index.md): 命名空间 Kun.Observability.Extensions：1 个公开类型（Kun.Observability）
+- [KunObservabilityServiceCollectionExtensions（Class）](/sdk/api/kun/kun-observability-extensions/kunobservabilityservicecollectionextensions.md): Service-collection extensions that register unified Kun observability.
+- [CapabilityAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/capabilityattribute.md): 声明命令或查询的契约；源生成器验证并生成强类型能力定义。
+- [CapabilityBindingRegistration（Class）](/sdk/api/kun/kun-plugin-sdk/capabilitybindingregistration.md): SDK 层的可逆能力注册，不依赖 platform 的 Capabilities Provider。
+- [CapabilityContract（Class）](/sdk/api/kun/kun-plugin-sdk/capabilitycontract.md): 代码生成的能力声明；只有元数据，不承担请求认证、授权或安装状态判定。
+- [CapabilityContractException（Class）](/sdk/api/kun/kun-plugin-sdk/capabilitycontractexception.md): 能力契约在登记阶段被拒绝：带组件 ID、能力短名、出错位置与规则。同样的值写入 Data（含原因码 INPUT_INVALID），供 scope 装载失败与管理面诊断读取；消息不含 Schema 或配置原文。
+- [CapabilitySourceAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/capabilitysourceattribute.md): 引用与真实执行绑定共用的静态能力契约；不得通过实例化插件或处理器取得。
+- [CommandEvents（Class）](/sdk/api/kun/kun-plugin-sdk/commandevents.md): SDK 生产执行端拥有的事件 Definition，供基础组件注册强制监听器。
+- [CommandInvocation（Class）](/sdk/api/kun/kun-plugin-sdk/commandinvocation.md): 一次已经绑定业务事务的调用；输入和身份不得从日志字符串化展开。
+- [CommandPolicies（Class）](/sdk/api/kun/kun-plugin-sdk/commandpolicies.md): 基础 Provider 的监听登记入口；执行器同时核验服务、实际进入与卸载取消。
+- [CommandPolicyKind（Enum）](/sdk/api/kun/kun-plugin-sdk/commandpolicykind.md): 基础组合包的三个强制执行点。
+- [ComponentCodeMetadata（Class）](/sdk/api/kun/kun-plugin-sdk/componentcodemetadata.md): 代码派生的组件字段；手写版本、展示、策略和路径仍由唯一 plugin.json 保存。
+- [ComponentMetadataDeclarations（Class）](/sdk/api/kun/kun-plugin-sdk/componentmetadatadeclarations.md): 生成代码使用的声明校验；只读取静态声明，不执行插件。
+- [ComponentOwnerAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/componentownerattribute.md): 在多组件程序集内为权限或事件声明指定唯一归属。
+- [ContributesAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/contributesattribute.md): 声明具名扩展点贡献；服务键由指定类型的公开静态只读 ServiceKey 字段取得。
+- [DelegatePluginAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/delegatepluginattribute.md): 稳定组件入口委托给已分类的实现构件；必须同时独立声明其完整服务输出。
+- [ICapabilityContractCheck（Interface）](/sdk/api/kun/kun-plugin-sdk/icapabilitycontractcheck.md): 能力登记期的契约检查端口。平台宿主登记实现后，CapabilityBindingRegistration.ProvideCapability 在登记前调用它：生成目录条目并预编译输入校验器，不合格的契约在登记阶段拒绝，不留到首次调用。pl…
+- [ICapabilityRequest<TResponse>（Interface）](/sdk/api/kun/kun-plugin-sdk/icapabilityrequest-1.md): 真实 Mediator 请求与生成契约的类型关联。
+- [IComponentCodeMetadataFactory（Interface）](/sdk/api/kun/kun-plugin-sdk/icomponentcodemetadatafactory.md): 生成代码与清单工具之间的构建期协议，不实例化业务插件。
+- [IExecutableCapability（Interface）](/sdk/api/kun/kun-plugin-sdk/iexecutablecapability.md): 已挂载代码能力的真实执行端口；目录读取契约，调用仍经实际 Mediator 和基础策略。
+- [IJobRequest<TResponse>（Interface）](/sdk/api/kun/kun-plugin-sdk/ijobrequest-1.md): 源生成器为 KunJob 请求实现的静态声明，不使用反射寻找处理器。
+- [Kun.Plugin.Sdk](/sdk/api/kun/kun-plugin-sdk/index.md): 命名空间 Kun.Plugin.Sdk：30 个公开类型（Kun.Plugin.Sdk）
+- [JobBindingRegistration（Class）](/sdk/api/kun/kun-plugin-sdk/jobbindingregistration.md): local 作业的可逆注册；独立宿主与平台目录消费同一能力绑定。
+- [JobContract（Class）](/sdk/api/kun/kun-plugin-sdk/jobcontract.md): 绑定真实能力的不可变作业目录项；能力本身仍负责执行策略。
+- [JsonSchemaReferences（Class）](/sdk/api/kun/kun-plugin-sdk/jsonschemareferences.md): 源生成与实际 HTTP 描述共用的 JSON Schema 引用处理。
+- [KunCodeMetadataAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/kuncodemetadataattribute.md): 编译程序集暴露的生成元数据入口；只用于可信项目的构建期工具。
+- [KunConfigSchemaAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/kunconfigschemaattribute.md): 组件配置的代码声明；工具派生为清单所指的 configSchema 文件。
+- [KunJobAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/kunjobattribute.md): 将已有能力请求声明为可持久调度的 local 作业；code 在组件内唯一。
+- [KunPluginAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/kunpluginattribute.md): 声明组件的稳定 ID；同程序集允许多个不同 ID 的入口。
+- [ManifestErrors（Class）](/sdk/api/kun/kun-plugin-sdk/manifesterrors.md): 可信组件清单构建的错误目录；不改变市场准入或运行权限。
+- [ProvidesAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/providesattribute.md): 委托入口的单项服务输出；直接 Apply 仍由语义分析派生，不使用此声明覆盖分析。
+- [SensitiveAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/sensitiveattribute.md): 将输入属性标为敏感；生成契约在实际 JSON 字段上添加 sensitive，而非把原值写入审计。
+- [SharedEventsAttribute（Class）](/sdk/api/kun/kun-plugin-sdk/sharedeventsattribute.md): 引用另一个组件拥有的共享事件契约；不共享权限或其它元数据。
+- [Kun.RateLimit.Abstractions](/sdk/api/kun/kun-ratelimit-abstractions/index.md): 命名空间 Kun.RateLimit.Abstractions：3 个公开类型（Kun.RateLimit）
+- [KunRateLimitOptions（Class）](/sdk/api/kun/kun-ratelimit-abstractions/kunratelimitoptions.md): Root configuration for AddKunRateLimit. Callers register one or more named windows — typically "api" for bulk read / wr…
+- [RateLimitPartitionKey（Enum）](/sdk/api/kun/kun-ratelimit-abstractions/ratelimitpartitionkey.md): Identity dimension the rate limiter partitions on.
+- [WindowRule（Class）](/sdk/api/kun/kun-ratelimit-abstractions/windowrule.md): Configuration for a single named rate-limit window.
+- [Kun.RateLimit.Extensions](/sdk/api/kun/kun-ratelimit-extensions/index.md): 命名空间 Kun.RateLimit.Extensions：1 个公开类型（Kun.RateLimit）
+- [KunRateLimitServiceCollectionExtensions（Class）](/sdk/api/kun/kun-ratelimit-extensions/kunratelimitservicecollectionextensions.md): Service-collection extensions that register unified Kun rate limiting.
+- [Kun.RateLimit](/sdk/api/kun/kun-ratelimit/index.md): 命名空间 Kun.RateLimit：4 个公开类型（Kun.RateLimit）
+- [IRedisRateLimitStore（Interface）](/sdk/api/kun/kun-ratelimit/iredisratelimitstore.md): Low-level Redis-backed counter used for distributed rate limiting across multiple Gateway pods. Primitive surface for a…
+- [RateLimitHitResult（Struct）](/sdk/api/kun/kun-ratelimit/ratelimithitresult.md): Result of IRedisRateLimitStore.HitAsync.
+- [RedisFixedWindowRateLimitStore（Class）](/sdk/api/kun/kun-ratelimit/redisfixedwindowratelimitstore.md): Counts a hit and establishes the fixed window atomically in Redis. A preexisting counter without a TTL starts a fresh e…
+- [RedisRateLimitStoreOptions（Class）](/sdk/api/kun/kun-ratelimit/redisratelimitstoreoptions.md): Configuration for RedisFixedWindowRateLimitStore.
+- [DispatchMode（Enum）](/sdk/api/kun/kun-runtime/dispatchmode.md): 进程内扩展事件的分发模式。
+- [IKunPlugin<TConfig>（Interface）](/sdk/api/kun/kun-runtime/ikunplugin-1.md): 类型化配置接口；Schema 校验由清单装配器在调用前完成。
+- [IKunPlugin（Interface）](/sdk/api/kun/kun-runtime/ikunplugin.md): 插件的最小接口。
+- [Kun.Runtime](/sdk/api/kun/kun-runtime/index.md): 命名空间 Kun.Runtime：17 个公开类型（Kun.Runtime）
+- [IPluginContext（Interface）](/sdk/api/kun/kun-runtime/iplugincontext.md): 插件的服务、效果与作用域入口。
+- [IRegistrationHandle<TService>（Interface）](/sdk/api/kun/kun-runtime/iregistrationhandle-1.md): Provide 返回的注册句柄：Dispose 撤销注册，可重复调用；Replace 原子替换同一注册的实例。
+- [KunEvent<TPayload, TResult>（Class）](/sdk/api/kun/kun-runtime/kunevent-2.md): Definition 定义的事件。TResult 是整个分发的结果；扇出与按序模式用 IReadOnlyList<T>。
+- [KunEvent（Class）](/sdk/api/kun/kun-runtime/kunevent.md): 事件定义工厂。
+- [KunEventAttribute（Class）](/sdk/api/kun/kun-runtime/kuneventattribute.md): 标注事件字段或属性的分发模式；文档生成器校验它与事件值及注册调用一致，不影响运行时求值。
+- [ParallelDispatchException<TResult>（Class）](/sdk/api/kun/kun-runtime/paralleldispatchexception-1.md): 所有并行监听器结束后报告失败；Partial 仅含成功结果，顺序与监听器一致。
+- [PluginDefinition（Class）](/sdk/api/kun/kun-runtime/plugindefinition.md): 装载输入；Provides 来自清单，不通过试运行 Apply 推测。
+- [PluginEntry（Class）](/sdk/api/kun/kun-runtime/pluginentry.md): 已由清单与配置装配器解析的插件条目。
+- [PluginLoader（Class）](/sdk/api/kun/kun-runtime/pluginloader.md): 按服务依赖装载插件。代码实例由宿主提供，不加载动态程序集、不读数据库。
+- [PluginState（Enum）](/sdk/api/kun/kun-runtime/pluginstate.md): 某次 Apply 的状态；失败保留原异常供管理面查询。
+- [Registration（Class）](/sdk/api/kun/kun-runtime/registration.md): 目录与执行共用的注册描述；Name 为空表示键本身，具名 seam 使用独立名称。
+- [ScopeKey（Struct）](/sdk/api/kun/kun-runtime/scopekey.md): 两层扁平作用域：ScopeKey.Global，或「种类 + 非空 id」；作用域之间没有继承关系。运行时只查语法（种类是小写字母开头、由小写字母数字与连字符组成的名字），种类有哪些由平台档定。
+- [ServiceKey（Struct）](/sdk/api/kun/kun-runtime/servicekey.md): Definition 拥有的服务键；具名注册可用 Key:name 声明就绪依赖。
+- [ServiceNotReadyException（Class）](/sdk/api/kun/kun-runtime/servicenotreadyexception.md): 当前服务尚不可见。不存在与被过滤的服务返回相同错误。
+- [Kun.Security.Authentication](/sdk/api/kun/kun-security-authentication/index.md): 命名空间 Kun.Security.Authentication：4 个公开类型（Kun.Security）
+- [KunServiceAuthenticationExtensions（Class）](/sdk/api/kun/kun-security-authentication/kunserviceauthenticationextensions.md): Extension methods for registering Kun S2S JWT Bearer authentication on downstream services.
+- [KunServiceAuthenticationOptions（Class）](/sdk/api/kun/kun-security-authentication/kunserviceauthenticationoptions.md): Options for configuring S2S JWT Bearer authentication on a downstream service. Supports both static key sets and dynami…
+- [PrincipalClaims（Class）](/sdk/api/kun/kun-security-authentication/principalclaims.md): 从已认证的主身份读取授权主体，不拼接不同身份的 claim。
+- [S2sPrincipalContract（Class）](/sdk/api/kun/kun-security-authentication/s2sprincipalcontract.md): 已认证的主体快照在外部身份投影、网关签发与服务端接收之间共用的契约。
+- [Kun.Security.DependencyInjection](/sdk/api/kun/kun-security-dependencyinjection/index.md): 命名空间 Kun.Security.DependencyInjection：1 个公开类型（Kun.Security）
+- [KunSecurityServiceCollectionExtensions（Class）](/sdk/api/kun/kun-security-dependencyinjection/kunsecurityservicecollectionextensions.md): Extension methods for registering Kun Security services with an IServiceCollection.
+- [HttpClientBuilderExtensions（Class）](/sdk/api/kun/kun-security-extensions/httpclientbuilderextensions.md): Extension methods on IHttpClientBuilder for Kun S2S auth propagation.
+- [Kun.Security.Extensions](/sdk/api/kun/kun-security-extensions/index.md): 命名空间 Kun.Security.Extensions：1 个公开类型（Kun.Security）
+- [Kun.Security.Http](/sdk/api/kun/kun-security-http/index.md): 命名空间 Kun.Security.Http：1 个公开类型（Kun.Security）
+- [PropagateS2sTokenHandler（Class）](/sdk/api/kun/kun-security-http/propagates2stokenhandler.md): A DelegatingHandler that copies the Authorization header from the current incoming HTTP request to all outgoing request…
+- [FileKunJwksProvider（Class）](/sdk/api/kun/kun-security-jwks/filekunjwksprovider.md): Loads a JSON Web Key Set from a local file and caches it in memory. The cache is invalidated when the file's last-write…
+- [IKunJwksProvider（Interface）](/sdk/api/kun/kun-security-jwks/ikunjwksprovider.md): Provides the JSON Web Key Set used for S2S token signature verification.
+- [Kun.Security.Jwks](/sdk/api/kun/kun-security-jwks/index.md): 命名空间 Kun.Security.Jwks：2 个公开类型（Kun.Security）
+- [Kun.Security.Security](/sdk/api/kun/kun-security-security/index.md): 命名空间 Kun.Security.Security：1 个公开类型（Kun.Security）
+- [JwtCurrentUser（Class）](/sdk/api/kun/kun-security-security/jwtcurrentuser.md): ICurrentUser implementation that reads sub, name, and roles claims from the authenticated ClaimsPrincipal on the curren…
+- [DelegationActor（Class）](/sdk/api/kun/kun-security/delegationactor.md): RFC 8693 委托链，保持与 v0 Actor 定义同形。
+- [IdentityClaimNames（Class）](/sdk/api/kun/kun-security/identityclaimnames.md): 身份 claim 的唯一词汇表；OIDC 用户令牌与冻结 S2S 令牌的字段集合分别列出。
+- [Kun.Security](/sdk/api/kun/kun-security/index.md): 命名空间 Kun.Security：6 个公开类型（Kun.Security.Abstractions）
+- [Principal（Class）](/sdk/api/kun/kun-security/principal.md): 冻结 S2S payload 的 DTO，不承担 JWT 验签、发行或权限判定。
+- [PrincipalKind（Enum）](/sdk/api/kun/kun-security/principalkind.md): 统一主体模型；Agent 在 S1 只预留，不因此开放签发。
+- [PrincipalKindConverter（Class）](/sdk/api/kun/kun-security/principalkindconverter.md): 主体类型的 JSON 转换器：只收 user、service、agent 三个小写字符串，数字与其它值一律报错。
+- [S2sTokenOptions（Class）](/sdk/api/kun/kun-security/s2stokenoptions.md): Configuration for S2S JWT issuance and validation. Algorithm is always asymmetric (RS256/ES256) — HS256 is rejected per…
+- [Kun.Storage.Local.DependencyInjection](/sdk/api/kun/kun-storage-local-dependencyinjection/index.md): 命名空间 Kun.Storage.Local.DependencyInjection：1 个公开类型（Kun.Storage.Local）
+- [StorageServiceCollectionExtensions（Class）](/sdk/api/kun/kun-storage-local-dependencyinjection/storageservicecollectionextensions.md): DI extension methods for registering LocalFileSystemStorage.
+- [Kun.Storage.Local](/sdk/api/kun/kun-storage-local/index.md): 命名空间 Kun.Storage.Local：6 个公开类型（Kun.Storage.Local）
+- [LocalFileStorageOptions（Class）](/sdk/api/kun/kun-storage-local/localfilestorageoptions.md): Configures LocalFileSystemStorage.
+- [LocalFileSystemStorage（Class）](/sdk/api/kun/kun-storage-local/localfilesystemstorage.md): IFileStorage implementation that stores objects on the local filesystem. Intended for development, tests, and single-no…
+- [LocalSignedTransfers（Class）](/sdk/api/kun/kun-storage-local/localsignedtransfers.md): 为本地存储签发和执行限时上传、下载请求。键的用途由宿主指定。
+- [LocalTransferRead（Class）](/sdk/api/kun/kun-storage-local/localtransferread.md): 直下内容：响应头取自签名参数与存储时的嗅探类型。
+- [LocalTransferRequest（Class）](/sdk/api/kun/kun-storage-local/localtransferrequest.md): 一次直传 / 直下请求：对象键取自路径，查询参数与请求头原样传入，由网关校验签名。
+- [LocalTransferWriteResult（Enum）](/sdk/api/kun/kun-storage-local/localtransferwriteresult.md): 直传结果，宿主映射为 HTTP 状态码。
+- [Kun.Storage.Oss.DependencyInjection](/sdk/api/kun/kun-storage-oss-dependencyinjection/index.md): 命名空间 Kun.Storage.Oss.DependencyInjection：1 个公开类型（Kun.Storage.Oss）
+- [StorageServiceCollectionExtensions（Class）](/sdk/api/kun/kun-storage-oss-dependencyinjection/storageservicecollectionextensions.md): DI extension methods for registering OssFileStorage.
+- [Kun.Storage.Oss](/sdk/api/kun/kun-storage-oss/index.md): 命名空间 Kun.Storage.Oss：2 个公开类型（Kun.Storage.Oss）
+- [OssFileStorage（Class）](/sdk/api/kun/kun-storage-oss/ossfilestorage.md): Alibaba Cloud OSS implementation of IFileStorage using the native Aliyun.OSS.SDK.NetCore client.
+- [OssStorageOptions（Class）](/sdk/api/kun/kun-storage-oss/ossstorageoptions.md): Configures OssFileStorage.
+- [Kun.Storage.S3.DependencyInjection](/sdk/api/kun/kun-storage-s3-dependencyinjection/index.md): 命名空间 Kun.Storage.S3.DependencyInjection：1 个公开类型（Kun.Storage.S3）
+- [StorageServiceCollectionExtensions（Class）](/sdk/api/kun/kun-storage-s3-dependencyinjection/storageservicecollectionextensions.md): DI extension methods for registering S3FileStorage.
+- [Kun.Storage.S3](/sdk/api/kun/kun-storage-s3/index.md): 命名空间 Kun.Storage.S3：2 个公开类型（Kun.Storage.S3）
+- [S3FileStorage（Class）](/sdk/api/kun/kun-storage-s3/s3filestorage.md): Amazon S3 (and S3-compatible: MinIO, Ceph, LocalStack) implementation of IFileStorage.
+- [S3StorageOptions（Class）](/sdk/api/kun/kun-storage-s3/s3storageoptions.md): Configures S3FileStorage.
+- [ActiveWebContentTypes（Class）](/sdk/api/kun/kun-storage/activewebcontenttypes.md): The canonical set of MIME types that browsers render as active web content — i.e. payloads that could execute script or…
+- [DownloadOptions（Class）](/sdk/api/kun/kun-storage/downloadoptions.md): Per-call download behavior hints.
+- [IFileStorage（Interface）](/sdk/api/kun/kun-storage/ifilestorage.md): Transport-agnostic object-storage abstraction used by Kun services to upload, download, and manage blob artifacts (atta…
+- [Kun.Storage](/sdk/api/kun/kun-storage/index.md): 命名空间 Kun.Storage：9 个公开类型（Kun.Storage.Abstractions）
+- [ListObjectsResult（Class）](/sdk/api/kun/kun-storage/listobjectsresult.md): A page of objects returned by IFileStorage.ListAsync.
+- [ObjectMetadata（Class）](/sdk/api/kun/kun-storage/objectmetadata.md): Metadata describing a stored object.
+- [PresignedDownloadUrl（Class）](/sdk/api/kun/kun-storage/presigneddownloadurl.md): Presigned GET URL that lets a client download the object directly from the store.
+- [PresignedPostUpload（Class）](/sdk/api/kun/kun-storage/presignedpostupload.md): Presigned POST descriptor for direct browser/client uploads. Unlike the PUT-based PresignedUploadUrl, the signed policy…
+- [PresignedUploadUrl（Class）](/sdk/api/kun/kun-storage/presigneduploadurl.md): Presigned PUT URL that a client can use to upload directly to the store.
+- [UploadConstraints（Class）](/sdk/api/kun/kun-storage/uploadconstraints.md): Upload policy applied by IFileStorage.UploadAsync and encoded into IFileStorage.GetPresignedUploadAsync signatures.
+- [ApolloFixture（Class）](/sdk/api/kun/kun-testing-containers/apollofixture.md): Apollo 配置服务的协议替身（PRD §14.2：集成测试层的 Apollo 用 mock server）。容器内运行 ApolloMock/apollo_mock.py：实现客户端用到的 /configs、/configfiles/…
+- [ApolloRelease（Class）](/sdk/api/kun/kun-testing-containers/apollorelease.md): 一次发布的结果。
+- [AuthentikFixture.OAuthClient（Class）](/sdk/api/kun/kun-testing-containers/authentikfixture-oauthclient.md): 为一个依赖方开出的 OAuth2 客户端。
+- [AuthentikFixture.User（Class）](/sdk/api/kun/kun-testing-containers/authentikfixture-user.md): Authentik 里的一个本地用户。
+- [AuthentikFixture（Class）](/sdk/api/kun/kun-testing-containers/authentikfixture.md): 真实 Authentik（server + worker + 专属 PostgreSQL），作为 OIDC 连接器的上游身份源（S1-IDP-007 验收 1）。启动后用引导令牌经 REST API 开 OAuth2 客户端与用户；Aut…
+- [ContainerFixture<TContainer>（Class）](/sdk/api/kun/kun-testing-containers/containerfixture-1.md): 单个容器 fixture 的公共骨架：启动容器（瞬时失败时有界重试）、按 DockerRequirement 处理 Docker 缺失、随 fixture 一起释放。直接用作 xUnit 的 class / collection / as…
+- [ContainerImages（Class）](/sdk/api/kun/kun-testing-containers/containerimages.md): 集成测试使用的镜像。版本与部署基线一致：PostgreSQL 16、Redis 7（ADR-017 D17.2）； RabbitMQ 取当前 4.x 稳定线（PRD §14.6）。每个镜像都可用环境变量覆盖，便于与 staging 对齐或…
+- [DexFixture（Class）](/sdk/api/kun/kun-testing-containers/dexfixture.md): 独立实现的外部 OIDC 发行方（CNCF Dex），用来验证依赖方能对接 Kun 身份服务之外的任意发行方。内存存储、本地密码库里一个用户、一个启用 PKCE 的公开客户端，跳过授权确认页。Dex 的 issuer 必须在启动前写进配置…
+- [DockerRequirement（Class）](/sdk/api/kun/kun-testing-containers/dockerrequirement.md): 没有 Docker 时集成测试怎么办：本机跳过；CI 上直接失败，因为 PR 级门禁要求集成测试必须真跑（PRD §14.4 C10）。
+- [Kun.Testing.Containers](/sdk/api/kun/kun-testing-containers/index.md): 命名空间 Kun.Testing.Containers：16 个公开类型（Kun.Testing.Containers）
+- [InfrastructureFixture（Class）](/sdk/api/kun/kun-testing-containers/infrastructurefixture.md): 一次拉起全部四个依赖（PostgreSQL / Redis / RabbitMQ / Apollo 替身），并行启动。平台插件的集成测试通常同时需要它们，作为 collection 或 assembly fixture 使用，整组测试共享…
+- [K3sFixture（Class）](/sdk/api/kun/kun-testing-containers/k3sfixture.md): K3s 单节点集群（特权容器）。K3sFixture.Kubeconfig 里的 API Server 已映射到宿主端口；容器内自带 kubectl（含 kustomize），可用 K3sFixture.KubectlAsync 代替 A…
+- [PgBouncerPostgresFixture（Class）](/sdk/api/kun/kun-testing-containers/pgbouncerpostgresfixture.md): Spins up a Postgres 16 container fronted by edoburu/pgbouncer in POOL_MODE=transaction. Exposes both direct and bouncer…
+- [PostgresFixture（Class）](/sdk/api/kun/kun-testing-containers/postgresfixture.md): PostgreSQL 16 容器。提供两条连接串： PostgresFixture.ConnectionString 是超级用户，用于建表、迁移与造数； PostgresFixture.AppConnectionString 是 NOSU…
+- [RabbitMqFixture（Class）](/sdk/api/kun/kun-testing-containers/rabbitmqfixture.md): RabbitMQ 容器。韧性测试可经 ContainerFixture<TContainer>.Container 停启 broker。
+- [RedisFixture（Class）](/sdk/api/kun/kun-testing-containers/redisfixture.md): Redis 7 容器。
+- [S3CompatibleServer（Class）](/sdk/api/kun/kun-testing-containers/s3compatibleserver.md): 存储集成测试用的 S3 兼容服务容器：RustFS（Apache-2.0）。
+- [DomainEventAssertions（Class）](/sdk/api/kun/kun-testing-domain/domaineventassertions.md): Fluent assertion extensions for IAggregateRoot domain- event collections. On mismatch, throws KunAssertionException wit…
+- [Kun.Testing.Domain](/sdk/api/kun/kun-testing-domain/index.md): 命名空间 Kun.Testing.Domain：1 个公开类型（Kun.Testing）
+- [Kun.Testing.EntityFrameworkCore.Outbox](/sdk/api/kun/kun-testing-entityframeworkcore-outbox/index.md): 命名空间 Kun.Testing.EntityFrameworkCore.Outbox：1 个公开类型（Kun.Testing.EntityFrameworkCore）
+- [OutboxAssertions（Class）](/sdk/api/kun/kun-testing-entityframeworkcore-outbox/outboxassertions.md): Fluent assertion extensions for EF-persisted OutboxMessage state. Helpers come in two overload families: one on IEnumer…
+- [Kun.Testing.Results](/sdk/api/kun/kun-testing-results/index.md): 命名空间 Kun.Testing.Results：1 个公开类型（Kun.Testing）
+- [ResultAssertions（Class）](/sdk/api/kun/kun-testing-results/resultassertions.md): Fluent assertion extensions for Result and Result<T>. On mismatch, throws KunAssertionException with a precise message …
+- [Kun.Testing](/sdk/api/kun/kun-testing/index.md): 命名空间 Kun.Testing：1 个公开类型（Kun.Testing）
+- [KunAssertionException（Class）](/sdk/api/kun/kun-testing/kunassertionexception.md): Thrown by Kun.Testing fluent assertion helpers when a condition fails. Test frameworks (xUnit, NUnit, MSTest) surface t…
+- [Kun.Validation.Behaviors](/sdk/api/kun/kun-validation-behaviors/index.md): 命名空间 Kun.Validation.Behaviors：3 个公开类型（Kun.Validation）
+- [ValidationPipelineBehavior<TRequest, TResponse>（Class）](/sdk/api/kun/kun-validation-behaviors/validationpipelinebehavior-2.md): Pipeline behavior that runs every registered IValidator<T> against the incoming request and throws ErrorException if an…
+- [ValidationResultPipelineBehavior<TRequest>（Class）](/sdk/api/kun/kun-validation-behaviors/validationresultpipelinebehavior-1.md): Non-generic variant of ValidationResultPipelineBehavior<TRequest, TValue> for handlers whose response is the non-generi…
+- [ValidationResultPipelineBehavior<TRequest, TValue>（Class）](/sdk/api/kun/kun-validation-behaviors/validationresultpipelinebehavior-2.md): Pipeline behavior that runs every registered IValidator<T> against the incoming request and returns a failed Result<T> …
+- [Kun.Validation.DependencyInjection](/sdk/api/kun/kun-validation-dependencyinjection/index.md): 命名空间 Kun.Validation.DependencyInjection：1 个公开类型（Kun.Validation）
+- [KunValidationServiceCollectionExtensions（Class）](/sdk/api/kun/kun-validation-dependencyinjection/kunvalidationservicecollectionextensions.md): Extension methods to register Kun.Validation services into an IServiceCollection or a KunMediatorBuilder.
+- [Kun.Validation](/sdk/api/kun/kun-validation/index.md): 命名空间 Kun.Validation：2 个公开类型（Kun.Validation）
+- [IValidator<T>（Interface）](/sdk/api/kun/kun-validation/ivalidator-1.md): Validates instances of T. Implementations are registered per request type via KunMediatorBuilder.AddValidator<T, TValid…
+- [ValidationResult（Struct）](/sdk/api/kun/kun-validation/validationresult.md): Result of running a validator against an instance. ValidationResult.IsValid is true iff ValidationResult.Errors is empt…
+
+## 前端框架 Qian（已归档） · 组件目录
+
+- [前端框架 Qian 的组件页已从本站拿掉](/components/qian/index.md): 本站 2026-11-26 起不再收录前端框架 Qian 的组件页；它的仓库已归档，组件文档在归档仓库的标签 @cavailab/qian-core@0.2.1 里。
+
+## 前端框架 Qian（已归档） · 设计与路线
+
+- [专题 spec · 前端框架组件库](/design/prd/specs/frontend.md): Qian 0.2.1 已发布十个框架包：@cavailab/qian-tokens、@cavailab/qian-contracts、@cavailab/qian-sdk、@cavailab/qian-core、@cavailab/qia…

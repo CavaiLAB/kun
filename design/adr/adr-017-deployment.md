@@ -1,0 +1,137 @@
+> For AI agents: the complete documentation index is available at /llms.txt, the full documentation bundle is available at /llms-full.txt.
+
+# ADR-017 部署
+
+> 本页由构建脚本镜像自仓库 [`docs/adr/ADR-017-deployment.md`](https://github.com/CavaiLAB/kun/blob/main/docs/adr/ADR-017-deployment.md)，请修改源文件，不要改本页。
+
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
+> 修订（2026-11-25，[S1-DEC-041](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-041.md) D1、D3）：交付给客户的产品里，运维侧的登录也接身份服务，不带 Authentik（§12）；单机版作为写明的例外采用身份与平台同进程的形状（§13）。正文未改，D17.11 与 §10 受影响的一条前加了标注。
+
+> 修订（2026-11-26，[S1-DEC-043](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-043.md) D5）：产品负责人 2026-11-26 说企业级框架分两种（带模型推理服务的 K8s 集群；不带模型推理、通过 API 接第三方的模型服务），提供多租户与单租户两个版本，统一由管理端管理，尽量做成插件（平台级裁定 P83）。与本文没有出入；它与 §13 的企业版、单机版是什么关系，见 §14。正文未改。
+
+> 修订（2026-11-27，[S1-DEC-049](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-049.md)）：产品负责人 2026-11-27 答复《决策表》。与本文有关的：交付哪两套组合定了，各装什么的清单延期（§14）；§14 的读法认可；单机版的底座是单节点 K3s（§13）；§13 里单机版的发布怎么验收延期；§7 两项，一项延期、一项有了首选。正文未改，这几处前加了标注。
+
+## 1 背景与问题（Context）
+
+Kun 仓库没有 Dockerfile、compose、Helm、manifest、健康端点映射或镜像构建脚本；K8s 只出现在文档假设（基线 K §2.5）。团队另有成熟的部署约定（［部署仓库］）：单集群 K3s v1.35 三节点全 control-plane（embedded etcd），只跨两台物理宿主；几乎所有有状态与共享服务 `nodeSelector` 钉首节点（同时是唯一 GPU 节点与 CI runner）；唯一 StorageClass `local-path`；同集群按 ns 分环境（prod / staging / mock）；Argo CD app-of-apps（根 Application `selfHeal:true`，业务 Application `automated{prune:false, selfHeal:false}`）；Kustomize base / overlay；L0 / L1 / L2 三层 + 三个互斥 Argo Application + 静态边界门；不可变发布事件（40 位 SHA、CalVer）→ 验签 → 镜像推 Harbor → DB 迁移 Job 先行 → `kustomize edit set image` 按 digest 写回 → Argo 收敛 → smoke；Syft / Grype / Trivy / Cosign 供应链证据；「vendor chart + 离线渲染入 git」范式；秘密只存模板 / 键名 / secretRef（基线 K §4.2、§6.1）。
+
+治理缺口：无 ResourceQuota / LimitRange / HPA；NetworkPolicy 业务 ns 为零；PDB 只有 3 个；多处 `:latest`；无 Alertmanager；Infisical 已部署但运行时注入未接通；共享 Redis（`allkeys-lru`）被 L1 的 Authentik / Infisical 跨 ns 复用；K3s 上无 RabbitMQ；prod 与 staging 共用同一 OIDC client（基线 K §6.1、§4.2、§7.1 第 5 条）。
+
+## 2 决策（Decision）
+
+- **D17.1 沿用 ［部署仓库］ 全部约定**：L0 / L1 / L2 三层；Argo CD app-of-apps；Kustomize base / overlay；不可变发布事件；按 digest 写回；迁移 Job 先行；供应链证据（SBOM / 扫描 / 签名）；环境差异只放 overlay 与机器本地 Secret，禁止代码内按环境分叉。
+- **D17.2 Qian 新建 `qian-<env>` 命名空间与专属 PostgreSQL 16 / Redis 7**；不把共享平台挂到应用 Redis 上，不重复 L1 反向依赖 L2 的反例。
+- **D17.3 L1 新增**：Apollo + MySQL（ADR-007）、RabbitMQ（ADR-008）；Authentik 升级并仅服务运维侧；Infisical 运行时注入补 Operator / ESO 后才算权威。
+- **D17.4 每个服务 `/healthz`（liveness）与 `/readyz`（readiness，含 PG / Redis / RabbitMQ / Apollo 依赖检查）**；优雅停机 `terminationGracePeriodSeconds` ≥ 优雅停机超时 + 10s；Apollo / Higress / Nacos / Infisical 控制台不公网。
+- **D17.5 治理补齐**：业务命名空间 default-deny NetworkPolicy（出口规则由插件清单 `permissions.egress` 生成）+ ResourceQuota / LimitRange；补 Alertmanager；禁止 `:latest`；K3s 打开 `--secrets-encryption`。
+- **D17.6 多租户拓扑三档**：默认共享 ns / 共享 Pod，数据按 `tenant_id` / RLS 隔离；高隔离租户独立 ns + 独立 PG / Redis，由 ApplicationSet 生成；私有化客户整套 `env-<customer>/` overlay 复制。**不以 per-tenant namespace 为默认**；每档都要 ResourceQuota / LimitRange + default-deny。
+- **D17.7 生产集群**（Q16）：与［下游智能体平台］共用同一 K3s（同 Argo / Authentik / Higress）但使用**独立节点池**；达到一定租户数再拆独立集群；加节点时按物理宿主计故障域。
+- **D17.8 第二类制品「插件包（OCI artifact）」推 Harbor**，清单只允许 digest 引用；代码制品 = 清单 + 文件摘要 + SBOM，cosign 签名与证明；插件制品走同一发布链路。
+- **D17.9 发布节奏**：内核随 CalVer 发布；插件独立灰度（Apollo Label 灰度只按实例，租户灰度靠 `qian.tenancy` 开关）；`prune:false` 起步。
+- **D17.10 配置与密钥注入**：Kustomize 只注入引导项（`Apollo__*`、Secret 文件）；配置源顺序见 ADR-007；仓库只存模板 / 键名 / secretRef；bootstrap 脚本「只建缺失、不覆盖、不打印」。
+- 【经 S1-DEC-041 D1 修订：交付给客户的产品里，运维侧的登录也接身份服务，不带 Authentik，见 §12】**D17.11 身份提供方部署**：客户 CIAM = `qian.identity`；运维侧 = Authentik（升级到当前版本，注意跨 Redis 移除等破坏性变更）；per-env 至少独立 OIDC client；Apollo Portal / Headlamp / Argo 走 Authentik blueprint。
+- **D17.12 镜像**：业务服务 JIT 镜像；网关 / gRPC 边缘可 AOT distroless；`qian plugin pack` 从清单产出 Dockerfile / chart / NetworkPolicy 片段；`service` 型插件由生命周期控制器生成 Kustomize / Helm 片段写入 GitOps 仓库、Argo 收敛，健康 = K8s 状态 + 插件 `/health` 双条件回写注册表。
+- **D17.13 租户接线**：每个租户 / 应用在共享网关、IdP、Apollo 上的配置单独一个 Argo Application（沿用 `*-integrations` 模式）；S3 接线 Application 生成器（开通 = 写 Git → Argo 收敛）。
+- **D17.14 入口**：两个 IngressClass（`traefik` 业务 / `higress` AI）各有 MetalLB VIP；公网 nginx 终结 TLS；Traefik `trustedIPs` 必配；cert-manager 按需引入。
+
+## 3 理由（Rationale）
+
+- 部署约定已在［下游智能体平台］生产运行，复用成本最低、风险最小（基线 K §4.2）。
+- 不以 per-tenant namespace 为默认：三节点集群资源与故障域不支持数千租户各一套命名空间；共享 + RLS 已是数据层默认（ADR-004）；高隔离与私有化作为显式档位满足少数客户。
+- 独立节点池是在「现网故障域是整台首节点」与「拆集群的运维成本」之间的折中；按租户数设拆分阈值让决策可延后。
+- 治理缺口必须在多租户上线前补齐，否则一个租户的资源失控会影响整个集群（基线 K §7.1 第 5 条）。
+
+## 4 备选方案与放弃原因（Alternatives）
+
+- **独立生产集群**：故障域最清晰，但 Argo / Authentik / Higress / Harbor 都要复制一套；达到租户数阈值后再做。暂不采用。
+- **per-tenant namespace 默认**：资源与运维不可承受。放弃。
+- **Helm 全面替代 Kustomize**：与现网范式冲突；Helm 只用于 vendor chart 离线渲染。放弃。
+- **Dapr / Service Mesh**：见 ADR-002。放弃。
+
+## 5 后果与代价（Consequences）
+
+- 正面：Qian 第一天就有 GitOps、供应链证据与健康约定；插件包与镜像走同一条发布链。
+- 负面：共用集群意味着［下游智能体平台］的故障域部分与 Qian 重叠；L1 新增 Apollo + MySQL + RabbitMQ 增加运维对象；`local-path` 唯一存储类限制有状态组件的 HA。
+- 配套：ResourceQuota / NetworkPolicy 模板；ApplicationSet 模板；Alertmanager 路由；拆集群阈值与迁移预案。
+
+过渡态（2026-10-06）：业务 ns 无 NetworkPolicy / ResourceQuota，无 Alertmanager，K3s 上无 RabbitMQ / Apollo / MySQL，Infisical 注入未接通，prod / staging 共用 OIDC client。D17.3–D17.5 是 S1 第一批基础设施任务，完成前 Qian 不进入多租户生产。
+
+## 6 对各阶段的影响
+
+- **S1**：镜像与 chart、健康端点、`qian-<env>` ns + 专属 PG / Redis、RabbitMQ / Apollo K8s 化、default-deny + ResourceQuota、插件包 OCI 制品、Alertmanager 可选。
+- **S2**：逐租户迁移 Job 的批次编排；多副本迁移协调。
+- **S3**：接线 Application 生成器、ApplicationSet 高隔离档、专属部署、私有化 overlay 复制清单。
+- **S4**：CubeSandbox 已在集群（DaemonSet），Qian 只做对接；GPU 节点池规划。
+
+## 7 待确认事项
+
+- 【S1-DEC-049（2026-11-27）：延期（成批的丁批），前置条件：先有生产部署的规划；本项不改】拆独立集群的租户数阈值与节点池划分。
+- cert-manager 引入时点。
+- Infisical Operator / ESO 的落地时点。
+- 【S1-DEC-049（2026-11-27）：产品负责人 2026-11-27 答「GPUStack 首选平台集群外的专机，由 Kun 维护适配。」写的是首选，装进同一个集群没有排除；GPU 的归属没有另说；本项不改】GPU 节点归属与是否进入 Qian 节点池（见 ADR-015）。
+
+## 8 参考
+
+- 相关 ADR：ADR-002、ADR-004、ADR-007、ADR-008、ADR-010、ADR-014、ADR-015。
+- PRD：`PRD §07`、`PRD §09`、`PRD §12`、`PRD §14`。
+- 基线：K §2.5、§4.2、§6.1–§6.3、§7.1 第 5 条、§7.2 第 7 条；P §4.6、§10.1 第 8 条。
+
+## 9 基线与真实平台联调分阶段验收（2026-10-11）
+
+产品负责人已通过 [S1-DEC-016](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-016.md) 确认分阶段验收，消除 DEP-001 要求 L1/应用先就绪、DEP-002/003 又依赖 DEP-001 的循环。
+
+- 基线阶段（S1-DEP-001）：在真实集群验证两环境独立命名空间、专属 PG/Redis、默认拒绝网络策略、配额/限制、生产独立节点池与入口/加密基线。staging 用明确标识的诊断工作负载验证拒绝路径与已授权的 PG/Redis 协议访问；其结果只证明基础设施与策略，不标作真实 qian-platform 联调。
+- 应用阶段（S1-DEP-005 发布验收）：待 DEP-002 的专属 RabbitMQ/Apollo 和 DEP-008 的真实平台镜像（R106 自 DEP-003 拆出）就绪，补充精确网络放行，从真实 qian-platform 验证 PG、Redis、RabbitMQ、Apollo 四类依赖的协议与认证，并关联应用就绪状态。该项是发布必过门，不能以探针、同名标签 Pod、共享服务或仅 TCP 连通代替。
+
+DEP-002/003 的基线前置保持，DEP-005 显式依赖 DEP-002 与 DEP-008（真实镜像，R106），并经 DEP-004 依赖 DEP-003（镜像构建与供应链流水线）。上述裁决只调整验收顺序，不豁免真实集群检查、生产节点池、实际 HTTPS issuer、secrets-encryption、制品证据或发布准入；静态清单和本机容器通过不能将 DEP-001 标为完成。
+
+## 10 staging 首次部署的过渡形状（2026-11-11）
+
+产品负责人通过 [S1-DEC-033](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-033.md) D2 选定（R143）：「初步可用」里程碑期间，staging 首次部署照联调环境与集成测试已验收的同进程形状，平台与身份同一个进程，网关独立进程；清单手写，镜像按 digest。落地任务是 S1-DEP-011。
+
+- 这是只用于 staging 的过渡形状。§2 的三镜像形状、拆分部署与发布链仍是目标；§9 的应用阶段发布门不变，同进程部署的结果不能当作 S1-DEP-005 的验收证据。
+- 原因：拆分部署下运营开户与审核通过还缺一段跨宿主的开通编排接力（S1-TEN-023），授权变更的身份修订同步（S1-IDP-012）要经 RabbitMQ 投递。同进程形状不依赖这两项就能跑通登录、开户与审核。
+- 【经 S1-DEC-041 D3 修订：单机版作为写明的例外采用这个形状，见 §13】代价：staging 暂不满足 ADR-005 的身份独立安全边界。生产不采用这个形状。
+
+## 11 system 级预装组件的版本与升级（2026-11-17）
+
+产品负责人通过 [S1-DEC-037](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-037.md) 选定（R167）：组件文件夹即制品，版本号唯一对应文件夹的内容；system 级预装组件的内容变了就升版本，升版本要能在有数据的库上原地完成。事实与备选做法见[决策文档](https://github.com/CavaiLAB/kun/blob/97d521b6df237b092990d7bed8586bda18aebbbc/docs/decisions/system-component-same-version.md)。
+
+- 门禁：system 级 module 组件的目录摘要相对上次发布变了而 `plugin.json` 的版本没变，CI 失败。上次发布的基线是仓库里的基线文件，随部署登记更新（S1-DEP-012）。
+- 升级：系统组件修订 Job 激活新版本后，把开通在别的版本上的租户对齐到镜像里的版本，Lifecycle 的开通记录与 Authz 的默认策略一起换；镜像回切时反向对齐（S1-DEP-013）。在那之前，Job 遇到这种情况拒绝激活，staging 按运维手册第 7 节清库重来，每次先经产品负责人确认。
+- 不取同版本替换：它让版本号不再对应权限内容，也与 §2 D17.1 的不可变发布事件相冲突。
+- 契约兼容比较与滚动发布期间的旧版本目录登记并入 S1-DEP-005。
+
+## 12 运维侧的登录也接身份服务（2026-11-25）
+
+产品负责人 2026-11-25 定（[S1-DEC-041](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-041.md) D1；平台级裁定 P57，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-25-platform.md)）：交付给客户的产品里，运维侧各个控制台的登录也接 Kun 的身份服务，不带 Authentik；每个控制台保留一个本地的应急管理员。问的是「与旧决策有出入的甲 1 至甲 3，都按提议定吗？」，答「都按提议定」，这是其中的甲 1。
+
+- 修订的是 §2 D17.11 里的「运维侧 = Authentik」与「Apollo Portal / Headlamp / Argo 走 Authentik blueprint」。D17.3 的「Authentik 升级并仅服务运维侧」、ADR-005 D5.7、ADR-007 D7.1 里 Portal 的登录是同一口径，随之按本节读。D17.11 的其余部分不变：客户 CIAM 用身份服务，每个环境至少有独立的 OIDC client。
+- 理由：产品负责人 2026-11-24 说「所有涉及到权限的这些，后面我都会接入到 PaaS 服务上。统一使用 C# 进行提供。」交付给客户的东西里少一个组件，单机版尤其需要。不这样做，客户现场要维护两套身份系统，权限有一半不在 C# 里。
+- 应急管理员：身份服务自己依赖 PostgreSQL 与 Redis。它不可用的时候，要能登进控制台去修，所以每个控制台留一个本地的应急管理员，平时不用。口令怎么保管是提议：放在 Secret 里，生成它的脚本照 D17.10，只建缺失、不覆盖、不打印。
+- 范围：交付给客户的产品。现有环境运维侧的身份提供方先不动，等身份服务稳定以后再换。
+- 不变的：D17.4 的控制台不公网。
+
+## 13 单机版采用身份与平台同进程的形状（2026-11-25）
+
+产品负责人 2026-11-25 定（[S1-DEC-041](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-041.md) D3；平台级裁定 P59，出处同 §12）：单机版里身份服务与平台服务同一个进程，网关仍独立成进程。这是同一句答复里的甲 3。
+
+- 单机版指给小企业的、一台服务器上能跑的部署，企业版指跑在集群上的全套部署。产品负责人 2026-11-24 的原话是「有些企业可能比较小，能不能同时适配一个小型的企业在单机上可以跑的，大模型通过 API 进行调用。」两个版本各装什么，除本节与 ADR-007 §9 以外都是提议，没有定。
+- 【S1-DEC-049（2026-11-27）：单机版的发布怎么验收，列在成批的丁批里，延期，前置条件是先有装配清单的草案；本项不改】修订的是 §10 的「生产不采用这个形状」：单机版作为写明的例外采用它。企业版不变，仍是 §2 的三个镜像、三个进程分开。§10 说的 staging 过渡形状不变。§9 的发布门管的是三进程的部署，照旧；单机版自己的发布怎么验收，没有定。
+- 理由：这个形状验收过（§10）。一台机器上，分进程换来的隔离有限。
+- 代价：单机版不满足 ADR-005 的身份独立安全边界，身份服务与平台服务的故障、漏洞连在一起。单机版升到企业版时要拆开；数据不用迁，换装配。
+- 【S1-DEC-049（2026-11-27）：单机版的底座，原表第 18 条的建议是「单节点 K3s 跑平台自己的服务，部署清单只有一套。」产品负责人 2026-11-27 答：其余逐条采用原表建议。装配清单仍没有；本项不改】现状：单机版的装配是规划，还没有清单。§10 说的拆分部署还缺的两项（S1-TEN-023、S1-IDP-012）到 2026-11-25 仍是待办；拆分部署下的开户与审核要等这两项，单机版不依赖它们。
+
+## 14 两种形态与两个版本（2026-11-26）
+
+产品负责人 2026-11-26 说（[S1-DEC-043](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-043.md) D5；平台级裁定 P83，原文在 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-26-platform.md)）：「企业级框架分为两种 1.K8s集群，包括模型推理服务， GPU Stack 等 2.不包括直接接入第三方模型服务，通过 API 方式，可以参考框架。 3.提供多租户和单租户两个版本。 但是不管哪种方式 统一由管理端进行管理。以上尽量使用插件的形式进行实现。所以你要设计一些标准的接口，方便我对接后面的模型推理服务，因为我只想提供一套。」模型服务的部分见 [ADR-015](/design/adr/adr-015-model-gateway.md) §9。
+
+- 【S1-DEC-049（2026-11-27）：这几条读法列在成批的甲批「读法与做法，都认可。」里，产品负责人答「甲认可」，转成已定；本项不改】读法（整理者的读法，产品负责人没有逐句确认）：
+  - 两种形态按带不带模型推理分；第二种读作不包括模型推理，通过 API 直接接入第三方的模型服务。
+  - 「提供多租户和单租户两个版本」是另一件事，重申平台级裁定 P33：交付给客户的可以是多租户的版本，也可以是单租户的版本。
+  - 这次说的两种形态，与 §13 的企业版、单机版，与多租户、单租户，是三条不同的线：带不带模型推理；跑在集群上还是一台服务器上；多租户还是单租户。它们之间的关系他没有说。
+  - 「尽量使用插件的形式」读作形态之间、版本之间的差别尽量做成组件；装配不同，产品还是一套。
+- 与本文的关系：没有出入。D17.6 的多租户拓扑三档、§12 与 §13 都不变。
+- 【S1-DEC-049（2026-11-27）：哪几种组合要交付定了。原表第 19 条的建议是「两套。企业版：集群、多租户、带推理。单机版：一台服务器、单租户、不带推理。别的组合先不承诺。」产品负责人 2026-11-27 答：其余逐条采用原表建议，并写了「企业版和单机版共用上述模型服务。」各装什么的清单（含单租户版怎么装配）列在成批的丁批里，延期，前置条件是先有装配清单的草案；本项不改】没有定的：哪几种组合要交付；两种形态各装什么；单租户版怎么装配。这些清单都还没有。
+- 看板上的任务没有动，没有新建任务。

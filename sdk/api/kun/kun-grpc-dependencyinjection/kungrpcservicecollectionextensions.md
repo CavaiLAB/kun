@@ -1,0 +1,65 @@
+> For AI agents: the complete documentation index is available at /llms.txt, the full documentation bundle is available at /llms-full.txt.
+
+# Class KunGrpcServiceCollectionExtensions
+
+:::info 生成页
+本页由 DocFX 从 nuget.org 上 `Kun.Grpc` 2026.11.24 的 XML 注释生成，源码在 kun 仓库 [`src/Kun.Grpc`](https://github.com/CavaiLAB/kun/tree/v2026.11.24/src/Kun.Grpc)（`v2026.11.24`）。Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship.md)）；平台集成方式见[内核与平台组件](/sdk/kun/with-qian.md)。
+:::
+
+Namespace: [Kun.Grpc.DependencyInjection](/sdk/api/kun/kun-grpc-dependencyinjection/index.md)\
+Assembly: Kun.Grpc.dll
+
+Extension methods for registering Kun gRPC services with an [`IServiceCollection`](https://learn.microsoft.com/dotnet/api/microsoft.extensions.dependencyinjection.iservicecollection).
+
+```csharp
+public static class KunGrpcServiceCollectionExtensions
+```
+
+#### Inheritance
+
+[object](https://learn.microsoft.com/dotnet/api/system.object) ←
+[KunGrpcServiceCollectionExtensions](/sdk/api/kun/kun-grpc-dependencyinjection/kungrpcservicecollectionextensions.md)
+
+#### Inherited Members
+
+[object.GetType()](https://learn.microsoft.com/dotnet/api/system.object.gettype),
+[object.MemberwiseClone()](https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone),
+[object.ToString()](https://learn.microsoft.com/dotnet/api/system.object.tostring),
+[object.Equals(object?)](https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals\(system-object\)),
+[object.Equals(object?, object?)](https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals\(system-object-system-object\)),
+[object.ReferenceEquals(object?, object?)](https://learn.microsoft.com/dotnet/api/system.object.referenceequals),
+[object.GetHashCode()](https://learn.microsoft.com/dotnet/api/system.object.gethashcode)
+
+## Methods
+
+### AddKunGrpc(IServiceCollection, Action\<GrpcServiceOptions>?) \{#Kun_Grpc_DependencyInjection_KunGrpcServiceCollectionExtensions_AddKunGrpc_Microsoft_Extensions_DependencyInjection_IServiceCollection_System_Action_Grpc_AspNetCore_Server_GrpcServiceOptions\_\_}
+
+Registers Kun gRPC services and interceptors:
+
+- [Kun.Grpc.Interceptors.KunTracingInterceptor](/sdk/api/kun/kun-grpc-interceptors/index.md#Kun_Grpc_Interceptors_KunTracingInterceptor) — starts an `Activity` per RPC call.
+- [Kun.Grpc.Interceptors.KunServerAuthInterceptor](/sdk/api/kun/kun-grpc-interceptors/index.md#Kun_Grpc_Interceptors_KunServerAuthInterceptor) — requires an authenticated subject.
+- [TenantGrpcServerInterceptor](/sdk/api/kun/kun-grpc-interceptors/tenantgrpcserverinterceptor.md) — establishes an authenticated tenant or platform scope.
+- [Kun.Grpc.Interceptors.RequiredPermissionInterceptorGuard](/sdk/api/kun/kun-grpc-interceptors/index.md#Kun_Grpc_Interceptors_RequiredPermissionInterceptorGuard) — verifies the permission interceptor registration.
+- [Kun.Grpc.Interceptors.KunResultToRpcInterceptor](/sdk/api/kun/kun-grpc-interceptors/index.md#Kun_Grpc_Interceptors_KunResultToRpcInterceptor) — maps `ErrorException` to `RpcException`.
+
+Optionally call `AddKunSecurity()` separately to wire up `JwtCurrentUser`.
+
+```csharp
+public static IGrpcServerBuilder AddKunGrpc(this IServiceCollection services, Action<GrpcServiceOptions>? configure = null)
+```
+
+#### Parameters
+
+`services` [IServiceCollection](https://learn.microsoft.com/dotnet/api/microsoft.extensions.dependencyinjection.iservicecollection)
+
+The service collection.
+
+`configure` [Action](https://learn.microsoft.com/dotnet/api/system.action-1)\<GrpcServiceOptions>?
+
+Optional callback to further configure `GrpcServiceOptions`.
+
+#### Returns
+
+IGrpcServerBuilder
+
+The `IGrpcServerBuilder` for further gRPC configuration.

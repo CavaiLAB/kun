@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="zh">
+  <head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模型服务：平台不装 Higress；额度的单位用积分，积分系统可以选择启用或不启用，周期可以选择；模型请求改由平台自己的模型入口转发（提议；2026-11-27 照原表第 5 条的建议定了，见 §10） - Kun 开发文档</title>
+<script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
+<link href="/static/css/styles.e6512a37ad.css" rel="stylesheet">
+<link rel="preload" href="/static/js/async/route-5db114585732.0512253818.js" as="script">
+<script defer src="/static/js/styles.700fb1c3db.js"></script>
+<script defer src="/static/js/lib-react.3a03aaf12f.js"></script>
+<script defer src="/static/js/lib-router.80316d8e03.js"></script>
+<script defer src="/static/js/hq.650980f491.js"></script>
+<script defer src="/static/js/index.7229c7078c.js"></script>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Rspress v2.0.23">
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/design/adr/adr-024-model-entry-no-gateway.md">
+<link rel="describedby" href="/llms.txt">
+<meta property="og:type" content="website">
+<meta property="og:title" content="模型服务：平台不装 Higress；额度的单位用积分，积分系统可以选择启用或不启用，周期可以选择；模型请求改由平台自己的模型入口转发（提议；2026-11-27 照原表第 5 条的建议定了，见 §10） - Kun 开发文档">
+<meta name="description" content="本文说的「模型入口」，指平台一侧接调用方的模型请求、转给上游的那一处；「现成的模型网关」，指 Higress 这一类另外安装的网关；「推理服务」指自己管 GPU 与模型的推理服务，现行的选型是 GPUStack（ADR-015 D15.2…">
+<meta property="og:description" content="本文说的「模型入口」，指平台一侧接调用方的模型请求、转给上游的那一处；「现成的模型网关」，指 Higress 这一类另外安装的网关；「推理服务」指自己管 GPU 与模型的推理服务，现行的选型是 GPUStack（ADR-015 D15.2…"></head>
+
+  <body>
+    <div id="__rspress_root"><link rel="preload" as="image" href="/logo.svg"/><div class="rp-llms-hint" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);clip-path:inset(50%);white-space:nowrap;border:0">For AI agents: the complete documentation index is available at /llms.txt, the full documentation bundle is available at /llms-full.txt, and this page is available as Markdown at /design/adr/adr-024-model-entry-no-gateway.md.</div><script data-rp-banner-hidden-class="rp-banner-_R_1i_-hidden" data-rp-banner-storage="localStorage" data-rp-banner-storage-key="qian-docs-s1-banner">(function () {
+  var script = document.currentScript;
+  if (!script) return;
+  try {
+    var storage = window[script.dataset.rpBannerStorage];
+    var storageKey = script.dataset.rpBannerStorageKey;
+    var hiddenClass = script.dataset.rpBannerHiddenClass;
+    if (storage && storageKey && hiddenClass && storage.getItem(storageKey)) {
+      document.documentElement.classList.add(hiddenClass);
+    }
+  } catch (e) {}
+})();</script><style>:root {--rp-banner-height: 36px;} :root.rp-banner-_R_1i_-hidden {--rp-banner-height: 0px;} :root.rp-banner-_R_1i_-hidden .rp-banner-_R_1i_ {display: none;}</style><div class="rp-banner rp-banner-_R_1i_"><a href="/design/roadmap" class="rp-banner__link rp-link" title="S1 建设中：文档按设计目标编写，组件与命令随 S1 任务陆续可用；标 S2–S4 的能力尚未开始。查看路线图 →">S1 建设中：文档按设计目标编写，组件与命令随 S1 任务陆续可用；标 S2–S4 的能力尚未开始。查看路线图 →</a><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" class="rp-banner__close"><path fill="currentColor" d="M24 9.4 22.6 8 16 14.6 9.4 8 8 9.4l6.6 6.6L8 22.6 9.4 24l6.6-6.6 6.6 6.6 1.4-1.4-6.6-6.6z"></path></svg></div><header class="rp-nav"><div class="rp-nav__left"><div class="rp-nav__title"><a href="/" class="rp-nav__title__link rp-link"><div class="rp-nav__title__logo"><img src="/logo.svg" alt="logo" id="logo" class="rspress-logo rp-nav__title__logo-image"/></div><span>Kun 开发文档</span></a></div></div><div class="rp-nav__right"><button class="rp-search-button"><div class="rp-search-button__content"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 20 21" class="rp-search-button__icon"><path fill="currentColor" d="M8.333 1.913A6.667 6.667 0 0 1 15 8.58c0 1.54-.525 2.957-1.402 4.085l4.49 4.492a.834.834 0 0 1-1.177 1.178l-4.491-4.49a6.64 6.64 0 0 1-4.087 1.402 6.667 6.667 0 0 1 0-13.334m0 1.667a5 5 0 1 0 0 10 5 5 0 0 0 0-10"></path></svg><span class="rp-search-button__word">搜索</span></div><div class="rp-search-button__hotkey" style="opacity:0"><span></span><span>K</span></div></button><div class="rp-search-button--mobile"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 20 21"><path fill="currentColor" d="M8.333 1.913A6.667 6.667 0 0 1 15 8.58c0 1.54-.525 2.957-1.402 4.085l4.49 4.492a.834.834 0 0 1-1.177 1.178l-4.491-4.49a6.64 6.64 0 0 1-4.087 1.402 6.667 6.667 0 0 1 0-13.334m0 1.667a5 5 0 1 0 0 10 5 5 0 0 0 0-10"></path></svg></div><ul class="rp-nav-menu rp-nav-menu--right"><li class="rp-nav-menu__item"><a href="/start/index.html" class="rp-nav-menu__item__container rp-link">开始</a></li><li class="rp-nav-menu__item"><a href="/components/index.html" class="rp-nav-menu__item__container rp-link">组件目录</a></li><li class="rp-nav-menu__item"><a href="/sdk/index.html" class="rp-nav-menu__item__container rp-link">SDK</a></li><li class="rp-nav-menu__item"><a href="/cli/index.html" class="rp-nav-menu__item__container rp-link">CLI 与规格</a></li><li class="rp-nav-menu__item"><a href="/ops/index.html" class="rp-nav-menu__item__container rp-link">运维</a></li><li class="rp-nav-menu__item"><a href="/marketplace/index.html" class="rp-nav-menu__item__container rp-link">市场与 ISV</a></li><li class="rp-nav-menu__item rp-nav-menu__item--active"><a href="/design/index.html" class="rp-nav-menu__item__container rp-link">设计与路线</a></li><li class="rp-nav-menu__item"><div class="rp-nav-menu__item__container">产品<svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-nav-menu__item__icon"><path fill="currentColor" d="M16 22 6 12l1.4-1.4 8.6 8.6 8.6-8.6L26 12z"></path></svg></div><ul class="rp-hover-group rp-hover-group--hidden rp-hover-group--center"><li class="rp-hover-group__item" style="padding-left:8px" data-depth="0"><a href="/sdk/ai/index.html" class="rp-hover-group__item__link rp-link" aria-label="用 AI 构建">用 AI 构建</a></li><li class="rp-hover-group__item" style="padding-left:8px" data-depth="0"><a href="/start/hosts.html" class="rp-hover-group__item__link rp-link" aria-label="构建应用">构建应用</a></li><li class="rp-hover-group__item" style="padding-left:8px" data-depth="0"><a href="/components/platform/index.html" class="rp-hover-group__item__link rp-link" aria-label="多租户平台">多租户平台</a></li><li class="rp-hover-group__item" style="padding-left:8px" data-depth="0"><a href="/components/platform/qian.gateway.html" class="rp-hover-group__item__link rp-link" aria-label="保护应用">保护应用</a></li><li class="rp-hover-group__item" style="padding-left:8px" data-depth="0"><a href="/ops/index.html" class="rp-hover-group__item__link rp-link" aria-label="部署与运维">部署与运维</a></li></ul></li></ul><div class="rp-nav__others"><div class="rp-nav-menu__divider"></div><button type="button" class="rp-switch-appearance" aria-label="切换主题"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" class="rp-switch-appearance__icon--sun"><path fill="currentColor" d="m7.001 15.848-1.226 1.226a.58.58 0 0 0 0 .818.58.58 0 0 0 .818 0l1.226-1.226a.58.58 0 0 0 0-.818.58.58 0 0 0-.818 0m-.352-8.735a.584.584 0 0 0 .825-.825L6.237 5.051a.584.584 0 0 0-.825.825zM5.011 11.07h-1.75a.584.584 0 0 0 0 1.167h1.75c.324 0 .584-.26.584-.583a.585.585 0 0 0-.584-.584m7.003-5.835c.324 0 .584-.26.584-.584V2.9a.58.58 0 0 0-.584-.584.58.58 0 0 0-.583.583V4.65c0 .323.262.584.583.584m5.616 1.621 1.226-1.225a.58.58 0 0 0 0-.818.58.58 0 0 0-.818 0l-1.226 1.225a.58.58 0 0 0 0 .818.576.576 0 0 0 .818 0m3.138 4.214h-1.75a.58.58 0 0 0-.584.584c0 .324.26.584.583.584h1.751a.584.584 0 1 0 0-1.167m-3.389 5.124a.584.584 0 0 0-.825.825l1.238 1.238a.584.584 0 0 0 .825-.826zm-5.365-9.795a5.256 5.256 0 0 0-5.257 5.258 5.256 5.256 0 0 0 5.257 5.257 5.256 5.256 0 0 0 5.257-5.257 5.256 5.256 0 0 0-5.257-5.258m0 11.675a.58.58 0 0 0-.583.583v1.751a.582.582 0 1 0 1.167 0v-1.75a.584.584 0 0 0-.584-.584"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 19 19" class="rp-switch-appearance__icon--moon"><path fill="currentColor" d="M9.166 0a9.2 9.2 0 0 1 1.857.188.834.834 0 0 1 .042 1.623 4.47 4.47 0 1 0 5.457 5.457l.048-.135a.834.834 0 0 1 1.575.177q.186.902.188 1.856A9.168 9.168 0 1 1 9.166 0"></path></svg></span></button><div class="rp-social-links"><a class="rp-social-links__item" href="https://github.com/CavaiLAB/kun" target="_blank" rel="noopener noreferrer" aria-label="GitHub 源码仓库"><span class="rp-social-links__icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12c0 5.303 3.438 9.8 8.205 11.385c.6.113.82-.258.82-.577c0-.285-.01-1.04-.015-2.04c-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729c1.205.084 1.838 1.236 1.838 1.236c1.07 1.835 2.809 1.305 3.495.998c.108-.776.417-1.305.76-1.605c-2.665-.3-5.466-1.332-5.466-5.93c0-1.31.465-2.38 1.235-3.22c-.135-.303-.54-1.523.105-3.176c0 0 1.005-.322 3.3 1.23c.96-.267 1.98-.399 3-.405c1.02.006 2.04.138 3 .405c2.28-1.552 3.285-1.23 3.285-1.23c.645 1.653.24 2.873.12 3.176c.765.84 1.23 1.91 1.23 3.22c0 4.61-2.805 5.625-5.475 5.92c.42.36.81 1.096.81 2.22c0 1.606-.015 2.896-.015 3.286c0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></span></a></div></div><button aria-label="mobile hamburger" class="rp-nav-hamburger rp-nav-hamburger__sm"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 21 21"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M3.645 5.225h13.333M3.645 10.225h13.333M3.645 15.225h13.333"></path></svg></button><button aria-label="mobile hamburger" class="rp-nav-hamburger rp-nav-hamburger__md"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="none" viewBox="0 0 21 21"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M3.645 5.225h13.333M3.645 10.225h13.333M3.645 15.225h13.333"></path></svg><ul class="rp-hover-group rp-hover-group--hidden rp-hover-group--right"><div class="rp-nav-menu__others-mobile__container"><div class="rp-nav-hamburger__md__hover-group"><div class="rp-nav-screen-appearance"><div class="rp-nav-screen-appearance__left">主题</div><div class="rp-nav-screen-appearance__right"></div></div><div class="rp-nav-screen-divider"></div><div class="rp-social-links"><a class="rp-social-links__item" href="https://github.com/CavaiLAB/kun" target="_blank" rel="noopener noreferrer" aria-label="GitHub 源码仓库"><span class="rp-social-links__icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12c0 5.303 3.438 9.8 8.205 11.385c.6.113.82-.258.82-.577c0-.285-.01-1.04-.015-2.04c-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729c1.205.084 1.838 1.236 1.838 1.236c1.07 1.835 2.809 1.305 3.495.998c.108-.776.417-1.305.76-1.605c-2.665-.3-5.466-1.332-5.466-5.93c0-1.31.465-2.38 1.235-3.22c-.135-.303-.54-1.523.105-3.176c0 0 1.005-.322 3.3 1.23c.96-.267 1.98-.399 3-.405c1.02.006 2.04.138 3 .405c2.28-1.552 3.285-1.23 3.285-1.23c.645 1.653.24 2.873.12 3.176c.765.84 1.23 1.91 1.23 3.22c0 4.61-2.805 5.625-5.475 5.92c.42.36.81 1.096.81 2.22c0 1.606-.015 2.896-.015 3.286c0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></span></a></div></div></div></ul></button></div></header><div class="rp-doc-layout__menu"><div class="rp-sidebar-menu"><button type="button" class="rp-sidebar-menu__left"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"></path></svg><span>菜单</span></button><button type="button" class="rp-sidebar-menu__right"><span class="rp-sidebar-menu__right__text">目录</span><svg width="14" height="14" class="rp-progress-circle"><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-divider-light)" stroke-width="2"></circle><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-brand)" stroke-width="2" stroke-dasharray="37.69911184307752" stroke-dashoffset="37.69911184307752" transform="rotate(-90 7 7)" style="transition:stroke-dashoffset 0.3s"></circle></svg><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-sidebar-menu__right__icon" style="transform:rotate(0deg);transition:transform 0.2s ease-out"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></button></div></div><div class="rp-doc-layout__container"><aside class="rp-doc-layout__sidebar rp-scrollbar"><a href="/design/index.html" class="rp-sidebar-item rp-link" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">文档索引</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/roadmap.html" class="rp-sidebar-item rp-link" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">路线图</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/package-and-docs-disposition.html" class="rp-sidebar-item rp-link" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">Kun 的包、文档、示例与站点导航的去向</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/index.html" class="rp-sidebar-item rp-sidebar-group rp-link" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">架构决策（ADR）</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(90deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></a><div style="display:grid;grid-template-rows:1fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/adr/index.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">概览</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-001-kun-relationship.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-001 Qian 与 Kun 的关系</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-002-plugin-model.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-002 插件模型</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-003-kernel-boundary-s1-services.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-003 内核边界与 S1 服务拆分</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-004-database-tenant-isolation.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-004 数据库与租户隔离</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-005-identity-sso.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-005 身份与 SSO</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-006-authorization-model.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-006 鉴权模型</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-007-config-center-apollo.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-007 配置中心</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-008-events-messaging.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-008 事件与消息</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-009-audit.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-009 审计</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-010-gateway-layers.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-010 网关分层</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-011-metadata-dynamic-data.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-011 元数据与动态数据层</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-012-workflow-engine.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-012 流程引擎</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-013-frontend-framework.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-013 前端与［前端框架］</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-014-marketplace.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-014 应用市场形态</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-015-model-gateway.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-015 模型服务网关</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-016-agent-boundary.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-016 与［下游智能体平台］的边界</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-017-deployment.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-017 部署</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-018-stages-s1-scope.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-018 阶段切分与 S1 范围</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-019-library-first-packages.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-019 库优先（Library-first）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-020-component-model-v2.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-020 组件模型 v2</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-021-product-family-structure.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-021 产品族结构</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-022-rspress-unified-component-docs.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-022 统一 Rspress 组件文档与验收</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-023-kun-qian-merge-blueprint.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-023 Qian 并入 Kun 并重新定位 Kun</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-024-model-entry-no-gateway.html" class="rp-sidebar-item rp-sidebar-item--active rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-024 模型服务</span></div><div class="rp-sidebar-item__right"></div></a></div></div><a href="/design/prd/index.html" class="rp-sidebar-item rp-sidebar-group rp-link" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">产品需求（PRD）</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(0deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></a><div style="display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/prd/index.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">概览</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/01-vision.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">1. 愿景与定位</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/02-principles.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">2. 设计原则</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/03-concepts.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">3. 核心概念模型</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/04-market.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">4. 形态与目标市场</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/05-differentiators.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">5. 核心差异化</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/06-users-scenarios.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">6. 用户与场景</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/07-s1-foundation.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§07 S1 技术底座功能规格</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/08-s2-lowcode.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§08 S2 低代码构建</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/09-s3-customer.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§09 S3 面向客户</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/10-s4-agent.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§10 S4 AI 原生 Agent 平台与模型服务网关</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/11-ux-glossary.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">11. 体验原则与产品词表</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/12-boundaries.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§12 能力边界</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/13-security.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§13 权限与安全</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/14-quality.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§14 质量与评估</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/15-roadmap.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">15. 演进路线（指针）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/16-metrics.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">16. 成功指标</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/17-references.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">17. 借鉴声明</span></div><div class="rp-sidebar-item__right"></div></a><div class="rp-sidebar-item rp-sidebar-group rp-sidebar-item--group-item" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">专题规格</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(90deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></div><div style="display:grid;grid-template-rows:1fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/prd/specs/auth-pages.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">认证页族设计规格（登录 / 第二因子 / 租户选择与切换 / 强制改密 / 绑定 / 设备码 / 授权同意）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/authz-remote-interface.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">远程授权接口与客户端包：契约草案（十个问题已裁定，其余是提议）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/component-model.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">专题 spec · 组件模型 v2（清单 · 表面 · 运行时 · profile · 市场 · CLI）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/data-contracts.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">数据过滤与记录扩展契约 v1</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/docs-site.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">文档站信息架构与规范（Rspress 2.0）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/frontend.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">专题 spec · 前端框架组件库</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/model-service-interface.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">模型服务的标准接口：契约草案（提议）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/plugin-manifest.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">专题 spec · 插件清单 v1（<code>qian-plugin.yaml</code>）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/tenant-signup.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">租户自助开通：注册申请、平台审核与首次进入</span></div><div class="rp-sidebar-item__right"></div></a></div></div></div></div><div class="rp-sidebar-item rp-sidebar-group" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">调研基线</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(0deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></div><div style="display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/research/baseline-digest.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Qian 调研基线要点汇编</span></div><div class="rp-sidebar-item__right"></div></a></div></div><div class="rp-sidebar-item rp-sidebar-group" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">generated</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(0deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></div><div style="display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/generated/config-catalog.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">配置目录</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/generated/event-graph.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">事件图</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/generated/module-graph.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">模块图</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/generated/seam-graph.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">seam 图</span></div><div class="rp-sidebar-item__right"></div></a></div></div><div class="rp-sidebar-item rp-sidebar-group" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">ops</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(0deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></div><div style="display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/ops/configuration-runbook.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">配置开发、运行与故障处置（S1-CFG-001 / 002 / 003）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/ops/k3s-control-plane-recovery.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">K3s 控制面故障处置（S1-DEP-007）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/ops/staging-first-deploy.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">staging 首次部署：平台与身份同进程（S1-DEP-011）</span></div><div class="rp-sidebar-item__right"></div></a></div></div></aside><div class="rp-doc-layout__doc"><main class="rp-doc-layout__doc-container"><div class="rp-doc rspress-doc"><!--$--><h1 class="rp-toc-include" id="adr-024-模型服务平台不装-higress额度用积分"><a href="#adr-024-模型服务平台不装-higress额度用积分" class="rp-header-anchor rp-link" aria-label="链接到 ADR-024 模型服务：平台不装 Higress，额度用积分">#</a>ADR-024 模型服务：平台不装 Higress，额度用积分<!-- --> </h1><div class="rp-not-doc rp-llms-container"><button class="rp-not-doc rp-llms-button rp-llms-copy-button"><div class="rp-llms-copy-button__icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-llms-copy-button__icon-success"><path fill="currentColor" d="m9.55 18-5.7-5.7 1.425-1.425L9.55 15.15l9.175-9.175L20.15 7.4z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-llms-copy-button__icon-copy"><path fill="currentColor" d="M20 8v12H8V8zm0-2H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2"></path><path fill="currentColor" d="M4 16H2V4a2 2 0 0 1 2-2h12v2H4Z"></path></svg></div><span>复制 Markdown</span></button><a class="rp-llms-button" href="/design/adr/adr-024-model-entry-no-gateway.md" aria-label="查看本页 Markdown">Markdown 链接</a></div>
+<blockquote>
+<p>本页由构建脚本镜像自仓库 <a href="https://github.com/CavaiLAB/kun/blob/main/docs/adr/ADR-024-model-entry-no-gateway.md" target="_blank" rel="noopener noreferrer" class="rp-link"><code>docs/adr/ADR-024-model-entry-no-gateway.md</code></a>，请修改源文件，不要改本页。</p>
+</blockquote>
+<blockquote>
+<p>方括号里是代称，替换了产品负责人原话里点名的开源项目与仓库地址；本仓库不写这些名字。</p>
+</blockquote>
+<blockquote>
+<p>状态：Accepted（2026-11-27）。各条的来路不同，标在各条上：「已定」是产品负责人定的；「带条件」是他说了条件、条件由整理者的评估判定的；「读法」是整理者对他的话的理解，他没有逐句确认；「提议」是整理者的建议，没有裁定。读法与提议不随本文接受，哪一条不对，照他的话改。答复的原话与九个问题各到哪一步，登记在 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-044.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-044</a>。ADR-015 已标部分取代与换主语，ADR-010 已标修订，ADR-016 的两条加了标注（经 Higress 的路没有了对象，新路是提议七）。都还没有实现。</p>
+</blockquote>
+<blockquote>
+<p>修订（2026-11-27，<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-049.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-049</a>）：产品负责人 2026-11-27 对《决策表》一次定稿，答的是「下面明确写出的内容优先，其余逐条采用原表建议。」与本文有关的是原表第 5 至 16 条，加上他写的一条长期约束：整个平台只有一个 Kun 模型服务。登记在 §10：他明确写出的是 D24.6 至 D24.9；照原表建议定的，读法两条与提议一、二、四、五、六转成已定（提议五写的是首选）；提议三、提议七是成批的丙批，按提议推进，提议七的细节随 M1 的设计；D24.4 的条件，整理时读作得到确认（§10.3）。上面「状态」一段与 front matter 里 2026-11-27 以前的括注，讲的是这次以前的标法。各条前加了带日期的标注，原文不改。都还没有实现。</p>
+</blockquote>
+<blockquote>
+<p>修订（2026-11-27，第二张表，<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-050.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-050</a>）：登记 §10 时冒出的几件事，整理者收成第二张要产品负责人定的表，他答「都按建议」。与本文有关的是开放范围的粒度与积分系统关着时积分照不照算，登记在 §11（D24.10、D24.11）；§10.5 里对应的两条前加了带日期的标注。</p>
+</blockquote>
+<p>本文说的「模型入口」，指平台一侧接调用方的模型请求、转给上游的那一处；「现成的模型网关」，指 Higress 这一类另外安装的网关；「推理服务」指自己管 GPU 与模型的推理服务，现行的选型是 GPUStack（ADR-015 D15.2、D15.3 里与 Higress 无关的部分，仍然有效）。</p>
+<h2 class="rp-toc-include" id="1-背景与问题context"><a href="#1-背景与问题context" class="rp-header-anchor rp-link" aria-label="链接到 1 背景与问题（Context）">#</a>1 背景与问题（Context）</h2>
+<p>ADR-015（2026-10-06）定模型服务并入团队现有的 Higress / MaaS 设施：模型请求由 Higress 转发，本仓库一侧只做上游登记、适配与模型目录，不自写模型代理（D15.1、D15.3、D15.5）。当时的理由是 Higress 已是团队唯一的模型流量咽喉点，另起一套会分裂计量、限流与账单（ADR-015 §3）。</p>
+<p>2026-11-26 产品负责人定了企业级框架分两种、多租户与单租户两个版本，模型服务留标准的接口、只提供一套（<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-043.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-043</a> D5；两种形态按带不带模型推理分，是那里登记的读法）。随后有了一份<a href="/design/prd/specs/model-service-interface.html" class="rp-link">契约草案</a>（提议，<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-MGW-004.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-MGW-004</a>），九个待裁定的问题由 S1-DEC-044 跟踪。草案与问题当时都照「模型请求由现成的模型网关转发」写。</p>
+<p>同一天他接着讨论模型服务接口，说了下面四句。原话照录；第一句里点了四个开源项目的名字，本仓库不写项目的名字，换成了方括号。</p>
+<ol>
+<li>「模型服务接口需要讨论一下，首先接入可以参考［三个开源项目］等可以接入更多的模型，也可以参考［一个开源项目与它的仓库地址］，可以给每个用户固定的额度。」</li>
+<li>「额度的单位用积分，可以选择是否启用积分系统，周期也可以选择。在考虑是否还要 Higress」</li>
+<li>「评估一下，不需要就不安装了吧。你觉得有这个必要吗？因为它安装起来还是挺复杂的。」</li>
+<li>「但是你要考虑 GPU Stack 使用他作为模型推理服务的时候，如何交互。」这一段后面几句要两套部署（带推理服务与不带）的架构设计与数据流，并问到 Web 端多用户怎么实现。两套部署里模型请求怎么走写在 §2.4 提议六，其余不在本文里。</li>
+</ol>
+<p>第 2 句回的是整理时列给他的五条，原样录在 S1-DEC-044。第 3 句回的是整理时给他的另一份看法。那份看法建议 Higress 不再当必装件，所有形态只走调用方、模型入口、上游这一条路，现场已有的网关登记成一个上游；它把这叫作可选，内容与现在的 D24.4 加提议一、二相同，不是 §4 里不选的两条路并存。第 3 句之后，整理者做了评估与本机实测，结论是不需要，见 §3。点名的四个项目怎么接模型、怎么管额度，整理时读了，归纳在契约草案第 4.5 节。</p>
+<p>要定的是：Higress 还装不装；不装的话模型请求由谁转发；额度怎么算；ADR-015 哪几条随之改。</p>
+<h2 class="rp-toc-include" id="2-决策decision"><a href="#2-决策decision" class="rp-header-anchor rp-link" aria-label="链接到 2 决策（Decision）">#</a>2 决策（Decision）</h2>
+<h3 class="rp-toc-include" id="21-产品负责人定的"><a href="#21-产品负责人定的" class="rp-header-anchor rp-link" aria-label="链接到 2.1 产品负责人定的">#</a>2.1 产品负责人定的</h3>
+<ul>
+<li><strong>D24.1（已定）额度的单位用积分。</strong></li>
+<li>【2026-11-27：开关按租户设，关着时用量照记，已定，见 §10.2 第 15 条】<strong>D24.2（已定）积分系统可以选择启用或不启用。</strong> 开关设在哪一级，他没有说，见 §2.3 读法二。</li>
+<li>【2026-11-27：周期可选日、周、月，缺省每周一重置，照原表建议已定，见 §10.2 第 15 条】<strong>D24.3（已定）额度的周期可以选择。</strong> 有哪几种周期、缺省是哪一种，没有定。整理时列给他的是「周期可配，缺省每周」，他答的是周期可以选择，没有说缺省。</li>
+</ul>
+<h3 class="rp-toc-include" id="22-带条件的"><a href="#22-带条件的" class="rp-header-anchor rp-link" aria-label="链接到 2.2 带条件的">#</a>2.2 带条件的</h3>
+<ul>
+<li>【2026-11-27：原表第 5 条照建议定了模型请求都过平台自己的模型入口，整理时读作条件得到确认，见 §10.3】<strong>D24.4（带条件）平台不装 Higress。</strong> 他的话是 §1 第 3 句，条件是评估下来不需要。评估是整理者做的，结论是不需要，依据见 §3；这个结论他没有逐句确认。评估的结论对集群上的部署与单机版都一样。推理服务自己内置的那一套算不算平台装的，见 §2.4 提议四。</li>
+</ul>
+<h3 class="rp-toc-include" id="23-读法整理者的他没有逐句确认"><a href="#23-读法整理者的他没有逐句确认" class="rp-header-anchor rp-link" aria-label="链接到 2.3 读法（整理者的，他没有逐句确认）">#</a>2.3 读法（整理者的，他没有逐句确认）</h3>
+<ol>
+<li>【2026-11-27 转成已定：原表第 7 条照建议，见 §10.2】<strong>调用方的凭据落到人和应用头上。</strong> 从 §1 第 1 句的「可以给每个用户固定的额度」读出，因为按人给额度，就得认得出人。照这个读法，契约草案的问题 5 也有了答案，见 S1-DEC-044。</li>
+<li>【2026-11-27 转成已定：原表第 15 条照建议，他的原话里也有，见 §10.1、§10.2】<strong>积分系统的开关按租户设</strong>，单租户版就是整个部署一个；<strong>关着时用量照记，不拦调用</strong>。整理时告诉了他这是读法。</li>
+</ol>
+<h3 class="rp-toc-include" id="24-提议整理者的建议没有裁定"><a href="#24-提议整理者的建议没有裁定" class="rp-header-anchor rp-link" aria-label="链接到 2.4 提议（整理者的建议，没有裁定）">#</a>2.4 提议（整理者的建议，没有裁定）</h3>
+<ol>
+<li>【2026-11-27 转成已定：原表第 5、11 条照建议，见 §10.2】<strong>模型请求由平台自己的模型入口转发。</strong> 不装 Higress 以后，转发总要有一处做。提议由平台自己做：模型入口是 Kun 的模型组件里的一个独立服务，验调用方的凭据，得到租户与人；查权限与额度；按逻辑模型名选上游，换成上游的模型名与密钥；流式转发；边转边记用量。所有形态、所有版本只有这一条路：调用方 → 模型入口 → 上游。不换装别的现成模型网关。</li>
+<li>【2026-11-27 转成已定：原表第 5 条照建议，见 §10.2】<strong>现场已有模型网关，或者一定要某一家的原生协议时，把那个网关的 OpenAI 兼容入口登记成模型入口的一个上游。</strong> 平台不去配它，也不依赖它。团队集群里现有的那一套 Higress 照此处理：不动，要用时登记成一个上游。</li>
+<li>【2026-11-27 起按提议推进：成批的丙批「接入更多模型的做法」，归到这一项是整理时的读法；调用方一侧第一版做 OpenAI 兼容的对话、嵌入、模型列表，是原表第 10 条照建议定的，管的不是上游，见 §10.3】<strong>第一版上游只认 OpenAI 兼容这一种协议。</strong> 原生协议的上游以后做成适配，或者照提议二经一个网关接。</li>
+<li>【2026-11-27 转成已定：原表第 9、13 条照建议，见 §10.2】<strong>推理服务只当一个 OpenAI 兼容的上游。</strong> 交互分两条线。推理这一条：模型入口调它的推理接口，用一把专门签给平台的 key；人、租户、额度都不传进去，只带一个不含个人信息的请求编号。管理这一条：模型管理读它的管理接口，拿模型清单与健康；管理端里的上下线只动平台的目录，部署与扩缩第一版留在它自己的界面。用量以模型入口记的为准，它自己记的只用来对账。它自带的模型供应方与指向外部的路由不用；它内置的网关由它自己装、自己管，不算平台装的，平台也不往里加配置，D24.4 的「不装」只说平台这一侧。</li>
+<li>【2026-11-27 转成已定，是首选：原表第 13 条照建议，他写的是「GPUStack 首选平台集群外的专机」，同一个集群没有排除，见 §10.2】<strong>推理服务放在平台的集群外面的专门机器上。</strong> 理由见 §3.6。客户一定要装进同一个集群时，要先解决两个入口控制器抢 80、443 端口的事，这种装法没有试过。</li>
+<li>【2026-11-27 转成已定：原表第 5 条照建议，与 D24.6 同向，见 §10】<strong>两种部署里模型请求走同一条路。</strong> 差别只在上游：带推理服务的，上游是推理服务，也可以再接第三方的模型 API；不带的，上游是第三方的模型 API。平台装在集群上还是一台服务器上，不影响这条路。</li>
+<li>【2026-11-27 起按提议推进，细节随 M1 的设计：成批的丙批，见 §10.3】<strong>Agent 调平台能力的路改走平台自己的网关，随 M1 的设计定。</strong> ADR-016 D16.9、D16.10 原定 Agent 经 Higress 的 MCP 路由调平台能力，每个租户的 MCP 门面托管在 Higress 上。不装 Higress 以后，改成经平台自己的网关到每个租户的 MCP 门面。别的不变：不直连服务的裸地址，每次调用在服务端查权限，标了要人确认的能力由平台停下来等人点（ADR-016 §9、§11）。</li>
+</ol>
+<h3 class="rp-toc-include" id="25-对-adr-015-的后果"><a href="#25-对-adr-015-的后果" class="rp-header-anchor rp-link" aria-label="链接到 2.5 对 ADR-015 的后果">#</a>2.5 对 ADR-015 的后果</h3>
+<ul>
+<li>【2026-11-27：注明随提议的几处，随提议一、二、四的定了，随提议七的按提议推进；D15.3 的边界与 D15.5 的前半句放开，D15.10 里的「租户覆盖」与租户自带的端点不再成立，见 §10.4】<strong>D24.5</strong> ADR-015 的各条照下表处理。D15.1 随 D24.4 不再成立。D15.2、D15.3、D15.5 里写着 Higress 的部分随 D24.4 不再成立，与 Higress 无关的部分照旧。D15.3「只做三件事」的边界，与 D15.5 前半句「不自写模型代理层」，放不放开随 §2.4 提议一，没有裁定，不随本文接受（§7）。D15.4、D15.6、D15.10、D15.11 原来由 Higress 承担或写着 Higress 的地方没有了对象，内容不变；新的主语随提议，D15.4、D15.10、D15.11 随提议一，D15.6 随提议二、四，不随本文接受。</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>条目</th><th>原来写的</th><th>现在</th></tr></thead><tbody><tr><td>D15.1</td><td>并入团队现有的 Higress / MaaS 设施</td><td>取代。平台不装 Higress（D24.4）；团队集群里现有的那一套不动，要用时登记成一个上游（提议二）</td></tr><tr><td>D15.2</td><td>照整合方案第 1–2 阶段补齐 Higress 一侧的映射、插件、价格表与账单脚本；推理层切到 GPUStack；OpenRouter 出网白名单放行</td><td>部分取代。Higress 一侧的映射、插件、价格表与账单脚本不再成立；逻辑模型名的映射放在平台的模型目录里，限流与计量放在模型入口上，都随提议一；额度见 D24.1 至 D24.3。推理层切到 GPUStack、出网白名单放行两项与 Higress 无关，不受影响</td></tr><tr><td>D15.3</td><td>本仓库一侧只做三件事：把 GPUStack 作为 OpenAI 兼容的本地上游注册进 Higress、适配、模型目录</td><td>部分取代。注册进 Higress 不再成立；GPUStack 作为 OpenAI 兼容的本地上游、适配与模型目录照旧，登记成模型入口的一个上游是提议四。「只做三件事」的边界放不放开随提议一（多出模型入口）与读法一（多出调用方凭据的签发），没有裁定</td></tr><tr><td>D15.5</td><td>不自写模型代理层，不绕过 Higress 直连推理层</td><td>部分取代。后半句没有了对象；应用不直连推理层，照 D15.10 换主语以后的写法。前半句放不放开随提议一（转发由平台自己的模型入口做），没有裁定</td></tr><tr><td>D15.4</td><td>租户、配额、计量在平台侧；Higress 对租户无感；consumer 头由服务端生成；按租户的限流与计量经 consumer 与统计插件；计量双键</td><td>换主语，内容不变；新主语模型入口随提议一。上游对租户无感；限流与计量由模型入口做，桶与标签由它从验过的凭据里取，不读调用方报的；计量从第一天带 <code>tenant_id + project_id</code> 双键</td></tr><tr><td>D15.6</td><td>不在 S1 把 SSO / S2S 交给 Higress</td><td>换主语，内容不变。Higress 换成登记成上游的模型网关与推理服务，是整理者的换法，随提议二、四；S1 照旧，S1 以后怎样，原文没有说。平台发的调用方凭据由模型入口验，是提议一</td></tr><tr><td>D15.10</td><td>租户级模型路由「产品默认 + 租户覆盖」，坏配置回落；租户自带的端点只能注册为 Higress 上游，不允许应用直连</td><td>换主语，内容不变；新主语模型入口随提议一。租户自带的端点只能登记成模型入口的上游，不允许应用直连</td></tr><tr><td>D15.11</td><td>模型供应商的密钥只以 <code>secretRef</code> 出现</td><td>内容不变。转发时带上密钥的，由 Higress 换成模型入口，随提议一；调用方拿不到</td></tr><tr><td>D15.7、D15.9、D15.12</td><td>接入范围；与下游的计量共用；适配的对外契约</td><td>不受影响</td></tr><tr><td>D15.8</td><td>各阶段做什么</td><td>阶段不变。S1 那一项里的上游注册，改成在平台的目录里登记上游，随提议四；S4 那一项「Higress 托管每租户 MCP 逻辑门面」随提议七</td></tr></tbody></table></div>
+<p>2026-11-27 起，上表里写着「随提议」的几处照 §10.3、§10.4 读：随提议一、二、四的定了，随提议七的按提议推进；D15.3、D15.5、D15.10 三行另见 §10.4。</p>
+<h2 class="rp-toc-include" id="3-理由rationale"><a href="#3-理由rationale" class="rp-header-anchor rp-link" aria-label="链接到 3 理由（Rationale）">#</a>3 理由（Rationale）</h2>
+<p>本节是整理者的评估，2026-11-26 做的。「读到」的出自 Higress 与推理服务的上游源码与文档，没有运行；「实测」在本机做。</p>
+<h3 class="rp-toc-include" id="31-higress-在现行设计里承担的事"><a href="#31-higress-在现行设计里承担的事" class="rp-header-anchor rp-link" aria-label="链接到 3.1 Higress 在现行设计里承担的事">#</a>3.1 Higress 在现行设计里承担的事</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>承担的事</th><th>出处</th><th>不装以后（提议）</th></tr></thead><tbody><tr><td>转发：按模型名选上游、换密钥、多把密钥失败转移、回落</td><td>ADR-015 D15.1、D15.5；需求文档 10.5 节</td><td>模型入口自己做；转发这一段实测过（§3.3）</td></tr><tr><td>上游是别的协议时转成 OpenAI 的形状</td><td>同上</td><td>第一版不做（提议三）</td></tr><tr><td>每分钟限流、用量统计、缓存</td><td>ADR-015 D15.2</td><td>限流与统计由模型入口做；缓存不做</td></tr><tr><td>上游的密钥只有它持有</td><td>需求文档 10.5.1 节</td><td>转发用的密钥在模型入口一侧，照旧只以引用出现</td></tr><tr><td>Agent 调平台能力的路：每租户的 MCP 门面托管在它上面</td><td>ADR-016 D16.9、D16.10；ADR-010 D10.10</td><td>改走平台自己的网关（提议七）。这一条在里程碑 M1，还没有开始做</td></tr><tr><td>团队集群里现成的那一套</td><td>ADR-015 §1</td><td>不动（提议二）</td></tr></tbody></table></div>
+<p>2026-10-06 选它的理由说的是团队自己的那一个集群。现在变了三件事：</p>
+<ol>
+<li>按人的额度与认人都要在平台自己的入口上做。它的额度插件按每个调用方只有一个总数，没有周期，也不按模型折算（读到），做不了按人、按周期的积分；认人照 D15.6 本来就不交给它。</li>
+<li>产品要交付到客户现场，有两种形态、两个版本，还要能在一台机器上跑，而且只提供一套（S1-DEC-043 D5；单机版见 S1-DEC-041 D2、D3）。入口本来就得能不靠它工作。</li>
+<li>产品负责人点名参考的四个项目，都在自己的进程里直接连上游，没有另装模型网关；额度那一个，额度在厂商自己的服务端判。这是整理者读源码与文档的归纳（契约草案第 4.5 节）。</li>
+</ol>
+<h3 class="rp-toc-include" id="32-装它要装哪些东西"><a href="#32-装它要装哪些东西" class="rp-header-anchor rp-link" aria-label="链接到 3.2 装它要装哪些东西">#</a>3.2 装它要装哪些东西</h3>
+<p>读到（上游主干的 Helm 图表，2026-11-26）：</p>
+<ul>
+<li>总图表由两个子图表组成：核心与控制台。</li>
+<li>核心里有网关（Deployment 或 DaemonSet）、控制器、可选的插件服务器、可选的 Redis；它自己的三种自定义资源，另加 Istio 的 EnvoyFilter；一批集群级的角色与绑定；一个入口类。</li>
+<li>做限流与额度的插件要 Redis。团队现网那一套另有网关专用的 Redis 哨兵、专用的日志库与大盘（ADR-015 §1）。</li>
+<li>插件在运行时从镜像仓库取；不通外网的现场要另架插件服务器，这一句是推断。</li>
+</ul>
+<p>平台这一侧还要多写一层：把管理端里登记的上游、模型、密钥翻译成它的几种资源，写进集群，再对账。它的插件语义在小版本之间变过，多条限流规则从「命中第一条」改成了「全部叠加」。这一层要跟着它的版本走。</p>
+<h3 class="rp-toc-include" id="33-不经它的那条路本机实测"><a href="#33-不经它的那条路本机实测" class="rp-header-anchor rp-link" aria-label="链接到 3.3 不经它的那条路：本机实测">#</a>3.3 不经它的那条路：本机实测</h3>
+<p>做法：用 Kun 的业务网关同一个转发组件（YARP 2.2.0，.NET 10）写了一个最小的模型入口。它认调用方、读请求体里的逻辑模型名、查额度、换成上游的模型名与密钥、流式转发、边转边从响应里读用量、扣积分、记一条用量。积分按输入 token 乘 1、输出 token 乘 3 折算，是试验用的系数。后面接一个 OpenAI 兼容的替身上游。都在本机的回环地址上；认人、额度、路由表是进程里的替身。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>量了什么</th><th>结果</th></tr></thead><tbody><tr><td>首包多出来的延迟（300 对，直连替身上游对比经入口）</td><td>中位 0.28 毫秒，95 分位 0.82 毫秒，最大 5.2 毫秒</td></tr><tr><td>分片是不是一片一片到（上游每 100 毫秒一片，30 片）</td><td>经入口的间隔最小 100.0、中位 101.1、最大 101.7 毫秒，没有一片被攒起来</td></tr><tr><td>调用方读了 5 片就断开，上游多久停（20 次）</td><td>20 次都停了；从断开到上游察觉最长 4.6 毫秒；上游正好只产出 5 片</td></tr><tr><td>这 20 次入口怎么记</td><td>都记成「中断」，用量标成「估的」，按已经转出去的片数算</td></tr><tr><td>用量与积分（一次流式、一次非流式）</td><td>两次都从上游的响应里读到用量；扣的积分合计 324，与按系数算的一致</td></tr><tr><td>上游看到的是什么</td><td>上游的密钥与真实的模型名；调用方的凭据没有带过去；入口替调用方加上了「末尾带用量」</td></tr><tr><td>额度用完、凭据无效、模型不存在</td><td>分别回 429（带重置时间）、401、404，三种都没有打到上游</td></tr><tr><td>300 路并发的流（每路 40 片，每 50 毫秒一片）</td><td>全部完整；每路最长的片间隔 99 分位 57 毫秒；入口常驻内存 117 到 129 MB</td></tr><tr><td>1000 路并发的流（每路 40 片，每 100 毫秒一片）</td><td>全部完整；每路最长的片间隔 99 分位 113 毫秒；入口常驻内存到 161 MB</td></tr><tr><td>中间静默 130 秒的流，空闲超时设成 600 秒</td><td>走完，用量读到</td></tr><tr><td>同样的流，空闲超时不设（转发组件的缺省值）</td><td>第 100 秒被掐断，调用方看到连接被重置。ADR-010 §9 记的 Kun 网关上的 100 秒就是它；入口是自己的服务，设一个值就行</td></tr></tbody></table></div>
+<p>没有测的：上游是替身，真实的推理服务与各家第三方 API 末尾那一帧用量长什么样、出错时回什么，没有对过；入口前面集群的入口那一层没有经过；入口多副本时，额度与限流的计数要放在共享的存储里，这里是进程里的替身；真的验平台签发的凭据要多花多少时间，没有量；上游走 TLS 与 HTTP/2、很慢的调用方、几个小时的长流，都没有测。</p>
+<h3 class="rp-toc-include" id="34-不装以后的账"><a href="#34-不装以后的账" class="rp-header-anchor rp-link" aria-label="链接到 3.4 不装以后的账">#</a>3.4 不装以后的账</h3>
+<p>平台自己要做的，都在模型入口里：转发（实测过）；一家多把密钥，失败的摘掉、冷却后放回；回落，上游不可用时按顺序换下一个，只在第一片出来以前换，能做成有序的多跳；每分钟限流，计数与额度放同一处；统一的错误体；用量看板。除转发以外都还没有做。</p>
+<p>放弃的：原生协议的上游第一版接不了，这几家多数另有 OpenAI 兼容的入口，功能比原生的少一些，这一句凭已知、没有逐家核；它自带的 AI 大盘、语义缓存、内容安全这类插件；ADR-016 里已接受的 Agent 经它的 MCP 路由调平台能力那条路，要改写（提议七）。</p>
+<h3 class="rp-toc-include" id="35-结论整理者的"><a href="#35-结论整理者的" class="rp-header-anchor rp-link" aria-label="链接到 3.5 结论（整理者的）">#</a>3.5 结论（整理者的）</h3>
+<p>结论是不需要。照他第 3 句话里的条件，就不装（D24.4）。口子留在提议二：现场已经有模型网关，或者一定要某一家的原生协议时，把那个网关登记成一个上游。</p>
+<h3 class="rp-toc-include" id="36-推理服务一侧读到的"><a href="#36-推理服务一侧读到的" class="rp-header-anchor rp-link" aria-label="链接到 3.6 推理服务一侧读到的">#</a>3.6 推理服务一侧读到的</h3>
+<p>读到（GPUStack v2.3.1 的源码与文档，2026-11-26）：</p>
+<ul>
+<li>推理接口是 OpenAI 兼容的，在 <code>/v1</code> 下；请求里的模型名是它的「路由」的名字。</li>
+<li>流式的对话与补全，它的网关一律在末尾加上用量那一帧，调用方写了不要也会加、再自己剥掉。所以模型入口不要去写「不要用量」。</li>
+<li>响应头里带它的请求编号，模型入口记进用量记录，两边对账用。</li>
+<li>出错时的响应体不止一种，模型入口要统一成自己的。</li>
+<li>开源版没有按人或按 key 的额度与限流。</li>
+<li>管理接口与推理接口是同一个入口、同一种 key，靠 key 的范围分；能读模型的部署、实例、路由、工作节点，它按天汇总的用量有读的接口。它的健康端点不查依赖，不能当健康的依据。</li>
+<li>它的推理入口就是它内置的一套 Higress 加它自己写的插件；用 Docker 装时内嵌在服务端的容器里。</li>
+<li>装进 Kubernetes 时，它的图表缺省把 Higress 装成集群的入口控制器，同时带进它自己的 Operator、作业排队与节点特征发现；工作节点的 Pod 用主机网络；整件事它自己标着试验性，服务端只能一个副本。</li>
+</ul>
+<p>这几条与 §3.3 里替身上游的行为对得上的有两处：末尾带用量的那一帧；流中途断开时没有这一帧。没有拿真实的推理服务对过。</p>
+<h2 class="rp-toc-include" id="4-备选方案与放弃原因alternatives"><a href="#4-备选方案与放弃原因alternatives" class="rp-header-anchor rp-link" aria-label="链接到 4 备选方案与放弃原因（Alternatives）">#</a>4 备选方案与放弃原因（Alternatives）</h2>
+<p>下面是整理者的评估。</p>
+<ul>
+<li><strong>照原方案，Higress 必装</strong>：模型入口照样要做，认人与积分都在它上面；再加一层把管理端的登记翻译成 Higress 配置的程序。每个客户现场都要装它与它的 Redis、要运维；翻译这一层跟着它的版本变；单机版装不了，另走一套。不选。</li>
+<li><strong>两条路并存</strong>：现场装了 Higress 就让入口转给它，没装就入口直连上游。两条路要各测各的，等于两套。不选，只留提议二那个口子。这一种与 §1 那份看法里说的可选不是一回事。</li>
+<li><strong>换装另一种现成的模型代理</strong>（ADR-015 §4 放弃过的那一类）：没有逐个评估。积分与认人本来就要在平台的入口上做，转发这一段实测不难，再加一个部件就多一份安装与运维。不选。</li>
+<li><strong>调用方直连上游</strong>（契约草案问题 1 的选项乙）：上游的密钥要发到每个调用方，包括每个人的 Agent 运行时实例；平台拿不到用量，积分做不了。不选。</li>
+</ul>
+<h2 class="rp-toc-include" id="5-后果与代价consequences"><a href="#5-后果与代价consequences" class="rp-header-anchor rp-link" aria-label="链接到 5 后果与代价（Consequences）">#</a>5 后果与代价（Consequences）</h2>
+<ul>
+<li>正面：所有形态、所有版本只有一条路；每个现场少装一套网关、它的 Redis 和那层翻译；积分、认人、计量都在平台一侧，单机版也一样。</li>
+<li>负面：§3.4 列的几样要平台自己做，流式转发由平台自己扛；第一版接不了原生协议的上游；它自带的大盘与缓存没有了；Agent 调平台能力的路要重新设计（提议七）。转发只在本机回环上测过（§3.3）。</li>
+<li>配套：契约草案照本文改写（提议）；ADR-015、ADR-010、ADR-016 与需求文档 7.16、10.5 节加标注；模型服务的任务 S1-MGW-001 至 S1-MGW-003 照本文改写或加补记。</li>
+</ul>
+<h2 class="rp-toc-include" id="6-对各阶段的影响"><a href="#6-对各阶段的影响" class="rp-header-anchor rp-link" aria-label="链接到 6 对各阶段的影响">#</a>6 对各阶段的影响</h2>
+<ul>
+<li><strong>S1</strong>：模型服务仍是规划。组件 <code>qian.model-gateway</code> 只有配置骨架，模型入口没有代码。任务怎么改见 S1-DEC-044。</li>
+<li><strong>M1</strong>：Agent 调平台能力的路随 M1 的设计定（提议七）。</li>
+<li>别的阶段：ADR-015 §6 各行里写 Higress 的地方照本文读。</li>
+</ul>
+<h2 class="rp-toc-include" id="7-待确认事项"><a href="#7-待确认事项" class="rp-header-anchor rp-link" aria-label="链接到 7 待确认事项">#</a>7 待确认事项</h2>
+<ul>
+<li>【2026-11-27 已定：原表第 14、16 条照建议；他另写了用户可以主动选择另一个已获授权且有额度的模型，普通用户、租户管理员和应用都不能自带上游密钥（D24.8、D24.9）】整理时列给他、他没有答的两条：「用完就拒、分桶，不自动换模型」「托管的工作区里不开放个人自带密钥」。前一条也是契约草案问题 2 剩下的一半。</li>
+<li>【2026-11-27 已定：选项丙，模型请求都过平台自己的模型入口（原表第 5 条照建议）】契约草案的问题 1：选项甲随 D24.4 不再可选；乙（调用方直连上游）与丙（过平台的入口）之间，提议是丙（提议一、六），没有裁定。</li>
+<li>【2026-11-27 都答了：问题 3 是原表第 6 条，后半句他删掉了，原话是「第 6 条删掉“接口留出租户可覆盖”。」；问题 6、7、8 是第 8、9、10 条；问题 2 剩下的是第 14 条；见 §10.2】契约草案的问题 3、6、7、8 没有答；问题 2 还剩用完怎么办、分不分桶、要不要每分钟的限流。见 S1-DEC-044。</li>
+<li>【2026-11-27 已定：放开（原表第 5 条），见 §10.4】ADR-015 D15.3「只做三件事」的边界与 D15.5 前半句「不自写模型代理层」放不放开，随提议一。</li>
+<li>【2026-11-27 起按提议推进：不管模型入口（成批的丙批），见 §10.4】ADR-010 D10.11（网关不解析 JSON 体做鉴权）管不管模型入口，没有问过；提议是不管。模型入口读请求体里的 <code>model</code>，用来选上游、判可见范围。</li>
+<li>【2026-11-27 已定：原表第 15 条照建议；关着时积分照不照算没有说，见 §10.5】积分开关设在哪一级（读法二是按租户）；周期有哪几种、缺省是哪一种；积分怎么折算（提议是 token 乘模型的系数，输入与输出分开算，自建的模型也计）。</li>
+<li>【2026-11-27：前一半已定，是独立的服务（原表第 11 条）；后一半延期，见 §10.5】模型入口是独立的服务还是 Kun 网关上的一组路由（提议一是独立的服务，实测的就是这种）；单机版里它要不要并进平台的进程。</li>
+<li>【2026-11-27：延期，前置条件是匠心桌面端的对接设计（成批的丁批）；拿到的凭据只用于调用平台（D24.8），见 §10.5】桌面端怎么拿到调模型的凭据。</li>
+<li>【2026-11-27 起按提议推进，细节随 M1 的设计（成批的丙批）】Agent 调平台能力的路（提议七），随 M1 的设计定。</li>
+<li>【2026-11-27：延期，前置条件是设备一侧用什么运行时定下来（成批的丁批），见 §10.5】设备上的本机模型，与设备调平台的模型走哪条路（<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-038.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-038</a> Q8），S1-DEC-038 的 D48 只定了先后。Q8 推荐的那条路经 Higress，照本文不再成立；路怎么走仍没有定。</li>
+<li>§3.3 末尾没有测的那几项；真实的推理服务没有对过。</li>
+</ul>
+<h2 class="rp-toc-include" id="8-参考"><a href="#8-参考" class="rp-header-anchor rp-link" aria-label="链接到 8 参考">#</a>8 参考</h2>
+<ul>
+<li>相关 ADR：ADR-010、ADR-015、ADR-016、ADR-017。</li>
+<li>契约草案：<a href="/design/prd/specs/model-service-interface.html" class="rp-link">模型服务的标准接口：契约草案</a>（提议）。</li>
+<li>任务：S1-DEC-044（答复的登记与九个问题）；S1-DEC-043（D5）；<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-MGW-001.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-MGW-001</a> 至 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-MGW-004.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-MGW-004</a>。</li>
+<li>PRD：<code>PRD §07</code> 7.16 节、<code>PRD §10</code> 10.5 节。</li>
+</ul>
+<h2 class="rp-toc-include" id="9-加了标注的与同一口径没有加标注的"><a href="#9-加了标注的与同一口径没有加标注的" class="rp-header-anchor rp-link" aria-label="链接到 9 加了标注的，与同一口径、没有加标注的">#</a>9 加了标注的，与同一口径、没有加标注的</h2>
+<p>加了带日期的标注或补记，原文不改：</p>
+<ul>
+<li>ADR-015：front matter 加 <code>superseded_by</code> 与 <code>amended_by</code>；标题下加修订说明；D15.1 行首标取代，D15.2、D15.3、D15.5 行首标部分取代，D15.4、D15.6、D15.10、D15.11 行首标换主语；末尾追加 §11。</li>
+<li>ADR-010：front matter 加 <code>amended_by</code>；标题下加修订说明；D10.1、D10.10 行首加标注；§9 末尾加补记。</li>
+<li>ADR-016：front matter 加 <code>amended_by</code>；标题下加修订说明；D16.9、D16.10 行首加标注，新路是提议。</li>
+<li>需求文档：§07 的 7.16 节；§10 的章首、10.1.2 节表里「模型数据面」一行、10.5 节、10.5.11 节、10.6 节表里「自写模型代理层」一行。</li>
+<li>决策记录索引里 ADR-015、ADR-010、ADR-016 三行的状态。</li>
+</ul>
+<p>同一口径、这次没有加标注的，照本文读：</p>
+<ul>
+<li>ADR-015 §6 的 S4 一行；ADR-010 §6 的 S4 一行；ADR-016 D16.1 与 D16.5 里的 Higress；ADR-017 D17.4 就绪检查里的 Higress、D17.7 里共用的 Higress、D17.14 里 AI 那一个入口类与 §4 的备选。</li>
+<li>需求文档 §01、§04、§06、§09、§11、§12、§13、§17 与 README 里说到 Higress 的地方；§07 的 7.0.4 节总览表里 <code>model-gateway</code> 一行、7.9 节的「Agent 契约」；§10 的 10.2 节里 MCP 托管的几处、10.3 节安全防线表里「成本失控」一行、10.7 节第 4、7 条。</li>
+<li><code>docs/platform-roadmap.md</code> 里说到 Higress 的几行；组件模型规格 4.5 节里 MCP 门面托管在 Higress 的那一句；文档站规格里运维一栏的模型网关接线；插件清单规格里 S4 一行的 Higress MCP 路由。</li>
+<li>网站的几页：运维首页的表与「模型网关接线」，SDK 的「模型网关」「MCP」「Agent 运行时」，首页与上手指南里说到 Higress 的地方；生成组件页用的 <code>website/scripts/collect-components.ts</code> 里 <code>qian.model-gateway</code> 的简介。</li>
+<li>组件 <code>qian.model-gateway</code> 的配置骨架里有 Higress 的地址一项（<code>plugins/qian.model-gateway/schemas/config.schema.json</code> 与组合包的 <code>config/qian.patch.yml</code>），随实现任务改。研究底稿 <code>docs/research/baseline-digest.md</code> 是当时的材料，不改。</li>
+</ul>
+<h2 class="rp-toc-include" id="10-2026-11-27-的裁定"><a href="#10-2026-11-27-的裁定" class="rp-header-anchor rp-link" aria-label="链接到 10 2026-11-27 的裁定">#</a>10 2026-11-27 的裁定</h2>
+<p>2026-11-27 产品负责人对整理时列给他的《决策表》一次定稿，答的是「下面明确写出的内容优先，其余逐条采用原表建议。」与模型服务有关的是原表第 5 至 16 条，加上他写的一条长期约束。他的原话、列给他的话与各条定成什么，登记在 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-049.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-049</a>。</p>
+<p>本节的标法：「他明确写出的」引他的原话；「照原表建议」的，是他答「其余逐条采用原表建议」的那些，写的是原表的建议，不是他逐字说的。两种都算已定。「按提议推进」是成批的丙批，他答「丙按提议推进」：方向照提议，细节到时候照提议做。「延期」是成批的丁批，他答「丁按所列前置条件延期」。</p>
+<h3 class="rp-toc-include" id="101-他明确写出的"><a href="#101-他明确写出的" class="rp-header-anchor rp-link" aria-label="链接到 10.1 他明确写出的">#</a>10.1 他明确写出的</h3>
+<ul>
+<li><strong>D24.6（已定）整个平台只有一个 Kun 模型服务，是一条长期有效的约束。</strong> 原话：「第 5 至 16 条有一条长期有效的产品约束：整个平台只有一个 Kun 模型服务。 单机版、企业版、Web、桌面、托管工作区和应用都走同一套入口。后面可以接第三方 API、GPUStack，或者同时接多个上游。增加上游、模型或服务副本，都不另设面向用户的入口。」</li>
+<li><strong>D24.7（已定）平台管理员统一配模型，定开放范围；用户在可用的模型里选，由服务端校验。</strong> 原话：「平台管理员统一配模型。 上游地址、密钥、模型映射和路由都由平台管理。我可以配置多个模型，决定向哪些用户开放。用户看到可用模型列表，按需选择；Web、桌面和 API 都由服务端校验这个选择。」开放范围按人、按角色还是按租户，他没有说，没有定，见 §10.5。</li>
+<li><strong>D24.8（已定）普通用户、租户管理员、应用都不能自带上游密钥、自填地址或改路由；发给人和应用的凭据只用于调用平台；租户管理员可以分配额度。</strong> 原话：「第 6 条删掉“接口留出租户可覆盖”。 普通用户、租户管理员和应用都不能自带上游密钥、自填地址或改路由。第 7 条发给人和应用的凭据只用于调用平台。租户管理员可以按第 15 条分配额度。」</li>
+<li><strong>D24.9（已定）额度用完不自动换模型，用户可以主动换另一个已获授权且有额度的模型。</strong> 原话：「第 14 至 16 条按原表建议。 按模型组计额度，用完就拒绝，不自动换模型。用户可以主动选择另一个已获授权且有额度的模型。积分按租户开关，关闭时仍记录用量。」</li>
+</ul>
+<p>第 8 至 13 条那一项的原话是：「第 8 至 13 条按原表建议。 Kun 模型组件提供独立服务，首版支持对话、嵌入、模型列表，下一项优先重排。GPUStack 首选平台集群外的专机，由 Kun 维护适配。平台管模型清单、健康状态和开放范围，GPUStack 管推理部署与扩缩。」</p>
+<h3 class="rp-toc-include" id="102-照原表建议定的"><a href="#102-照原表建议定的" class="rp-header-anchor rp-link" aria-label="链接到 10.2 照原表建议定的">#</a>10.2 照原表建议定的</h3>
+<p>原表各条的原文录在 S1-DEC-049。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>原表</th><th>定成什么</th><th>落到本文哪里</th></tr></thead><tbody><tr><td>第 5 条</td><td>平台不装 Higress 以后，模型请求都过平台自己的模型入口，两种形态同一条路，现场已有的模型网关登记成它的一个上游；ADR-015 原来「不自己写模型代理」「只做三件事」两条随之放开</td><td>提议一、二、六转成已定；D24.4 的条件，整理时读作得到确认（§10.3）；D15.3 的边界与 D15.5 的前半句放开（§10.4）</td></tr><tr><td>第 6 条</td><td>第三方模型的凭据第一版由平台统一配。原表建议的后半句「接口留出租户可以覆盖」，他删掉了（D24.8）</td><td>D15.10 里的「租户覆盖」与租户自带的端点不再成立（§10.4）</td></tr><tr><td>第 7 条</td><td>调用方的凭据落到人和应用头上，应用用长期密钥，人用代人签发的短期凭据；只用于调用平台（D24.8）</td><td>读法一转成已定</td></tr><tr><td>第 8 条</td><td>管理端里改模型的配置分两类：不改流量出口的点了就生效并留审计，改出口的经评审</td><td>契约草案第 8.1 节</td></tr><tr><td>第 9 条</td><td>管理端对推理服务看清单与健康、管上下线；部署与扩缩留在它自己的界面，接口留出以后加</td><td>提议四转成已定</td></tr><tr><td>第 10 条</td><td>调用面第一版做 OpenAI 兼容的对话、嵌入、模型列表；要加先加重排</td><td>契约草案第 6 节的调用面；ADR-015 D15.7 同向。提议三管的是上游，不在这一条里</td></tr><tr><td>第 11 条</td><td>模型入口是 Kun 模型组件里的独立服务</td><td>提议一转成已定</td></tr><tr><td>第 12 条</td><td>模型服务的任务照现在的拆法：S1-MGW-003 做模型入口的先行段，用量与积分留在 S1-MGW-002；「初步可用」里程碑先于 2026-10 备忘录里的待拍板项</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-033.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-033</a> 的 D6、D7</td></tr><tr><td>第 13 条</td><td>GPUStack 装在平台所在的集群外面的专门机器上，只当模型入口的一个上游；适配由 Kun 这边维护。他写的是「首选」，同一个集群没有排除</td><td>提议四、五转成已定，提议五是首选</td></tr><tr><td>第 14 条</td><td>额度用完就拒，按模型组分桶，不自动换模型，另加每分钟的限流；他另写了用户可以主动换模型（D24.9）</td><td>契约草案第 6.4、6.5 节</td></tr><tr><td>第 15 条</td><td>积分的开关按租户设，关着时用量照记、不拦；周期可选日、周、月，缺省每周一重置；按 token 乘模型系数算，输入输出分开，自建的模型也计；租户管理员设每人的默认额度，多租户版由平台给租户封顶，应用单独一桶；DSH 里显示剩余，剩一成时提醒</td><td>D24.2、D24.3 补全；读法二转成已定</td></tr><tr><td>第 16 条</td><td>托管的工作区里不开放个人自带的模型密钥。D24.8 的范围更宽，普通用户、租户管理员、应用都不能自带</td><td>—</td></tr></tbody></table></div>
+<h3 class="rp-toc-include" id="103-本文各条现在的状态"><a href="#103-本文各条现在的状态" class="rp-header-anchor rp-link" aria-label="链接到 10.3 本文各条现在的状态">#</a>10.3 本文各条现在的状态</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>条目</th><th>2026-11-27 以前</th><th>2026-11-27 起</th></tr></thead><tbody><tr><td>D24.1</td><td>已定</td><td>不变</td></tr><tr><td>D24.2</td><td>已定；开关设在哪一级没有说</td><td>开关按租户设，关着时用量照记（第 15 条照原表建议，也是 D24.9 引的原话）</td></tr><tr><td>D24.3</td><td>已定；有哪几种周期、缺省是哪一种没有定</td><td>可选日、周、月，缺省每周一重置（第 15 条照原表建议）</td></tr><tr><td>D24.4</td><td>带条件</td><td>整理时读作条件得到确认：第 5 条照原表建议，不装以后模型请求都过平台自己的模型入口；D24.6 是整个平台只有一个 Kun 模型服务。Higress 装不装，他的答复里没有另说</td></tr><tr><td>D24.5</td><td>注明随提议的几处不随本文接受</td><td>随提议一、二、四的定了，随提议七的按提议推进，见 §10.4</td></tr><tr><td>读法一</td><td>读法</td><td>已定（第 7 条）</td></tr><tr><td>读法二</td><td>读法</td><td>已定（第 15 条）</td></tr><tr><td>提议一</td><td>提议</td><td>已定（第 5、11 条）</td></tr><tr><td>提议二</td><td>提议</td><td>已定（第 5 条）</td></tr><tr><td>提议三</td><td>提议</td><td>按提议推进（丙批「接入更多模型的做法」；归到这一批是整理时的读法）。调用方一侧第一版做 OpenAI 兼容，是第 10 条定的</td></tr><tr><td>提议四</td><td>提议</td><td>已定（第 9、13 条）</td></tr><tr><td>提议五</td><td>提议</td><td>已定，是首选（第 13 条）；装进同一个集群没有排除，那种装法没有试过</td></tr><tr><td>提议六</td><td>提议</td><td>已定（第 5 条；与 D24.6 同向）</td></tr><tr><td>提议七</td><td>提议</td><td>按提议推进，细节随 M1 的设计（丙批）</td></tr></tbody></table></div>
+<p>表里写「已定」的提议，定的是原表那一条文字讲到的主旨。提议里原表没有讲到的细节仍是提议，例如提议一里模型入口内部的几步，提议二里「一定要某一家的原生协议时」也经网关接，提议四里专门签给平台的 key、只带不含个人信息的请求编号、用量以模型入口记的为准。这样分是整理时的读法。</p>
+<h3 class="rp-toc-include" id="104-对-adr-015adr-010-的后果"><a href="#104-对-adr-015adr-010-的后果" class="rp-header-anchor rp-link" aria-label="链接到 10.4 对 ADR-015、ADR-010 的后果">#</a>10.4 对 ADR-015、ADR-010 的后果</h3>
+<ul>
+<li>ADR-015 D15.3「只做三件事」的边界、D15.5 的前半句「不自写模型代理层」：放开（第 5 条）。</li>
+<li>ADR-015 D15.4、D15.6、D15.10、D15.11 换主语以后的新主语：随提议一、二、四定了。</li>
+<li>ADR-015 D15.10 的「产品默认 + 租户覆盖」，与租户自带的端点只能登记成上游那一句：不再成立（D24.7、D24.8）。路由由平台管理员统一配，不允许应用直连照旧。</li>
+<li>ADR-015 D15.7：与第 10 条同向。§7 的几项，见那里的标注。</li>
+<li>ADR-010 D10.11（网关不解析 JSON 体做鉴权）：不管模型入口，丙批按提议推进。模型入口读请求体里的 <code>model</code>，用来选上游，也用来校验用户选的模型在不在他可用的范围里。</li>
+</ul>
+<p>这几处在 ADR-015、ADR-010 里都加了带日期的标注，原文不改。</p>
+<h3 class="rp-toc-include" id="105-仍没有定的与延期的"><a href="#105-仍没有定的与延期的" class="rp-header-anchor rp-link" aria-label="链接到 10.5 仍没有定的与延期的">#</a>10.5 仍没有定的与延期的</h3>
+<ul>
+<li>【2026-11-27 已定，第二张表第 1 条照建议：按租户、按角色两级，不做按人，见 §11 D24.10；本项不改】开放范围按人、按角色还是按租户，没有定。这一条改变产品的行为，不在原表第 51 条由整理者直接定的范围里，攒进下一张要产品负责人定的表（第 52 条）；S1-MGW-001 开工前要问到。</li>
+<li>【2026-11-27 已定，第二张表第 8 条照建议：照算、不拦，见 §11 D24.11；本项不改】积分系统关着时，积分照不照算，没有说；第 15 条说的是用量照记。</li>
+<li>调用方凭据由身份服务发，还是由模型组件自己发一种专用的密钥，没有定（契约草案第 12 节）。</li>
+<li>调用面的错误体跟公开协议走，要不要在本仓库的规则里写一条例外，没有定（契约草案第 10.2 节）。</li>
+<li>单机版里模型入口要不要并进平台的进程：延期，前置条件是两套部署各装什么的清单草案（丁批）。</li>
+<li>桌面端怎么拿到调模型的凭据：延期，前置条件是匠心桌面端的对接设计（丁批）。拿到的凭据只用于调用平台（D24.8）。</li>
+<li>设备上的本机模型，与设备调平台的模型走哪条路：延期，前置条件是设备一侧用什么运行时定下来（丁批）。他的答复里有一句：「批次里凡涉及租户自配模型、个人密钥或第二个模型入口的旧说法，一律按这次的统一模型服务裁定修正。」整理时读作：这一条定的时候照这一句办。</li>
+<li>Agent 调平台能力的路：按提议推进，细节随 M1 的设计（丙批）。</li>
+<li>§3.3 末尾没有测的那几项，真实的推理服务没有对过，仍是这样。</li>
+</ul>
+<h2 class="rp-toc-include" id="11-2026-11-27-第二张表的裁定"><a href="#11-2026-11-27-第二张表的裁定" class="rp-header-anchor rp-link" aria-label="链接到 11 2026-11-27 第二张表的裁定">#</a>11 2026-11-27 第二张表的裁定</h2>
+<p>登记 §10 时冒出几件没有定的事，整理者收成第二张要产品负责人定的表，每条带建议。问的是「第二张表的 11 条，都按建议办吗？」，产品负责人 2026-11-27 答「都按建议」。与本文有关的是表上第 1 条与第 8 条。两张表的各条与定成什么，登记在 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-050.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-050</a>。</p>
+<p>本节的标法：下面两条都是照表上的建议定的。引号里是表上的文字，不是他逐字说的；他的原话只有「都按建议」。</p>
+<ul>
+<li><strong>D24.10（已定）开放范围按租户、按角色两级，不做按人。</strong> 表上第 1 条问的是模型「向哪些用户开放」的粒度，建议是「按租户、按角色两级；不做按人，要给某个人单开时把他放进一个角色。」另可选是「三级都做；只按租户。」D24.7 里「决定向哪些用户开放」照此落到两级。</li>
+<li><strong>D24.11（已定）积分系统关着的时候，积分照算、不拦。</strong> 表上第 8 条问的是「积分系统关着的时候，积分照不照算。」建议是「照算、不拦，这样打开的时候数字是连续的。」另可选是「关着时不算。」D24.2 与原表第 15 条说的「关着时用量照记」照此补全：关着时用量照记，积分也照算，只是用完不拦。</li>
+</ul>
+<p>整理时的读法，产品负责人没有逐句确认：</p>
+<ul>
+<li>两级的规则怎么合起来判（一个模型同时写了租户名单与角色名单时取并集还是取交集），表上没有说，没有定。契约草案第 6.3 节的提议是取并集。</li>
+<li>「角色」读作本仓库授权模型里的角色（ADR-006）。</li>
+</ul>
+<p>§10.5 里其余几条照旧：调用方凭据由谁发、调用面的错误体要不要在规则里写例外，仍没有定；单机版里模型入口并不并进平台的进程、桌面端怎么拿凭据、设备上的本机模型，仍是延期；Agent 调平台能力的路，仍按提议推进。都还没有实现。</p><!--/$--></div><footer class="rp-doc-footer"><div class="rp-doc-footer__edit"></div><div class="rp-doc-footer__divider"></div><div class="rp-prev-next-page"><a href="/design/adr/adr-023-kun-qian-merge-blueprint.html" class="rp-prev-next-page__item rp-prev-next-page__prev rp-link"><span class="rp-prev-next-page__item__desc">上一页</span><span class="rp-prev-next-page__item__title"><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon rp-prev-next-page__rotate_180"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg><span>ADR-023 Qian 并入 Kun 并重新定位 Kun</span></span></a><a href="/design/prd/index.html" class="rp-prev-next-page__item rp-prev-next-page__next rp-link"><span class="rp-prev-next-page__item__desc">下一页</span><span class="rp-prev-next-page__item__title"><span>产品需求（PRD）</span><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></span></a></div></footer></main></div><aside class="rp-doc-layout__outline rp-scrollbar"><div class="rp-outline"><div class="rp-outline__title">目录<svg width="14" height="14" class="rp-progress-circle"><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-divider-light)" stroke-width="2"></circle><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-brand)" stroke-width="2" stroke-dasharray="37.69911184307752" stroke-dashoffset="37.69911184307752" transform="rotate(-90 7 7)" style="transition:stroke-dashoffset 0.3s"></circle></svg></div><nav class="rp-outline__toc rp-scrollbar"><a href="#1-背景与问题context" class="rp-toc-item rp-link" title="1 背景与问题（Context）" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">1 背景与问题（Context）</span></a><a href="#2-决策decision" class="rp-toc-item rp-link" title="2 决策（Decision）" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">2 决策（Decision）</span></a><a href="#21-产品负责人定的" class="rp-toc-item rp-link" title="2.1 产品负责人定的" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">2.1 产品负责人定的</span></a><a href="#22-带条件的" class="rp-toc-item rp-link" title="2.2 带条件的" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">2.2 带条件的</span></a><a href="#23-读法整理者的他没有逐句确认" class="rp-toc-item rp-link" title="2.3 读法（整理者的，他没有逐句确认）" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">2.3 读法（整理者的，他没有逐句确认）</span></a><a href="#24-提议整理者的建议没有裁定" class="rp-toc-item rp-link" title="2.4 提议（整理者的建议，没有裁定）" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">2.4 提议（整理者的建议，没有裁定）</span></a><a href="#25-对-adr-015-的后果" class="rp-toc-item rp-link" title="2.5 对 ADR-015 的后果" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">2.5 对 ADR-015 的后果</span></a><a href="#3-理由rationale" class="rp-toc-item rp-link" title="3 理由（Rationale）" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">3 理由（Rationale）</span></a><a href="#31-higress-在现行设计里承担的事" class="rp-toc-item rp-link" title="3.1 Higress 在现行设计里承担的事" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">3.1 Higress 在现行设计里承担的事</span></a><a href="#32-装它要装哪些东西" class="rp-toc-item rp-link" title="3.2 装它要装哪些东西" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">3.2 装它要装哪些东西</span></a><a href="#33-不经它的那条路本机实测" class="rp-toc-item rp-link" title="3.3 不经它的那条路：本机实测" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">3.3 不经它的那条路：本机实测</span></a><a href="#34-不装以后的账" class="rp-toc-item rp-link" title="3.4 不装以后的账" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">3.4 不装以后的账</span></a><a href="#35-结论整理者的" class="rp-toc-item rp-link" title="3.5 结论（整理者的）" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">3.5 结论（整理者的）</span></a><a href="#36-推理服务一侧读到的" class="rp-toc-item rp-link" title="3.6 推理服务一侧读到的" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">3.6 推理服务一侧读到的</span></a><a href="#4-备选方案与放弃原因alternatives" class="rp-toc-item rp-link" title="4 备选方案与放弃原因（Alternatives）" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">4 备选方案与放弃原因（Alternatives）</span></a><a href="#5-后果与代价consequences" class="rp-toc-item rp-link" title="5 后果与代价（Consequences）" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">5 后果与代价（Consequences）</span></a><a href="#6-对各阶段的影响" class="rp-toc-item rp-link" title="6 对各阶段的影响" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">6 对各阶段的影响</span></a><a href="#7-待确认事项" class="rp-toc-item rp-link" title="7 待确认事项" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">7 待确认事项</span></a><a href="#8-参考" class="rp-toc-item rp-link" title="8 参考" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">8 参考</span></a><a href="#9-加了标注的与同一口径没有加标注的" class="rp-toc-item rp-link" title="9 加了标注的，与同一口径、没有加标注的" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">9 加了标注的，与同一口径、没有加标注的</span></a><a href="#10-2026-11-27-的裁定" class="rp-toc-item rp-link" title="10 2026-11-27 的裁定" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">10 2026-11-27 的裁定</span></a><a href="#101-他明确写出的" class="rp-toc-item rp-link" title="10.1 他明确写出的" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">10.1 他明确写出的</span></a><a href="#102-照原表建议定的" class="rp-toc-item rp-link" title="10.2 照原表建议定的" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">10.2 照原表建议定的</span></a><a href="#103-本文各条现在的状态" class="rp-toc-item rp-link" title="10.3 本文各条现在的状态" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">10.3 本文各条现在的状态</span></a><a href="#104-对-adr-015adr-010-的后果" class="rp-toc-item rp-link" title="10.4 对 ADR-015、ADR-010 的后果" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">10.4 对 ADR-015、ADR-010 的后果</span></a><a href="#105-仍没有定的与延期的" class="rp-toc-item rp-link" title="10.5 仍没有定的与延期的" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">10.5 仍没有定的与延期的</span></a><a href="#11-2026-11-27-第二张表的裁定" class="rp-toc-item rp-link" title="11 2026-11-27 第二张表的裁定" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">11 2026-11-27 第二张表的裁定</span></a></nav><div class="rp-outline__divider"></div><div class="rp-outline__bottom"></div></div></aside></div></div>
+    <div id="__rspress_modal_container"></div>
+  </body>
+</html>

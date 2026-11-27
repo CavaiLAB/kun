@@ -1,0 +1,86 @@
+> For AI agents: the complete documentation index is available at /llms.txt, the full documentation bundle is available at /llms-full.txt.
+
+# Class KunMultiTenantModelCacheKeyFactory
+
+:::info 生成页
+本页由 DocFX 从 nuget.org 上 `Kun.EntityFrameworkCore` 2026.11.24 的 XML 注释生成，源码在 kun 仓库 [`src/Kun.EntityFrameworkCore`](https://github.com/CavaiLAB/kun/tree/v2026.11.24/src/Kun.EntityFrameworkCore)（`v2026.11.24`）。Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship.md)）；平台集成方式见[内核与平台组件](/sdk/kun/with-qian.md)。
+:::
+
+Namespace: [Kun.EntityFrameworkCore.MultiTenancy](/sdk/api/kun/kun-entityframeworkcore-multitenancy/index.md)\
+Assembly: Kun.EntityFrameworkCore.dll
+
+[`IModelCacheKeyFactory`](https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.infrastructure.imodelcachekeyfactory) that emits a distinct compiled
+model per tenant when the [`DbContext`](https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbcontext) implements
+[IKunMultiTenantDbContext](/sdk/api/kun/kun-entityframeworkcore-multitenancy/ikunmultitenantdbcontext.md). Falls back to EF Core's
+default key shape (context type + design-time flag) otherwise, so
+consumers who forget to opt in get the same behaviour they had
+before. The [TenantIsolation.Schema](/sdk/api/kun/kun-core-multitenancy/tenantisolation.md#Kun_Core_MultiTenancy_TenantIsolation_Schema)
+strategy relies on the same key: each tenant's schema-specific model is compiled separately,
+and a [null](https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null) tenant (no scoped tenant) shares one model.
+
+```csharp
+public sealed class KunMultiTenantModelCacheKeyFactory : IModelCacheKeyFactory
+```
+
+#### Inheritance
+
+[object](https://learn.microsoft.com/dotnet/api/system.object) ←
+[KunMultiTenantModelCacheKeyFactory](/sdk/api/kun/kun-entityframeworkcore-multitenancy/kunmultitenantmodelcachekeyfactory.md)
+
+#### Implements
+
+[IModelCacheKeyFactory](https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.infrastructure.imodelcachekeyfactory)
+
+#### Inherited Members
+
+[object.GetType()](https://learn.microsoft.com/dotnet/api/system.object.gettype),
+[object.ToString()](https://learn.microsoft.com/dotnet/api/system.object.tostring),
+[object.Equals(object?)](https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals\(system-object\)),
+[object.Equals(object?, object?)](https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals\(system-object-system-object\)),
+[object.ReferenceEquals(object?, object?)](https://learn.microsoft.com/dotnet/api/system.object.referenceequals),
+[object.GetHashCode()](https://learn.microsoft.com/dotnet/api/system.object.gethashcode)
+
+## Remarks
+
+Register on the [`DbContextOptionsBuilder`](https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder):
+`.ReplaceService<IModelCacheKeyFactory, KunMultiTenantModelCacheKeyFactory>()`.
+
+Without this factory, EF Core keys compiled models only on
+[`DbContext`](https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbcontext) type. The first tenant's query filter is
+then baked into the shared model — subsequent tenants would read
+against the first tenant's filter constant, silently leaking data
+across tenant boundaries.
+
+## Constructors
+
+### KunMultiTenantModelCacheKeyFactory() \{#Kun_EntityFrameworkCore_MultiTenancy_KunMultiTenantModelCacheKeyFactory__ctor}
+
+```csharp
+public KunMultiTenantModelCacheKeyFactory()
+```
+
+## Methods
+
+### Create(DbContext, bool) \{#Kun_EntityFrameworkCore_MultiTenancy_KunMultiTenantModelCacheKeyFactory_Create_Microsoft_EntityFrameworkCore_DbContext_System_Boolean\_}
+
+Gets the model cache key for a given context.
+
+```csharp
+public object Create(DbContext context, bool designTime)
+```
+
+#### Parameters
+
+`context` [DbContext](https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbcontext)
+
+The context to get the model cache key for.
+
+`designTime` [bool](https://learn.microsoft.com/dotnet/api/system.boolean)
+
+Whether the model should contain design-time configuration.
+
+#### Returns
+
+[object](https://learn.microsoft.com/dotnet/api/system.object)
+
+The created key.

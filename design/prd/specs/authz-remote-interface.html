@@ -1,0 +1,2119 @@
+<!doctype html>
+<html lang="zh">
+  <head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>远程授权接口与客户端包：契约草案（十个问题已裁定，其余是提议） - Kun 开发文档</title>
+<script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
+<link href="/static/css/styles.e6512a37ad.css" rel="stylesheet">
+<link rel="preload" href="/static/js/async/route-d8a3b5240f9a.e76adf1919.js" as="script">
+<script defer src="/static/js/styles.700fb1c3db.js"></script>
+<script defer src="/static/js/lib-react.3a03aaf12f.js"></script>
+<script defer src="/static/js/lib-router.80316d8e03.js"></script>
+<script defer src="/static/js/hq.650980f491.js"></script>
+<script defer src="/static/js/index.7229c7078c.js"></script>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Rspress v2.0.23">
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/design/prd/specs/authz-remote-interface.md">
+<link rel="describedby" href="/llms.txt">
+<meta property="og:type" content="website">
+<meta property="og:title" content="远程授权接口与客户端包：契约草案（十个问题已裁定，其余是提议） - Kun 开发文档">
+<meta name="description" content="本文答一件事：不在平台宿主里的系统，怎么问 Kun「这个主体能不能对这个资源做这个动作」。「平台宿主」指 Kun 的平台进程（hosts/Kun.Platform.Host），下同。照「权限都走这一套」的整理读法（第 1.2 节），这样的…">
+<meta property="og:description" content="本文答一件事：不在平台宿主里的系统，怎么问 Kun「这个主体能不能对这个资源做这个动作」。「平台宿主」指 Kun 的平台进程（hosts/Kun.Platform.Host），下同。照「权限都走这一套」的整理读法（第 1.2 节），这样的…"></head>
+
+  <body>
+    <div id="__rspress_root"><link rel="preload" as="image" href="/logo.svg"/><div class="rp-llms-hint" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);clip-path:inset(50%);white-space:nowrap;border:0">For AI agents: the complete documentation index is available at /llms.txt, the full documentation bundle is available at /llms-full.txt, and this page is available as Markdown at /design/prd/specs/authz-remote-interface.md.</div><script data-rp-banner-hidden-class="rp-banner-_R_1i_-hidden" data-rp-banner-storage="localStorage" data-rp-banner-storage-key="qian-docs-s1-banner">(function () {
+  var script = document.currentScript;
+  if (!script) return;
+  try {
+    var storage = window[script.dataset.rpBannerStorage];
+    var storageKey = script.dataset.rpBannerStorageKey;
+    var hiddenClass = script.dataset.rpBannerHiddenClass;
+    if (storage && storageKey && hiddenClass && storage.getItem(storageKey)) {
+      document.documentElement.classList.add(hiddenClass);
+    }
+  } catch (e) {}
+})();</script><style>:root {--rp-banner-height: 36px;} :root.rp-banner-_R_1i_-hidden {--rp-banner-height: 0px;} :root.rp-banner-_R_1i_-hidden .rp-banner-_R_1i_ {display: none;}</style><div class="rp-banner rp-banner-_R_1i_"><a href="/design/roadmap" class="rp-banner__link rp-link" title="S1 建设中：文档按设计目标编写，组件与命令随 S1 任务陆续可用；标 S2–S4 的能力尚未开始。查看路线图 →">S1 建设中：文档按设计目标编写，组件与命令随 S1 任务陆续可用；标 S2–S4 的能力尚未开始。查看路线图 →</a><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" class="rp-banner__close"><path fill="currentColor" d="M24 9.4 22.6 8 16 14.6 9.4 8 8 9.4l6.6 6.6L8 22.6 9.4 24l6.6-6.6 6.6 6.6 1.4-1.4-6.6-6.6z"></path></svg></div><header class="rp-nav"><div class="rp-nav__left"><div class="rp-nav__title"><a href="/" class="rp-nav__title__link rp-link"><div class="rp-nav__title__logo"><img src="/logo.svg" alt="logo" id="logo" class="rspress-logo rp-nav__title__logo-image"/></div><span>Kun 开发文档</span></a></div></div><div class="rp-nav__right"><button class="rp-search-button"><div class="rp-search-button__content"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 20 21" class="rp-search-button__icon"><path fill="currentColor" d="M8.333 1.913A6.667 6.667 0 0 1 15 8.58c0 1.54-.525 2.957-1.402 4.085l4.49 4.492a.834.834 0 0 1-1.177 1.178l-4.491-4.49a6.64 6.64 0 0 1-4.087 1.402 6.667 6.667 0 0 1 0-13.334m0 1.667a5 5 0 1 0 0 10 5 5 0 0 0 0-10"></path></svg><span class="rp-search-button__word">搜索</span></div><div class="rp-search-button__hotkey" style="opacity:0"><span></span><span>K</span></div></button><div class="rp-search-button--mobile"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 20 21"><path fill="currentColor" d="M8.333 1.913A6.667 6.667 0 0 1 15 8.58c0 1.54-.525 2.957-1.402 4.085l4.49 4.492a.834.834 0 0 1-1.177 1.178l-4.491-4.49a6.64 6.64 0 0 1-4.087 1.402 6.667 6.667 0 0 1 0-13.334m0 1.667a5 5 0 1 0 0 10 5 5 0 0 0 0-10"></path></svg></div><ul class="rp-nav-menu rp-nav-menu--right"><li class="rp-nav-menu__item"><a href="/start/index.html" class="rp-nav-menu__item__container rp-link">开始</a></li><li class="rp-nav-menu__item"><a href="/components/index.html" class="rp-nav-menu__item__container rp-link">组件目录</a></li><li class="rp-nav-menu__item"><a href="/sdk/index.html" class="rp-nav-menu__item__container rp-link">SDK</a></li><li class="rp-nav-menu__item"><a href="/cli/index.html" class="rp-nav-menu__item__container rp-link">CLI 与规格</a></li><li class="rp-nav-menu__item"><a href="/ops/index.html" class="rp-nav-menu__item__container rp-link">运维</a></li><li class="rp-nav-menu__item"><a href="/marketplace/index.html" class="rp-nav-menu__item__container rp-link">市场与 ISV</a></li><li class="rp-nav-menu__item rp-nav-menu__item--active"><a href="/design/index.html" class="rp-nav-menu__item__container rp-link">设计与路线</a></li><li class="rp-nav-menu__item"><div class="rp-nav-menu__item__container">产品<svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-nav-menu__item__icon"><path fill="currentColor" d="M16 22 6 12l1.4-1.4 8.6 8.6 8.6-8.6L26 12z"></path></svg></div><ul class="rp-hover-group rp-hover-group--hidden rp-hover-group--center"><li class="rp-hover-group__item" style="padding-left:8px" data-depth="0"><a href="/sdk/ai/index.html" class="rp-hover-group__item__link rp-link" aria-label="用 AI 构建">用 AI 构建</a></li><li class="rp-hover-group__item" style="padding-left:8px" data-depth="0"><a href="/start/hosts.html" class="rp-hover-group__item__link rp-link" aria-label="构建应用">构建应用</a></li><li class="rp-hover-group__item" style="padding-left:8px" data-depth="0"><a href="/components/platform/index.html" class="rp-hover-group__item__link rp-link" aria-label="多租户平台">多租户平台</a></li><li class="rp-hover-group__item" style="padding-left:8px" data-depth="0"><a href="/components/platform/qian.gateway.html" class="rp-hover-group__item__link rp-link" aria-label="保护应用">保护应用</a></li><li class="rp-hover-group__item" style="padding-left:8px" data-depth="0"><a href="/ops/index.html" class="rp-hover-group__item__link rp-link" aria-label="部署与运维">部署与运维</a></li></ul></li></ul><div class="rp-nav__others"><div class="rp-nav-menu__divider"></div><button type="button" class="rp-switch-appearance" aria-label="切换主题"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" class="rp-switch-appearance__icon--sun"><path fill="currentColor" d="m7.001 15.848-1.226 1.226a.58.58 0 0 0 0 .818.58.58 0 0 0 .818 0l1.226-1.226a.58.58 0 0 0 0-.818.58.58 0 0 0-.818 0m-.352-8.735a.584.584 0 0 0 .825-.825L6.237 5.051a.584.584 0 0 0-.825.825zM5.011 11.07h-1.75a.584.584 0 0 0 0 1.167h1.75c.324 0 .584-.26.584-.583a.585.585 0 0 0-.584-.584m7.003-5.835c.324 0 .584-.26.584-.584V2.9a.58.58 0 0 0-.584-.584.58.58 0 0 0-.583.583V4.65c0 .323.262.584.583.584m5.616 1.621 1.226-1.225a.58.58 0 0 0 0-.818.58.58 0 0 0-.818 0l-1.226 1.225a.58.58 0 0 0 0 .818.576.576 0 0 0 .818 0m3.138 4.214h-1.75a.58.58 0 0 0-.584.584c0 .324.26.584.583.584h1.751a.584.584 0 1 0 0-1.167m-3.389 5.124a.584.584 0 0 0-.825.825l1.238 1.238a.584.584 0 0 0 .825-.826zm-5.365-9.795a5.256 5.256 0 0 0-5.257 5.258 5.256 5.256 0 0 0 5.257 5.257 5.256 5.256 0 0 0 5.257-5.257 5.256 5.256 0 0 0-5.257-5.258m0 11.675a.58.58 0 0 0-.583.583v1.751a.582.582 0 1 0 1.167 0v-1.75a.584.584 0 0 0-.584-.584"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 19 19" class="rp-switch-appearance__icon--moon"><path fill="currentColor" d="M9.166 0a9.2 9.2 0 0 1 1.857.188.834.834 0 0 1 .042 1.623 4.47 4.47 0 1 0 5.457 5.457l.048-.135a.834.834 0 0 1 1.575.177q.186.902.188 1.856A9.168 9.168 0 1 1 9.166 0"></path></svg></span></button><div class="rp-social-links"><a class="rp-social-links__item" href="https://github.com/CavaiLAB/kun" target="_blank" rel="noopener noreferrer" aria-label="GitHub 源码仓库"><span class="rp-social-links__icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12c0 5.303 3.438 9.8 8.205 11.385c.6.113.82-.258.82-.577c0-.285-.01-1.04-.015-2.04c-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729c1.205.084 1.838 1.236 1.838 1.236c1.07 1.835 2.809 1.305 3.495.998c.108-.776.417-1.305.76-1.605c-2.665-.3-5.466-1.332-5.466-5.93c0-1.31.465-2.38 1.235-3.22c-.135-.303-.54-1.523.105-3.176c0 0 1.005-.322 3.3 1.23c.96-.267 1.98-.399 3-.405c1.02.006 2.04.138 3 .405c2.28-1.552 3.285-1.23 3.285-1.23c.645 1.653.24 2.873.12 3.176c.765.84 1.23 1.91 1.23 3.22c0 4.61-2.805 5.625-5.475 5.92c.42.36.81 1.096.81 2.22c0 1.606-.015 2.896-.015 3.286c0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></span></a></div></div><button aria-label="mobile hamburger" class="rp-nav-hamburger rp-nav-hamburger__sm"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 21 21"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M3.645 5.225h13.333M3.645 10.225h13.333M3.645 15.225h13.333"></path></svg></button><button aria-label="mobile hamburger" class="rp-nav-hamburger rp-nav-hamburger__md"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="none" viewBox="0 0 21 21"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M3.645 5.225h13.333M3.645 10.225h13.333M3.645 15.225h13.333"></path></svg><ul class="rp-hover-group rp-hover-group--hidden rp-hover-group--right"><div class="rp-nav-menu__others-mobile__container"><div class="rp-nav-hamburger__md__hover-group"><div class="rp-nav-screen-appearance"><div class="rp-nav-screen-appearance__left">主题</div><div class="rp-nav-screen-appearance__right"></div></div><div class="rp-nav-screen-divider"></div><div class="rp-social-links"><a class="rp-social-links__item" href="https://github.com/CavaiLAB/kun" target="_blank" rel="noopener noreferrer" aria-label="GitHub 源码仓库"><span class="rp-social-links__icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12c0 5.303 3.438 9.8 8.205 11.385c.6.113.82-.258.82-.577c0-.285-.01-1.04-.015-2.04c-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729c1.205.084 1.838 1.236 1.838 1.236c1.07 1.835 2.809 1.305 3.495.998c.108-.776.417-1.305.76-1.605c-2.665-.3-5.466-1.332-5.466-5.93c0-1.31.465-2.38 1.235-3.22c-.135-.303-.54-1.523.105-3.176c0 0 1.005-.322 3.3 1.23c.96-.267 1.98-.399 3-.405c1.02.006 2.04.138 3 .405c2.28-1.552 3.285-1.23 3.285-1.23c.645 1.653.24 2.873.12 3.176c.765.84 1.23 1.91 1.23 3.22c0 4.61-2.805 5.625-5.475 5.92c.42.36.81 1.096.81 2.22c0 1.606-.015 2.896-.015 3.286c0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></span></a></div></div></div></ul></button></div></header><div class="rp-doc-layout__menu"><div class="rp-sidebar-menu"><button type="button" class="rp-sidebar-menu__left"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"></path></svg><span>菜单</span></button><button type="button" class="rp-sidebar-menu__right"><span class="rp-sidebar-menu__right__text">目录</span><svg width="14" height="14" class="rp-progress-circle"><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-divider-light)" stroke-width="2"></circle><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-brand)" stroke-width="2" stroke-dasharray="37.69911184307752" stroke-dashoffset="37.69911184307752" transform="rotate(-90 7 7)" style="transition:stroke-dashoffset 0.3s"></circle></svg><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-sidebar-menu__right__icon" style="transform:rotate(0deg);transition:transform 0.2s ease-out"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></button></div></div><div class="rp-doc-layout__container"><aside class="rp-doc-layout__sidebar rp-scrollbar"><a href="/design/index.html" class="rp-sidebar-item rp-link" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">文档索引</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/roadmap.html" class="rp-sidebar-item rp-link" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">路线图</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/package-and-docs-disposition.html" class="rp-sidebar-item rp-link" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">Kun 的包、文档、示例与站点导航的去向</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/index.html" class="rp-sidebar-item rp-sidebar-group rp-link" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">架构决策（ADR）</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(0deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></a><div style="display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/adr/index.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">概览</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-001-kun-relationship.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-001 Qian 与 Kun 的关系</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-002-plugin-model.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-002 插件模型</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-003-kernel-boundary-s1-services.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-003 内核边界与 S1 服务拆分</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-004-database-tenant-isolation.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-004 数据库与租户隔离</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-005-identity-sso.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-005 身份与 SSO</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-006-authorization-model.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-006 鉴权模型</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-007-config-center-apollo.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-007 配置中心</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-008-events-messaging.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-008 事件与消息</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-009-audit.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-009 审计</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-010-gateway-layers.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-010 网关分层</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-011-metadata-dynamic-data.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-011 元数据与动态数据层</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-012-workflow-engine.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-012 流程引擎</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-013-frontend-framework.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-013 前端与［前端框架］</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-014-marketplace.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-014 应用市场形态</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-015-model-gateway.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-015 模型服务网关</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-016-agent-boundary.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-016 与［下游智能体平台］的边界</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-017-deployment.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-017 部署</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-018-stages-s1-scope.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-018 阶段切分与 S1 范围</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-019-library-first-packages.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-019 库优先（Library-first）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-020-component-model-v2.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-020 组件模型 v2</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-021-product-family-structure.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-021 产品族结构</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-022-rspress-unified-component-docs.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-022 统一 Rspress 组件文档与验收</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-023-kun-qian-merge-blueprint.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-023 Qian 并入 Kun 并重新定位 Kun</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/adr/adr-024-model-entry-no-gateway.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">ADR-024 模型服务</span></div><div class="rp-sidebar-item__right"></div></a></div></div><a href="/design/prd/index.html" class="rp-sidebar-item rp-sidebar-group rp-link" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">产品需求（PRD）</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(90deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></a><div style="display:grid;grid-template-rows:1fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/prd/index.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">概览</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/01-vision.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">1. 愿景与定位</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/02-principles.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">2. 设计原则</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/03-concepts.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">3. 核心概念模型</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/04-market.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">4. 形态与目标市场</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/05-differentiators.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">5. 核心差异化</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/06-users-scenarios.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">6. 用户与场景</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/07-s1-foundation.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§07 S1 技术底座功能规格</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/08-s2-lowcode.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§08 S2 低代码构建</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/09-s3-customer.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§09 S3 面向客户</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/10-s4-agent.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§10 S4 AI 原生 Agent 平台与模型服务网关</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/11-ux-glossary.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">11. 体验原则与产品词表</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/12-boundaries.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§12 能力边界</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/13-security.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§13 权限与安全</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/14-quality.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">§14 质量与评估</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/15-roadmap.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">15. 演进路线（指针）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/16-metrics.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">16. 成功指标</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/17-references.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">17. 借鉴声明</span></div><div class="rp-sidebar-item__right"></div></a><div class="rp-sidebar-item rp-sidebar-group rp-sidebar-item--group-item" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">专题规格</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(90deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></div><div style="display:grid;grid-template-rows:1fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/prd/specs/auth-pages.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">认证页族设计规格（登录 / 第二因子 / 租户选择与切换 / 强制改密 / 绑定 / 设备码 / 授权同意）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/authz-remote-interface.html" class="rp-sidebar-item rp-sidebar-item--active rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">远程授权接口与客户端包：契约草案（十个问题已裁定，其余是提议）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/component-model.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">专题 spec · 组件模型 v2（清单 · 表面 · 运行时 · profile · 市场 · CLI）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/data-contracts.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">数据过滤与记录扩展契约 v1</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/docs-site.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">文档站信息架构与规范（Rspress 2.0）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/frontend.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">专题 spec · 前端框架组件库</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/model-service-interface.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">模型服务的标准接口：契约草案（提议）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/plugin-manifest.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">专题 spec · 插件清单 v1（<code>qian-plugin.yaml</code>）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/prd/specs/tenant-signup.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 2 + 12px)" data-depth="2"><div class="rp-sidebar-item__left"><span class="rp-doc">租户自助开通：注册申请、平台审核与首次进入</span></div><div class="rp-sidebar-item__right"></div></a></div></div></div></div><div class="rp-sidebar-item rp-sidebar-group" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">调研基线</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(0deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></div><div style="display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/research/baseline-digest.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Qian 调研基线要点汇编</span></div><div class="rp-sidebar-item__right"></div></a></div></div><div class="rp-sidebar-item rp-sidebar-group" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">generated</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(0deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></div><div style="display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/generated/config-catalog.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">配置目录</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/generated/event-graph.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">事件图</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/generated/module-graph.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">模块图</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/generated/seam-graph.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">seam 图</span></div><div class="rp-sidebar-item__right"></div></a></div></div><div class="rp-sidebar-item rp-sidebar-group" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">ops</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(0deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></div><div style="display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/design/ops/configuration-runbook.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">配置开发、运行与故障处置（S1-CFG-001 / 002 / 003）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/ops/k3s-control-plane-recovery.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">K3s 控制面故障处置（S1-DEP-007）</span></div><div class="rp-sidebar-item__right"></div></a><a href="/design/ops/staging-first-deploy.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">staging 首次部署：平台与身份同进程（S1-DEP-011）</span></div><div class="rp-sidebar-item__right"></div></a></div></div></aside><div class="rp-doc-layout__doc"><main class="rp-doc-layout__doc-container"><div class="rp-doc rspress-doc"><!--$--><h1 class="rp-toc-include" id="远程授权接口与客户端包契约草案十个问题已裁定其余是提议"><a href="#远程授权接口与客户端包契约草案十个问题已裁定其余是提议" class="rp-header-anchor rp-link" aria-label="链接到 远程授权接口与客户端包：契约草案（十个问题已裁定，其余是提议）">#</a>远程授权接口与客户端包：契约草案（十个问题已裁定，其余是提议）<!-- --> </h1><div class="rp-not-doc rp-llms-container"><button class="rp-not-doc rp-llms-button rp-llms-copy-button"><div class="rp-llms-copy-button__icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-llms-copy-button__icon-success"><path fill="currentColor" d="m9.55 18-5.7-5.7 1.425-1.425L9.55 15.15l9.175-9.175L20.15 7.4z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-llms-copy-button__icon-copy"><path fill="currentColor" d="M20 8v12H8V8zm0-2H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2"></path><path fill="currentColor" d="M4 16H2V4a2 2 0 0 1 2-2h12v2H4Z"></path></svg></div><span>复制 Markdown</span></button><a class="rp-llms-button" href="/design/prd/specs/authz-remote-interface.md" aria-label="查看本页 Markdown">Markdown 链接</a></div>
+<blockquote>
+<p>本页由构建脚本镜像自仓库 <a href="https://github.com/CavaiLAB/kun/blob/main/docs/prd/specs/authz-remote-interface.md" target="_blank" rel="noopener noreferrer" class="rp-link"><code>docs/prd/specs/authz-remote-interface.md</code></a>，请修改源文件，不要改本页。</p>
+</blockquote>
+<blockquote>
+<p>状态：第 14 节的十个问题已裁定（2026-11-26），其余仍是提议。产品负责人 2026-11-26 答「远程的授权接口 也按照建议执行」，登记为 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-045.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-045</a>：十个问题都定成选项（一），其中六个带着整理时加的条件。他只说了这一句，没有逐条回；条件算进已定，是整理时的读法（第 1.2 节）。十个问题没有覆盖到的设计细节，即端点与字段的形状、名字、数字，仍是提议，等契约定稿（<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-011.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-011</a>）。裁定往下落时接不上的四件事另问过，产品负责人 2026-11-26 答「S1-DEC-048 四个问题都按照建议执行」，登记为 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-048.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-048</a>，写在第 7、10、12、13 节。起草的任务是 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-010.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-010</a>。依据是 <a href="/design/adr/adr-006-authorization-model.html" class="rp-link">ADR-006</a> 与它的第 9、10 节。</p>
+<p>本文现在是建任务、排先后的依据，任务见第 13 节。还标着提议的部分，契约定稿以前不是实现与验收的依据；实现与验收以各任务的验收和定稿后的契约为准。这次裁定回写在 ADR-005、ADR-006、ADR-010、ADR-012、ADR-016 末尾各追加的小节里。这几份 ADR 与需求文档现有各篇的原文没有改，冻结的契约没有动，没有写实现。</p>
+</blockquote>
+<p>本文答一件事：不在平台宿主里的系统，怎么问 Kun「这个主体能不能对这个资源做这个动作」。「平台宿主」指 Kun 的平台进程（<code>hosts/Kun.Platform.Host</code>），下同。照「权限都走这一套」的整理读法（第 1.2 节），这样的系统包括匠心的管理端、工作区服务、页面插件、DSH 插件在各人实例里跑的那一半，以后还有别的语言写的系统。它们都还是规划。</p>
+<p>平台级的口径在匠心的仓库里，本文只引用：<a href="https://github.com/CavaiLAB/jiangxin/blob/main/docs/04-architecture.md" target="_blank" rel="noopener noreferrer" class="rp-link">总体架构</a>第 2.1 节有一张「谁怎么问 Kun」的提议表，<a href="https://github.com/CavaiLAB/jiangxin/blob/main/docs/09-dsh-integration.md" target="_blank" rel="noopener noreferrer" class="rp-link">DSH 与企业级平台的对接</a>第 6、8 节写了 DSH 一侧怎么用。本文第 3 节的几种接法是那张表在 Kun 一侧的展开。</p>
+<p>文中的标记：</p>
+<ul>
+<li><strong>已定</strong>：产品负责人裁定过，有原话或答复。2026-11-26 对十个问题的答复写成「已定（问题 N）」，指的是那个问题选项（一）的内容。同一天对留下的四个问题的答复写成「已定（S1-DEC-048 D1）」这样，D 的序号是那四个问题的序号；定成什么、哪些是读法，记在 S1-DEC-048。</li>
+<li><strong>条件</strong>：列给他的十条建议里，在选项（一）之外加的话，写成「条件（问题 N）」。六个问题有：3、4、5、7、8、9。他答的是「按照建议执行」，没有逐条回；它们算进已定，是整理时的读法。</li>
+<li><strong>整理时的读法</strong>：整理者对他的话的读法，他没有逐句确认。把条件落到各节时又生出的读法写成「本文的读法」，这些话没有列给他。</li>
+<li><strong>提议</strong>：本文提出的做法，没有裁定。各节开头写明这一节里哪些已定；没有点名的端点、字段、名字与数字都是提议，等契约定稿。</li>
+<li><strong>没有定</strong>：没有提议，或者没有问过。</li>
+</ul>
+<p>说现状时，「已有」指本仓库里已经实现、对着代码核对过；「规划」指还没有实现；规格写了而没有实现的，写「规格已写」。</p>
+<p>两个词全文通用：</p>
+<ul>
+<li><strong>执行前的判定</strong>：一个系统真要执行受保护的操作之前问的那一次。答案是执行的依据，要记审计。</li>
+<li><strong>预判</strong>：为了决定界面上显示什么，或者提前知道行不行而问的。答案不是执行的依据，不逐条记审计。</li>
+</ul>
+<h2 class="rp-toc-include" id="1-已定的读法与没有定的"><a href="#1-已定的读法与没有定的" class="rp-header-anchor rp-link" aria-label="链接到 1 已定的、读法与没有定的">#</a>1 已定的、读法与没有定的</h2>
+<h3 class="rp-toc-include" id="11-已定"><a href="#11-已定" class="rp-header-anchor rp-link" aria-label="链接到 1.1 已定">#</a>1.1 已定</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>哪一条</th><th>内容</th><th>原话或答复</th><th>本仓库的登记</th></tr></thead><tbody><tr><td>权限都走这一套</td><td>平台以后不论做什么系统，权限都走这一套，要在 Kun 上做好</td><td>「另外，这个企业级平台后续不论做什么系统，权限都是要走这一套的，所以要在  Kun 框架上做好这部分。」</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-043.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-043</a> D7，ADR-006 第 9 节</td></tr><tr><td>要人确认的能力由平台停</td><td>能力条目上标了要人确认的能力（<code>agent.requiresConfirmation</code> 为真），调用方不是人本人时，平台自己不执行，先生成一条等人输入的任务，等人点；人点了，平台才执行。「不是人本人」指调用方是 Agent，或者带着委托链。人自己在界面上直接调同一个能力，不拦</td><td>「都按提议定」。问的是「与 Kun 现行写法对不上的两处，都按提议定吗？」，这是其中一处</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-041.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-041</a> D7，<a href="/design/adr/adr-016-agent-boundary.html" class="rp-link">ADR-016</a> 第 9 节</td></tr><tr><td>任务上的动作缺省只能人做</td><td>等人点头的任务上的动作，缺省只能人做。Agent 代办不是缺省，以后要用再单独放开，怎么放开没有定</td><td>同上，是另一处</td><td>S1-DEC-041 D8，<a href="/design/adr/adr-012-workflow-engine.html" class="rp-link">ADR-012</a> 第 9 节</td></tr><tr><td>等人点头的事记在平台</td><td>等人点头的事记在平台，确认卡的点击由浏览器直接交给平台</td><td>本仓库没有记原话</td><td>没有登记成 D 项。字面照 S1-DEC-041「没有出入的与没有定的」一节</td></tr><tr><td>确认卡先用替身</td><td>确认卡的最小一圈不等里程碑 M1 的智能体主体与 MCP 路由，先用替身演示；M1 做好以后替身撤掉</td><td>「先用替身」</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-042.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-042</a> D1，ADR-016 第 10 节</td></tr><tr><td>Kun 不负责业务</td><td>Kun 是通用的组件，提供登录这类组件，不负责任何业务；最终的界面放在匠心，也可以放到另一个仓库</td><td>「我想 Kun 是一个通用的组件，Jiangxin 首先是一套企业级的管理系统+Agent」「例如，Kun 提供一些登录等组件，但是不负责任何业务，最终的界面肯定是要放到Jiangxin 也可以放到另外一个库。」</td><td>S1-DEC-041 D6</td></tr></tbody></table></div>
+<p>下文用第一列的名字指这几条。</p>
+<p>2026-11-26 对第 14 节十个问题的裁定。原话：「远程的授权接口 也按照建议执行」。十个问题都定成选项（一）；「条件」一列是列给他的十条建议里在选项（一）之外加的话，算进已定是整理时的读法（第 1.2 节）。登记在 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-045.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-045</a> 的 D1 至 D10，回写在 ADR-006 第 10 节。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>问题</th><th>已定：选项（一）</th><th>条件</th><th>写在本文哪里</th></tr></thead><tbody><tr><td>1 先做哪几种接法</td><td>先做本人问自己与登记过的系统代问；智能体带着委托链问的那一种随里程碑 M1</td><td>没有</td><td>第 3 节</td></tr><tr><td>2 代问带不带本人的令牌</td><td>缺省要带，由平台自己核对；拿不到本人令牌的场合逐个登记成例外</td><td>没有</td><td>第 4.3 节</td></tr><tr><td>3 几个租户共用的系统用几个身份</td><td>一个身份，只能带着本人的令牌问，租户以令牌为准；例外只开在判定接口上</td><td>后台作业那一部分仍要按租户各登记，建议随租户开通自动登记，不靠人手</td><td>第 4.3、9 节</td></tr><tr><td>4 权限改了多久生效</td><td>守 3 秒：执行前的那一次每次都问、不缓存；界面显示用的结果与数据范围最多缓存 3 秒</td><td>执行前每次都问是硬的一条；界面上按钮多久消失做成配置，缺省 3 秒，量出来撑不住再放宽，放宽不用再裁定</td><td>第 8 节</td></tr><tr><td>5 哪些判定留审计记录</td><td>执行前的那一次留；界面为显示而问的只计数</td><td>高风险的权限点，放行也每条都记，不参加采样</td><td>第 11.1 节</td></tr><tr><td>6 要人确认的操作怎么走</td><td>只能经平台执行</td><td>没有</td><td>第 10 节</td></tr><tr><td>7 怎样算人自己在界面上直接操作</td><td>只有登记成「只转达人在界面上的操作、里面不跑智能体」的系统带着本人的令牌来问才算；其余一律按不是人本人</td><td>新接的系统缺省不算；里面跑智能体的系统不许登记成这一种；这项登记按高风险操作对待，留审计、能收回</td><td>第 4.3、10 节</td></tr><tr><td>8 拿着本人令牌的程序</td><td>做要人确认的操作也要等人点：先一律按不是人本人，也不能在等人点头的任务上做动作</td><td>必要而不够：还要保证点「同意」的那个页面不受模型左右</td><td>第 10 节</td></tr><tr><td>9 客户端包的语言</td><td>TypeScript 与 .NET；别的语言给契约与一致性用例</td><td>两个谁在前看第一个使用方；接第一个历史系统时再看要不要出 Java</td><td>第 7 节</td></tr><tr><td>10 协议</td><td>先只做 HTTP</td><td>没有</td><td>第 6 节</td></tr></tbody></table></div>
+<p>本仓库里现行的决策，本文照着写：</p>
+<ul>
+<li><strong>ADR-006</strong>：界面、接口、MCP 三个入口用同一个判定服务，网关加服务端双层强制（D6.8）；权限不进令牌（D6.7）；判定缺省拒绝（D6.3）；数据权限编译成谓词在本地执行，行级安全策略永远兜底（D6.4）；可选的关系型授权引擎不接手行级过滤（D6.9）；每次决策可解释并入审计的哈希链（D6.6）；统一主体模型加委托链（D6.12）。</li>
+<li><strong><a href="/design/adr/adr-010-gateway-layers.html" class="rp-link">ADR-010</a> D10.4</strong>：服务不能只凭令牌里的粗粒度角色放行，必须调判定端口；加能力就加 scope，不加声明。</li>
+<li><strong>冻结的契约 <code>contracts/v0</code></strong>：服务间令牌里租户必须出现，空表示平台级的主体，租户域的端点见到空一律拒绝。能力条目上 <code>agent.expose</code> 为假就是「仅限人工」（<code>humanOnly</code>）：不派生成模型看得见的工具，服务端拒绝智能体主体的调用，错误码 <code>ACTION_HUMAN_ONLY</code>（R52；随 Agent 的阶段启用，现在只登记）。</li>
+<li><strong>仓库的约定（<code>AGENTS.md</code>）</strong>：主体和租户来自已验证的请求身份；新的横切机制（认证、审计、多租户、事件总线）要先有决策记录。</li>
+</ul>
+<h3 class="rp-toc-include" id="12-整理时的读法"><a href="#12-整理时的读法" class="rp-header-anchor rp-link" aria-label="链接到 1.2 整理时的读法">#</a>1.2 整理时的读法</h3>
+<p>产品负责人没有逐句确认：</p>
+<ul>
+<li>「权限都走这一套」读作：平台上做的任何系统，判权限只问 Kun，不各做一套；管理端、应用、插件、Agent、DSH 一侧的服务都算。记在 S1-DEC-043 的「读法」里。</li>
+<li>「要人确认的能力由平台停」只定了这一件，没有把 Agent 运行时一侧的工具策略与风险门禁整个搬到平台；调用方自己的策略可以更严。记在 ADR-016 第 9 节。</li>
+<li>「任务上的动作缺省只能人做」说的是任务上的动作这一层。能力那一层另有一个「仅限人工」，是 <code>agent.expose</code> 为假，不是这一条说的。记在 ADR-012 第 9 节。</li>
+<li>「确认卡先用替身」只定了「先用替身、不等 M1」这一件。记在 ADR-016 第 10 节。</li>
+<li>「等人点头的事记在平台」在本仓库里只登记了上表那一句。匠心《DSH 与企业级平台的对接》第 8.2 节写得更全：「点击由浏览器带着这个人自己的登录直接交给平台，不经过模型，也不经过 DSH 实例（已定）。」那是匠心文档里的写法，本仓库没有登记这一句的原话或答复；本文用到它的地方（第 10 节）按读法对待。</li>
+</ul>
+<p>2026-11-26 那一句「远程的授权接口 也按照建议执行」的读法，记在 S1-DEC-045 的「读法」里：</p>
+<ul>
+<li>他只说了这一句，没有逐条回。十条建议连同其中六条加的条件一起算已定。哪一条不合适，照他的话改回来。</li>
+<li>「执行」读作照这些建议往下做：登记、把本文改成裁定后的版本、建任务；实现照任务的先后来。它没有定排期，也没有定优先级。</li>
+<li>十个问题与它们的条件没有覆盖到的设计细节仍是提议。</li>
+</ul>
+<p>把条件落到各节时又生出几处读法，各节里标「本文的读法」，汇总在下表。这些话没有列给产品负责人：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>条件</th><th>本文的读法</th><th>在哪一节</th></tr></thead><tbody><tr><td>问题 3：后台作业那一部分仍要按租户各登记，建议随租户开通自动登记</td><td>「后台作业那一部分」指共用的系统里拿不到本人令牌的两种问法：后台作业只报编号，系统以自己的身份问。按租户各登记的是归属这个租户的机器身份。「建议随租户开通自动登记」读作要做；「自动登记」指平台开通一个租户时，由平台给已登记的共用系统建好这个租户名下的身份；哪个系统可以这样登记，仍在登记这个系统时逐个定</td><td>第 4.3 节</td></tr><tr><td>问题 4：界面上按钮多久消失做成配置，缺省 3 秒</td><td>界面用的结果最长可以缓存多久，是平台的一项配置，缺省 3 秒。放宽只管界面用的结果：执行前的那一次不缓存，不随配置变；数据范围最多 3 秒，不在这项配置里</td><td>第 8 节</td></tr><tr><td>问题 5：高风险的权限点</td><td>权限点声明的风险等级是 <code>high</code> 或 <code>critical</code> 的</td><td>第 11.1 节</td></tr><tr><td>问题 7：这项登记按高风险操作对待，留审计、能收回</td><td>给一个系统登记、改动、收回这项资格都写审计；收回以后在写明的时间以内生效</td><td>第 4.3 节</td></tr><tr><td>问题 8：点「同意」的那个页面不受模型左右</td><td>是对确认卡所在页面的要求，属于确认卡与页面的设计，在匠心一侧；本仓库这一侧要做的是网关与平台宿主上的那一处区分</td><td>第 10 节</td></tr><tr><td>问题 9：谁在前看第一个使用方</td><td>起初读作：第一个使用方是谁没有定，所以两个包之间不排先后。后来另问过，2026-11-26 定了先 .NET（S1-DEC-048 D3），这一条读法不再用</td><td>第 7 节</td></tr></tbody></table></div>
+<h3 class="rp-toc-include" id="13-没有定"><a href="#13-没有定" class="rp-header-anchor rp-link" aria-label="链接到 1.3 没有定">#</a>1.3 没有定</h3>
+<p>2026-11-26 以前列在这里、现在已定的两件：先做哪几种接法（问题 1）；拿着本人令牌的程序算不算人本人（问题 8，不算）。</p>
+<p>裁定往下落时接不上的四件，2026-11-26 也答了，登记在 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-048.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-048</a>：问题 6 要有的两样东西，先建契约的任务，执行器等契约定了再建（第 13.3 节）；最小角色授权页不在本仓库里做，页面放匠心的管理端（第 13.1 节）；两个客户端包先 .NET（第 7 节）；这些任务不排进「初步可用」（第 13 节开头）。</p>
+<p>仍然没有定的：</p>
+<ul>
+<li>远程接口的形状。本文给出提议，等契约定稿（S1-AZ-011）。</li>
+<li>「要人确认的能力由平台停」与「任务上的动作缺省只能人做」两条的接口形状，即路径、字段、回什么状态、错误码怎么登记（ADR-016 第 9 节写明随契约定稿）。等人输入的任务的契约不在本文里，由 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-RT-041.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-RT-041</a> 承接；本文只写判定接口与它怎么衔接。</li>
+<li>替身的接口形状；M1 做好以后，「有专门权限的服务主体声明这次是代某人提出」那种调法留不留（ADR-016 第 10 节）。前一件写进了 S1-RT-041 的范围，后一件不在它里面。</li>
+<li>智能体主体与委托链怎么启用，排在里程碑 M1（<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-038.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-038</a> D25），不在本文里。</li>
+<li>桌面端怎么带着本人的身份连平台。匠心《DSH 与企业级平台的对接》第 4.4 节写的是待定，没有问过。问题 8 定了这样的程序先按不是人本人；要不要给它单开一条路，等这一件定了再看。</li>
+<li>「人自己在界面上直接调」落到请求上怎么认。平台现在分不出浏览器里的登录会话与拿着本人令牌的程序（第 10 节）。问题 8 定了要补这一处区分；用哪种办法补没有定，由 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-GW-004.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-GW-004</a> 先写决策记录。</li>
+<li>共用的系统在各租户名下的身份怎么自动登记、凭据怎么交到它手里（问题 3 的条件，第 4.3 节）。</li>
+<li>S1-DEC-048 答了以后留下的：平台一侧的实现，即执行入口按标记停、任务的存取、提交动作的端点，谁做、什么时候做；转调用的执行器的任务等 S1-RT-041 定稿再建，凭据随它一起，范围到时候定；确认卡的最小一圈什么时候排上。</li>
+</ul>
+<h2 class="rp-toc-include" id="2-现状与缺口"><a href="#2-现状与缺口" class="rp-header-anchor rp-link" aria-label="链接到 2 现状与缺口">#</a>2 现状与缺口</h2>
+<h3 class="rp-toc-include" id="21-已有"><a href="#21-已有" class="rp-header-anchor rp-link" aria-label="链接到 2.1 已有">#</a>2.1 已有</h3>
+<p>都在本仓库里，对着代码核对过。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>事项</th><th>现状</th><th>在哪里</th></tr></thead><tbody><tr><td>判定端口</td><td><code>IPermissionChecker</code>：查一条、批量查、列出允许的动作、列出权限点、解释。平台的 <code>IAuthzService</code> 另加「列出主体持有的权限点」与完整解释</td><td><code>src/Kun.Authorization</code>、<code>src/Kun.Authorization.Rbac.Abstractions</code></td></tr><tr><td>执行端口（平台模式）</td><td>平台宿主里的三处执行点，即 HTTP 端点、gRPC 拦截器、能力的命令管道，共用 <code>IAuthzEnforcement</code>。输入是主体、令牌里的身份修订、是否带委托、一个权限点、资源、通道、入口与目标；它判定、比对身份修订、写决策审计。一次只判一个权限点：一个入口声明了几个权限点，就判几次、记几条</td><td>接口在 <code>src/Kun.Authorization.Rbac.Abstractions</code>，实现在 <code>src/Kun.Authorization.Rbac</code>，HTTP 与 gRPC 的适配在 <code>src/Kun.Authorization.AspNetCore</code></td></tr><tr><td>库模式</td><td>不在平台宿主里的 .NET 服务今天这样用：登记自己的 <code>IPermissionChecker</code>，HTTP 与 gRPC 的执行点、命令的管道行为都只调它的「查一条」。不写决策审计，不比对身份修订；HTTP 与 gRPC 的执行点见到带委托链的一律拒绝</td><td><code>src/Kun.Authorization.AspNetCore</code>、<code>src/Kun.Mediator</code></td></tr><tr><td>决策审计</td><td>经执行端口的判定写进租户的审计链。拒绝必记，放行按配置 <code>decisionLogSampling</code> 采样，缺省全记。要记的放行写不进审计（含审计组件不在），放行变成拒绝；拒绝写不进时原因照旧。平台里另有几处组件内的判定直接调判定器，不记决策审计</td><td><code>src/Kun.Authorization.Rbac</code></td></tr><tr><td>生效时间</td><td>授予、撤销与策略安装同事务递增租户的授权修订号，判定快照以它为键，下一次判定即生效。令牌里的身份修订低于服务端下限的是旧令牌，回 401</td><td>同上</td></tr><tr><td>授权变更的事件</td><td>授予与角色的变更作为集成事件（<code>authz.grant.changed.v1</code>、<code>authz.role.changed.v1</code>）进 Outbox，发到平台的事件总线</td><td><code>src/Kun.Authorization.Rbac</code>、<code>hosts/Kun.Platform.Host</code></td></tr><tr><td>HTTP 上的两个只读端点</td><td><code>GET /api/authz/me/permissions</code> 列出当前已验证的主体自己持有的权限点，带风险、是否要二次验证、终端与当前判定；主体与租户只取自已认证的请求，带委托链与智能体主体一律 403。<code>GET /api/authz/meta</code> 发布数据权限的静态元数据，不针对哪个主体，也不返回实际的授予</td><td><code>src/Kun.Authorization.AspNetCore/AuthzEndpoints.cs</code></td></tr><tr><td>请求怎么进来</td><td>平台宿主只认网关签发的内部短期令牌。外部的请求先到网关：网关核验身份服务签发的访问令牌（受众必须是网关），或者读登录会话，再换签成内部令牌转给平台宿主。网关按请求里有没有 <code>Authorization</code> 头选认证方式，两条路换签出来的内部令牌是同一套声明，里面不记是登录会话还是令牌。<code>/api/authz/**</code> 已在网关的路由表里，用按主体分区的限流策略，缺省每个主体每 60 秒 100 次</td><td><code>hosts/Kun.Gateway.Host</code>、<code>hosts/Kun.Platform.Host</code></td></tr><tr><td>机器身份</td><td>身份服务的库支持 <code>client_credentials</code>，客户端注册表里的机器身份可以带归属的租户（空表示平台级的服务）、组件 id 与允许请求的受众。交付的平台宿主现在只从配置登记网关的登录客户端，机器身份没有登记的入口</td><td><code>src/Kun.Identity.Server</code>、<code>hosts/Kun.Platform.Host</code></td></tr><tr><td>主体模型</td><td>冻结的服务间令牌契约里有 <code>user</code>、<code>service</code>、<code>agent</code> 三类主体与委托链字段 <code>act</code>。现在只签发前两类；带委托链的在网关与下游都被拒绝</td><td><code>contracts/v0/s2s-claims.schema.json</code>、<code>src/Kun.Security</code></td></tr><tr><td>权限点的声明</td><td>组件在 <code>metadata/permissions.json</code> 里声明权限点，在 <code>metadata/roles.json</code> 里写默认角色各拿到哪些；权限点的全名是 <code>&lt;组件 id&gt;:&lt;资源&gt;:&lt;动作&gt;</code>。权限目录在平台启动时从预装的组件里读。规格里组件可以不带代码；平台宿主现在要求每个启用的条目在宿主里有对应的代码，不带代码的组件装不进去（对着代码读的，没有实际装过）</td><td><code>src/Kun.Authorization.Rbac</code>、<code>hosts/Kun.Platform.Host</code>、<a href="/design/prd/specs/component-model.html" class="rp-link">组件模型规格</a>第 2.3 节</td></tr><tr><td>数据权限的契约</td><td>数据范围规则、过滤条件的语法、十五个系统变量已冻结。求值还没有：数据与字段两个端口现在一律拒绝</td><td><code>contracts/authz/v1</code>、<code>contracts/data/v1</code></td></tr><tr><td>能力条目上的两个标记</td><td>「对不对 Agent 暴露」（<code>agent.expose</code>）与「要不要人确认」（<code>agent.requiresConfirmation</code>）在冻结的契约里。<code>agent.expose</code> 为假时服务端怎么办也已裁决（R52）：拒绝智能体主体的调用，错误码 <code>ACTION_HUMAN_ONLY</code>。两个标记现在都只登记，平台不按它们拦调用：三处执行点只判权限点，能力目录给模型列能力时才看「对不对 Agent 暴露」。<code>ACTION_HUMAN_ONLY</code> 还没有登记进错误码目录</td><td><code>contracts/v0/capability-entry.schema.json</code>、<code>contracts/v0/README.md</code> 第 8 节</td></tr></tbody></table></div>
+<h3 class="rp-toc-include" id="22-一个不在平台宿主里的服务今天要判一次权限缺什么"><a href="#22-一个不在平台宿主里的服务今天要判一次权限缺什么" class="rp-header-anchor rp-link" aria-label="链接到 2.2 一个不在平台宿主里的服务，今天要判一次权限，缺什么">#</a>2.2 一个不在平台宿主里的服务，今天要判一次权限，缺什么</h3>
+<ol>
+<li><strong>没有能问的端点。</strong> 查一条、批量查、列出允许的动作、解释，这四个端口在 HTTP 上都没有；它们原来归 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-005.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-005</a>，那个任务拆分以后归 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-020.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-020</a>，没有开始。</li>
+<li><strong>只能问自己。</strong> 现有的 <code>me/permissions</code> 只回答「调用方自己」。一个后端服务收到某个人的请求、要替这个人问一句，没有这条路：主体只从已认证的请求里读，请求体里不能写别的主体。</li>
+<li><strong>代表用户的调用被拒绝。</strong> 委托链没有启用。服务带着「我代表某人」的令牌来，现在一律拒绝。</li>
+<li><strong>服务的身份在平台宿主里登记不了，准不准它问也没有定义。</strong> 身份服务的库支持机器身份，但交付的平台宿主没有登记它的入口。「哪些服务可以替别人问权限」也没有登记的地方。平台级的服务（不属于任何一个租户）还多一层：现行的规则是租户域的端点见到平台级的主体一律拒绝。</li>
+<li><strong>没有执行点的远程入口。</strong> 平台宿主里的三处执行点把判定、身份修订比对与决策审计一起做。远程的系统是自己的执行点，它问的这一次要不要记、记成谁执行的，没有定义。不在平台宿主里的 .NET 服务今天用库模式，不记决策审计，不比对身份修订。</li>
+<li><strong>没有授权的客户端包。</strong> 没有给 TypeScript 或别的语言判权限用的包；超时了怎么办、结果能缓存多久，没有约定。</li>
+<li><strong>不在平台镜像里的系统声明不了权限点。</strong> 权限目录只在平台启动时从预装的组件里读；运行期装进来、激活的组件，它的权限点与默认角色不会登记，这归 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-007.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-007</a>，没有开始。不带代码的组件，平台宿主现在装不进去；起草时没有任务承接，现在归 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-016.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-016</a>。</li>
+<li><strong>数据权限与字段权限没有求值。</strong> 远程的系统拿不到「这个人能看哪些行、哪些字段」。</li>
+<li><strong>权限变了，平台外的系统收不到通知。</strong> 变更已经作为事件发到平台的事件总线，但平台外的系统没有订阅它的渠道；给浏览器的实时推送归 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-SCH-003.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-SCH-003</a>，没有开始。远程的调用方要么每次都问，要么按时间缓存。</li>
+<li><strong>网关的限流没有为这种流量定过额度。</strong> 这条路由现在按主体限流；一个执行点替很多人问，全部计在这个服务自己名下。</li>
+</ol>
+<p>起草时，第 1 条、第 7 条里运行期登记的那一半、第 9 条里浏览器推送的那一半已有任务，其余没有任务承接。2026-11-26 裁定以后照第 13 节建了任务，都没有开始：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>缺的</th><th>承接的任务</th></tr></thead><tbody><tr><td>1 没有能问的端点</td><td>S1-AZ-020，本人问自己的四个端点</td></tr><tr><td>2 只能问自己；3 代表用户的调用被拒绝；4 服务的身份登记不了</td><td>登记的入口是 S1-AZ-024；登记过的系统代问、准不准它问是 S1-AZ-013。带委托链的那一种等里程碑 M1，对齐在 S1-AZ-019</td></tr><tr><td>5 没有执行点的远程入口</td><td>S1-AZ-012</td></tr><tr><td>6 没有客户端包</td><td>S1-AZ-014、S1-AZ-015</td></tr><tr><td>7 声明不了权限点</td><td>运行期登记是 S1-AZ-007；不带代码的组件是 S1-AZ-016</td></tr><tr><td>8 数据权限与字段权限没有求值</td><td>远程的端点是 S1-AZ-018；求值排在 S2，看板上没有任务</td></tr><tr><td>9 平台外的系统收不到通知</td><td>给浏览器的实时推送是 S1-SCH-003；通到平台外的订阅没有任务承接，现在靠按时长缓存</td></tr><tr><td>10 限流没有定过额度</td><td>策略在 S1-AZ-013，数字由 S1-AZ-017 量</td></tr></tbody></table></div>
+<h2 class="rp-toc-include" id="3-几种接法"><a href="#3-几种接法" class="rp-header-anchor rp-link" aria-label="链接到 3 几种接法">#</a>3 几种接法</h2>
+<p><strong>已定（问题 1）</strong>：先做甲与乙两种，丙随里程碑 M1。列给产品负责人时写的理由是：匠心的工作区服务和管理端现在就要在服务端判权限，等不了 M1。整理者的更正（2026-11-26）：这句理由里的「管理端」不准。管理端只有浏览器一侧（S1-DEC-041 D5），用的是本人问自己的预判；要在服务端判权限的只有工作区服务。结论不变，仍是选项（一）。丁已有，不在这一问里。</p>
+<p>下表里各种接法的形状，即谁来问、靠什么，仍是提议。</p>
+<p>按「谁来问、替谁问」分四种：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>接法</th><th>谁来问</th><th>问的是谁</th><th>给谁用</th><th>靠什么</th><th>现状</th><th>先后</th></tr></thead><tbody><tr><td>甲 本人问自己</td><td>人自己：浏览器带着登录会话经网关</td><td>调用方自己</td><td>管理端与页面插件在浏览器里的部分；界面按权限决定显示什么</td><td>现有的登录与网关</td><td><code>me/permissions</code> 已有，其余端点与客户端包是规划</td><td>先做（已定）</td></tr><tr><td>乙 登记过的系统代问</td><td>一个后端服务，用自己的机器身份</td><td>某个人，或者服务自己</td><td>工作区服务；别的语言写的业务系统；.NET 写的、不在平台宿主里的服务</td><td>机器身份（库里已有，平台宿主里还登记不了）；「调用方不是被判定的主体」这条路没有</td><td>规划</td><td>先做（已定）</td></tr><tr><td>丙 智能体带委托链</td><td>智能体主体，令牌里带委托链</td><td>委托人的权限与授给这个 Agent 的范围的交集</td><td>各人 DSH 实例里的工具与插件</td><td>委托链启用（里程碑 M1）</td><td>契约里已有字段，没有启用</td><td>随里程碑 M1（已定）</td></tr><tr><td>丁 进程内</td><td>平台宿主里的 .NET 代码</td><td>当前请求的主体</td><td>装在 Kun 进程里的组件；经 Kun 的网关进来的请求</td><td>现有的三处执行点</td><td>已有，不在本文里</td><td>已有</td></tr></tbody></table></div>
+<p>与匠心那张提议表的对应：丁是表里的前两行，甲与乙是第三行，丙是第四行。</p>
+<p>几点说明：</p>
+<ul>
+<li><strong>执行前的判定只在乙里。</strong> 执行点是一个系统，要有自己的身份，审计里才写得出「谁执行的」。甲只做预判：界面可以按当前的人有哪些权限决定显示什么，这不算判权限，判定在后端的入口上做。</li>
+<li><strong>拿着本人访问令牌的程序</strong>（命令行、桌面端）技术上也能走甲：令牌的受众是网关，网关照样认它是这个人。平台现在分不出它与浏览器里的登录会话，后果与要补的东西见第 10 节。<strong>已定（问题 8）</strong>：它先一律按不是人本人。这一版不为它单出客户端入口。</li>
+<li><strong>各人 DSH 实例里的代码不走乙。</strong> 实例里跑着模型和插件，平台不把人的登录交给实例，也不把能替别人问权限的机器身份交给它。实例里的代码拿到的判定结果只能当护栏用。M1 之前它经匠心的工作区服务转；M1 以后走丙。</li>
+<li><strong>乙不是替身。</strong> 替身是确认卡那一圈在 M1 之前的过渡（ADR-016 第 10 节），M1 以后撤掉；那种「服务代人提出」的调法以后留不留，没有定。乙是别的系统判权限的常设接口，不随替身撤掉。</li>
+<li><strong>丙不在本文里展开。</strong> 本文只保证接口的形状到时候不用改：主体与委托链从核验过的令牌里来，不从请求体里来。</li>
+</ul>
+<h2 class="rp-toc-include" id="4-调用方怎么证明自己是谁"><a href="#4-调用方怎么证明自己是谁" class="rp-header-anchor rp-link" aria-label="链接到 4 调用方怎么证明自己是谁">#</a>4 调用方怎么证明自己是谁</h2>
+<p>本节里已定的三件，都写在第 4.3 节：代问缺省要带本人的令牌（问题 2）；几个租户共用的系统用一个身份、只能带着本人的令牌问（问题 3）；怎样的系统带着本人的令牌才算人自己在界面上操作（问题 7，判定接口怎么回答在第 10 节）。其余是提议：都经网关，scope 的名字与个数，主体令牌怎么核，资源标识这个登记项，登记的入口长什么样。</p>
+<h3 class="rp-toc-include" id="41-都经网关"><a href="#41-都经网关" class="rp-header-anchor rp-link" aria-label="链接到 4.1 都经网关">#</a>4.1 都经网关</h3>
+<p>远程的调用方不直接连平台宿主，一律经网关。平台宿主照旧只认网关签发的内部短期令牌，这一条不变。带来的代价是每次判定多一跳，见第 11 节。企业版与单机版、多租户版与单租户版都走这一条路，接口不变。</p>
+<h3 class="rp-toc-include" id="42-甲本人问自己"><a href="#42-甲本人问自己" class="rp-header-anchor rp-link" aria-label="链接到 4.2 甲：本人问自己">#</a>4.2 甲：本人问自己</h3>
+<ul>
+<li>浏览器带着登录会话经网关，与现在调 <code>me/permissions</code> 一样。页面里不放任何服务的凭据。</li>
+<li>到平台宿主时是 <code>user</code> 主体，没有委托链。</li>
+</ul>
+<h3 class="rp-toc-include" id="43-乙登记过的系统代问"><a href="#43-乙登记过的系统代问" class="rp-header-anchor rp-link" aria-label="链接到 4.3 乙：登记过的系统代问">#</a>4.3 乙：登记过的系统代问</h3>
+<p><strong>服务到服务的身份。</strong></p>
+<ul>
+<li>系统在身份服务的客户端注册表里登记一个机器身份，写明归属的租户（空表示平台级的服务）、组件 id，以及这个系统作为资源的标识：一个绝对地址，一个系统一个，不许重复。前两样库已经支持；资源的标识是新加的登记项，核验主体令牌时要用。交付的平台宿主现在没有登记机器身份的入口，要先补（第 13.2 节第 11 项，<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-024.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-024</a>）。自助登记排在后面，没有定。</li>
+<li>系统用 <code>client_credentials</code> 取访问令牌，受众指到网关。客户端包负责取、缓存与续期。</li>
+<li>到平台宿主时是 <code>service</code> 主体，主体标识是客户端 id，带着登记的租户与组件 id。</li>
+</ul>
+<p><strong>准许什么，用 scope 表达。</strong> 现行的决策是「加能力就加 scope，不加声明」。提议三个 scope，由平台运维在登记机器身份时给。后两个加在第一个上面才有用，三个互不包含。名字没有定稿：能力条目里现行的约定是 <code>&lt;组件 id&gt;:</code> 后面接 <code>read</code>、<code>write</code>、<code>admin</code> 之一，下面三个不在这个约定里，定稿时再对齐。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>scope</th><th>准许</th><th>给谁</th></tr></thead><tbody><tr><td><code>qian.authz:decide</code></td><td>调执行前的判定与代问的预判：问服务自己，或者带着某个人的令牌替他问</td><td>每个登记成执行点的系统</td></tr><tr><td><code>qian.authz:decide.interactive</code></td><td>带着某个人的令牌来问时，算这个人自己在界面上直接操作（第 10 节）</td><td>只转达人在界面上的操作、里面不跑智能体的系统。缺省不给，见下面「只转达人在界面上的操作」这项登记</td></tr><tr><td><code>qian.authz:decide.assert</code></td><td>不带令牌，只报主体的编号</td><td>后台作业这类拿不到本人令牌的场合，逐个登记</td></tr></tbody></table></div>
+<p><strong>代表用户时怎么带上用户的身份。</strong> <strong>已定（问题 2）</strong>：缺省带这个人的登录令牌，由平台自己核对；只报编号是例外，拿不到本人令牌的场合才用，逐个登记。被判定的主体写在请求体里，有两种证明，形状是提议：</p>
+<ul>
+<li><strong>带主体令牌。</strong> 请求里带上这个人的访问令牌，由平台自己核验，主体、租户以令牌为准。要过这几条：
+<ul>
+<li>是身份服务签发给 <code>user</code> 主体的访问令牌，没有过期，会话没有吊销，身份修订不落后。</li>
+<li>受众里有这个调用方登记的资源标识。只比这一个登记值，不拿「这个调用方允许请求哪些受众」去比：调用方要经网关，它一定被允许请求网关，那样比会把带网关受众的令牌也收下。</li>
+<li>受众里有网关的不收。一张令牌可以同时带几个受众；带着网关受众的令牌能直接拿到网关去当本人用，不该出现在这里。</li>
+</ul>
+</li>
+<li><strong>只报编号。</strong> 请求里只写主体的种类与编号。只有带 <code>qian.authz:decide.assert</code> 的调用方可以这样问；这样问出来的结果永远不算人本人。</li>
+</ul>
+<p><strong>登记时的配套。</strong> 下面两条靠登记把关，判定接口自己查不出来：</p>
+<ul>
+<li>里面跑着智能体的系统，它给人登录用的客户端只允许请求它自己这一个受众，不放网关，也不放别的系统。这样它手里的本人令牌到不了网关，也到不了别的系统，冒充不了本人。</li>
+<li>登记了 <code>qian.authz:decide.interactive</code> 的系统，要保证带着本人令牌来的调用确实出自它自己的界面；别的后端拿着这个人的令牌来调它，不能算。</li>
+</ul>
+<p><strong>「只转达人在界面上的操作」这项登记。</strong> 一个系统带着本人的令牌来问时，算不算这个人自己在界面上直接操作，看它有没有登记成这一种。判定接口据此怎么回答，见第 10 节。</p>
+<ul>
+<li><strong>已定（问题 7）</strong>：只有登记时写明「只转达人在界面上的操作、里面不跑智能体」的系统才算；其余一律按不是人本人。</li>
+<li><strong>条件（问题 7）</strong>。列给他的话里，第一句写在选项（一）后面，后两句写作「加的两个条件」；这里三句一起列：
+<ul>
+<li>新接的系统缺省不算。</li>
+<li>里面跑智能体的系统不许登记成这一种。匠心的工作区服务就是这样的系统：它后面是各人的 Agent 实例。</li>
+<li>这项登记本身按高风险操作对待，留审计、能收回。</li>
+</ul>
+</li>
+<li><strong>本文的读法</strong>：「留审计、能收回」指给出、改动、收回这项资格都写审计，写明谁给的、给了哪个系统；收回以后在写明的时间以内生效。</li>
+<li>落到实现上的做法是提议，随 S1-AZ-013 定：
+<ul>
+<li>登记机器身份时缺省不给这项资格，要单独给。</li>
+<li>登记机器身份时写明这个系统里面跑不跑智能体；写了跑的，平台拒绝给它这项资格。这一条仍靠登记的人如实写，平台核不了。</li>
+<li>收回多久生效要定下来。机器身份的访问令牌现在的时效是 15 分钟，scope 在令牌里；只看令牌的话，收回最长慢这么久。判定时以登记为准、不只看令牌，可以把它缩到下一次判定。</li>
+<li>给这项资格的操作要不要二次验证、要不要标成仅限人工，没有定。</li>
+</ul>
+</li>
+</ul>
+<p><strong>边界。</strong></p>
+<ul>
+<li>归属某个租户的服务只能问本租户的主体。问了别的租户的，回拒绝，不带命中的信息。</li>
+<li>平台级的服务不属于任何租户；多租户版里几个租户共用的系统就是这样。它替某个租户的人问，是冻结契约里「租户域的端点见到平台级的主体一律拒绝」之外的事。<strong>已定（问题 3）</strong>：开一处显式的例外，几个租户共用的系统用一个身份；只在判定接口上，只在带主体令牌时，租户以令牌为准；平台级的服务不能只报编号。单租户版与单机版里没有这种系统，没有差别。后台作业怎么办，见下面「共用的系统的后台作业」。</li>
+<li>执行前的判定只能用调用方自己那个组件名下的权限点（组件 id 取自机器身份的登记）。带着主体令牌的预判不限。只报编号的预判、数据范围与字段权限也只能问自己那个组件名下的，免得一个系统把本租户任何人在各个组件里的权限逐个查出来。</li>
+<li>被判定的主体是平台主体（没有租户）时，一律拒绝。平台超管的显式旁路不经远程接口，这一版不做。</li>
+<li>服务问自己（省略主体）判的是这个服务主体自己。怎么给服务主体授予角色不在本文里；平台级的服务问自己，一律拒绝。</li>
+</ul>
+<p><strong>共用的系统的后台作业。</strong> 上面那处例外管不到拿不到本人令牌的问法：平台级的服务不能只报编号，问自己一律拒绝。</p>
+<ul>
+<li><strong>条件（问题 3）</strong>：后台作业那一部分仍要按租户各登记，建议随租户开通自动登记，不靠人手。</li>
+<li><strong>本文的读法</strong>：「后台作业那一部分」指共用的系统里拿不到本人令牌的两种问法，即后台作业只报编号、系统以自己的身份问。按租户各登记的是归属这个租户的机器身份，带着这个系统的组件 id。「建议随租户开通自动登记」读作要做：答复是「按照建议执行」。「自动登记」指平台开通一个租户时，由平台给已登记的共用系统建好这个租户名下的身份，不等人逐个去登记。哪个系统可以这样登记，仍在登记这个系统时逐个定：这就是问题 2 里「逐个登记成例外」的那一次。</li>
+<li>怎么做是提议，随 S1-AZ-013 定：
+<ul>
+<li>什么时候建：租户开通时建；共用的系统登记在后的，给已有的租户补上；租户清退时收回。</li>
+<li>登记的入口因此要能在运行期登记，不能只在启动时读配置。入口本身在 S1-AZ-024。</li>
+<li>各租户名下的凭据怎么交到那个系统手里，没有定。</li>
+<li>要守住的一条：平台级的那一份凭据换不出各租户名下可以只报编号的身份。换得出，一份凭据不用本人的令牌也能问各个租户的人，那是问题 3 里没有选的选项（三）。</li>
+</ul>
+</li>
+</ul>
+<h3 class="rp-toc-include" id="44-委托链"><a href="#44-委托链" class="rp-header-anchor rp-link" aria-label="链接到 4.4 委托链">#</a>4.4 委托链</h3>
+<ul>
+<li>委托链只认核验过的令牌里的，不接受调用方在请求体里自报。</li>
+<li>委托链启用之前，带委托链的令牌照旧拒绝。</li>
+<li>乙本身是「服务替人问」的一跳。它写在审计里：被判定的是这个人，执行点是这个服务。ADR-016 第 10 节提议过一种调法，有专门权限的服务主体声明这次是代某人提出；那是往平台提交要人点头的请求用的，乙是问权限用的。两者都是「服务主体写明代谁」，形状可以对齐，随契约定稿。</li>
+<li>委托链启用以后，乙里带主体令牌的那一种可以换成令牌交换得到的委托令牌，请求体里的主体就不用写了。到时候两种并存还是只留一种，没有定。</li>
+</ul>
+<h3 class="rp-toc-include" id="45-和身份服务怎么接"><a href="#45-和身份服务怎么接" class="rp-header-anchor rp-link" aria-label="链接到 4.5 和身份服务怎么接">#</a>4.5 和身份服务怎么接</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>要什么</th><th>用身份服务的什么</th><th>现状</th></tr></thead><tbody><tr><td>人登录</td><td>授权码加 PKCE。.NET 的宿主装本仓库的登录组件；别的语言用通用的 OIDC 库</td><td>已有</td></tr><tr><td>系统的机器身份</td><td>客户端注册表里的机器身份客户端，<code>client_credentials</code></td><td>库里已有；平台宿主登记它的入口是规划（S1-AZ-024）</td></tr><tr><td>访问令牌的受众</td><td>每个客户端登记一张允许请求的受众清单，令牌只带请求到的受众；受众是绝对地址，一次可以请求几个</td><td>已有</td></tr><tr><td>系统作为资源的标识</td><td>登记机器身份时写明，核验主体令牌时比它</td><td>规划，是新加的登记项：登记在 S1-AZ-024，核验在 S1-AZ-013</td></tr><tr><td>核验主体令牌</td><td>平台宿主要能核验身份服务签发的令牌。它现在只认网关签的内部令牌</td><td>规划。这是认证上新加的一条路，照仓库的约定要先有决策记录。问题 2 定了要由平台自己核对，「要有这条路」记在 ADR-010 第 10 节与 ADR-005 第 10 节；核对落在平台宿主上、走哪条路是提议，由 S1-AZ-013 在动手前补进决策记录。有两条路：平台宿主取身份服务的公钥自己验，或者问身份服务的令牌自省端点。只验签名查不到会话有没有吊销，走这条路要另有吊销的来源。随实现定</td></tr><tr><td>机器身份的凭据</td><td>现在是客户端密钥</td><td>换成私钥签名的断言或工作负载身份，没有定</td></tr><tr><td>委托令牌</td><td>令牌交换</td><td>规划，随 M1</td></tr></tbody></table></div>
+<h2 class="rp-toc-include" id="5-判定接口形状是提议"><a href="#5-判定接口形状是提议" class="rp-header-anchor rp-link" aria-label="链接到 5 判定接口（形状是提议）">#</a>5 判定接口（形状是提议）</h2>
+<p>本节的端点、字段与原因码都是提议，等契约定稿（S1-AZ-011）。有三处照裁定写：哪些调用记决策审计（问题 5，第 11.1 节）；结果可以缓存多久（问题 4，第 8 节）；要人确认的能力怎么回答（问题 6、7，第 10 节）。接口只是现有进程内端口的远程入口，不是第二套判定引擎：放行只可能来自现有的求值器。</p>
+<h3 class="rp-toc-include" id="51-端点一览"><a href="#51-端点一览" class="rp-header-anchor rp-link" aria-label="链接到 5.1 端点一览">#</a>5.1 端点一览</h3>
+<p>路径都在 <code>/api/authz/</code> 下，经网关转到平台宿主。末一列说的是需求文档 7.5 节的接口清单里有没有它。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>方法与路径</th><th>作用</th><th>对应的进程内端口</th><th>谁能调</th><th>记决策审计</th><th>现状</th><th>需求文档 7.5 节</th></tr></thead><tbody><tr><td><code>GET /me/permissions</code></td><td>列出本人持有的权限点</td><td>列出主体持有的权限点</td><td>甲；服务主体问自己也可以，现有的代码就接受</td><td>不记</td><td>已有</td><td>已列</td></tr><tr><td><code>GET /meta</code></td><td>数据权限的静态元数据</td><td>没有对应的端口</td><td>甲、乙</td><td>不记</td><td>已有</td><td>写在验收里</td></tr><tr><td><code>POST /enforce</code></td><td>执行前的判定：一个入口上的一个或几个权限点，全部放行才算放行</td><td>执行端口</td><td>乙</td><td>记，一个权限点一条</td><td>规划</td><td>没有列</td></tr><tr><td><code>POST /check</code></td><td>预判一条</td><td>查一条</td><td>甲、乙</td><td>不记</td><td>规划</td><td>已列</td></tr><tr><td><code>POST /batch-check</code></td><td>预判多条，结果与输入同序</td><td>批量查</td><td>甲、乙</td><td>不记</td><td>规划</td><td>已列</td></tr><tr><td><code>GET /me/allowed-actions</code></td><td>本人在某类资源上能做的动作</td><td>列出允许的动作</td><td>甲</td><td>不记</td><td>规划</td><td>已列</td></tr><tr><td><code>POST /allowed-actions</code></td><td>代问：某主体在某类资源上能做的动作</td><td>列出允许的动作</td><td>乙</td><td>不记</td><td>规划</td><td>没有列</td></tr><tr><td><code>POST /explain</code></td><td>解释一次判定：命中的角色、授权记录、缺少的权限点</td><td>完整解释</td><td>甲解释自己；乙带着主体令牌解释那个人</td><td>不记</td><td>规划</td><td>已列</td></tr><tr><td><code>POST /data-scope</code></td><td>某主体在某类资源上的数据范围</td><td>数据范围合并以后的计划，见第 5.5 节</td><td>乙</td><td>不记</td><td>规划，随数据权限的求值一起做</td><td>没有列</td></tr><tr><td><code>POST /field-policy</code></td><td>某主体在某类资源上的字段权限</td><td>字段权限端口</td><td>乙</td><td>不记</td><td>规划，随字段权限的求值一起做</td><td>没有列</td></tr></tbody></table></div>
+<ul>
+<li>解释会带出一个人的角色，不能当公开信息：乙只报编号时不能解释。持有授权管理权限的人解释别人，随管理端点一起做，那时要记审计。</li>
+<li>乙只报编号时，预判、代问允许的动作、数据范围与字段权限只能问自己那个组件名下的（第 4.3 节）。</li>
+<li>角色与授权的管理端点（增、改、撤）不在本文里，归 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-021.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-021</a>，它自 S1-AZ-005 拆出。</li>
+</ul>
+<p>为什么把执行前的判定与预判分成两组端点：平台宿主里本来就分两种。三处执行点经执行端口，判定、身份修订比对与审计一起做；界面用的「列出持有的权限点」只算结果，不逐条记审计。远程照同样的分法。审计里要加哪些字段，见第 11.1 节。</p>
+<h3 class="rp-toc-include" id="52-请求"><a href="#52-请求" class="rp-header-anchor rp-link" aria-label="链接到 5.2 请求">#</a>5.2 请求</h3>
+<p>执行前的判定：</p>
+<div class="rp-codeblock language-json"><div class="rp-codeblock__content"><div class="rp-codeblock__content__scroll-container rp-scrollbar rp-scrollbar--always"><pre class="shiki css-variables" style="background-color:var(--shiki-background);color:var(--shiki-foreground)" tabindex="0" data-lang="json"><code><span class="line"><span style="color:var(--shiki-foreground)">{</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;requestId&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;0192f3a1-7c4e-7b1a-9a55-0d1f6c2e8b10&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;subject&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> { </span><span style="color:var(--shiki-token-keyword)">&quot;token&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;&lt;这个人的访问令牌&gt;&quot;</span><span style="color:var(--shiki-foreground)"> }</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;permissions&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> [</span><span style="color:var(--shiki-token-string-expression)">&quot;example.mes:work-order:release&quot;</span><span style="color:var(--shiki-foreground)">]</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;resourceId&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;WO-2026-000123&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;target&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;POST /work-orders/{id}/release&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;channel&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;api&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;capability&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;example.mes/work-order.release&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;context&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> { </span><span style="color:var(--shiki-token-keyword)">&quot;clientIp&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;203.0.113.7&quot;</span><span style="color:var(--shiki-foreground)"> }</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;accepts&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> []</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">}</span></span></code></pre></div><div class="rp-code-button-group"><button class="rp-code-button-group__button rp-code-wrap-button" title="切换代码换行" aria-label="切换代码换行"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-button-group__icon--wrapped"><path fill="currentColor" d="M21 5H3v2h18zM3 19h7v-2H3zm0-6h15c1 0 2 .43 2 2s-1 2-2 2h-2v-2l-4 3 4 3v-2h2c2.95 0 4-1.27 4-4 0-2.72-1-4-4-4H3z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-button-group__icon--wrap"><path fill="currentColor" d="M16 7H3V5h13zM3 19h13v-2H3zm19-7-4-3v2H3v2h15v2z"></path></svg></button><button class="rp-code-button-group__button rp-code-copy-button" title="复制代码"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-copy-button__icon rp-code-copy-button__icon--copy"><path fill="currentColor" d="M20 8v12H8V8zm0-2H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2"></path><path fill="currentColor" d="M4 16H2V4a2 2 0 0 1 2-2h12v2H4Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-copy-button__icon rp-code-copy-button__icon--success"><path fill="currentColor" d="m9.55 18-5.7-5.7 1.425-1.425L9.55 15.15l9.175-9.175L20.15 7.4z"></path></svg></button></div></div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>字段</th><th>必填</th><th>说明</th></tr></thead><tbody><tr><td><code>requestId</code></td><td>是</td><td>调用方生成的 UUID，写进审计；重试时不变。一次请求判几个权限点，几条审计记录用它串起来</td></tr><tr><td><code>subject</code></td><td>否</td><td>省略表示调用方自己。写了就是代问，见第 4.3 节：要么只有 <code>token</code>，要么是 <code>kind</code> 与 <code>id</code></td></tr><tr><td><code>permissions</code></td><td>是</td><td>权限点的全名，1 至 16 个。全部判完，全部放行才算放行</td></tr><tr><td><code>resourceId</code></td><td>否</td><td>资源实例的引用。资源类型不用写，从权限点里取。现在的求值只看到资源类型这一层，引用先写进审计</td></tr><tr><td><code>target</code></td><td>是</td><td>调用方自己的入口，比如路由模板。写进审计</td></tr><tr><td><code>channel</code></td><td>是</td><td>审计通道，取值照现行：<code>ui</code>、<code>api</code>、<code>mcp</code>、<code>a2a</code>、<code>job</code>、<code>event</code>、<code>hook</code></td></tr><tr><td><code>capability</code></td><td>否</td><td>这个入口对应的已登记能力的编号。只写进审计，不能让结果变松，见第 10 节。写了就要对得上：是调用方自己那个组件登记的，它要求的权限点在 <code>permissions</code> 里。对不上是一次拒绝，不是格式错</td></tr><tr><td><code>platformInvocation</code></td><td>否</td><td>平台把调用转给这个系统时随调用给的凭据，原样交回，另带这个系统按收到的输入算出的摘要，见第 10 节。带了它，被判定的主体以凭据为准，不写 <code>subject</code>；两样都写回 400</td></tr><tr><td><code>context</code></td><td>否</td><td>调用方看到的地址、终端这些。只写进审计，不拿来放行：二次验证与终端的证明只认核验过的令牌里的</td></tr><tr><td><code>accepts</code></td><td>否</td><td>调用方能处理的附带条件，见第 5.3 节。省略表示一种都不能处理</td></tr></tbody></table></div>
+<p>预判用同样的 <code>subject</code> 与 <code>accepts</code>，不带 <code>requestId</code>、<code>target</code>、<code>channel</code>、<code>capability</code>、<code>platformInvocation</code>。<code>/check</code> 写一个 <code>permission</code> 与可选的 <code>resourceId</code>；<code>/batch-check</code> 写 <code>items</code>，每项是 <code>permission</code> 与可选的 <code>resourceId</code>，1 至 100 项。</p>
+<p>几条规则：</p>
+<ul>
+<li><strong>租户不写在请求体里。</strong> 租户取自调用方的身份或主体令牌。</li>
+<li><strong>请求体是封闭的。</strong> 不认识的字段回 400，不忽略。</li>
+<li><strong>超限直接拒绝。</strong> 权限点或条目超过上限回 400，不静默截断。</li>
+</ul>
+<h3 class="rp-toc-include" id="53-响应"><a href="#53-响应" class="rp-header-anchor rp-link" aria-label="链接到 5.3 响应">#</a>5.3 响应</h3>
+<div class="rp-codeblock language-json"><div class="rp-codeblock__content"><div class="rp-codeblock__content__scroll-container rp-scrollbar rp-scrollbar--always"><pre class="shiki css-variables" style="background-color:var(--shiki-background);color:var(--shiki-foreground)" tabindex="0" data-lang="json"><code><span class="line"><span style="color:var(--shiki-foreground)">{</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;requestId&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;0192f3a1-7c4e-7b1a-9a55-0d1f6c2e8b10&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;allowed&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-constant)"> true</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;results&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> [</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">    {</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">      &quot;permission&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;example.mes:work-order:release&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">      &quot;allowed&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-constant)"> true</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">      &quot;reason&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;role_grant&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">      &quot;conditions&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> []</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">      &quot;decisionId&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;0192f3a1-7c4f-7d02-8e11-5a9b3c7d2e41&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">      &quot;logged&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-constant)"> true</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">    }</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">  ]</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;evaluatedAt&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;2026-11-26T08:00:00Z&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;authzRevision&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-constant)"> 1287</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;ttlMs&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-constant)"> 0</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">}</span></span></code></pre></div><div class="rp-code-button-group"><button class="rp-code-button-group__button rp-code-wrap-button" title="切换代码换行" aria-label="切换代码换行"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-button-group__icon--wrapped"><path fill="currentColor" d="M21 5H3v2h18zM3 19h7v-2H3zm0-6h15c1 0 2 .43 2 2s-1 2-2 2h-2v-2l-4 3 4 3v-2h2c2.95 0 4-1.27 4-4 0-2.72-1-4-4-4H3z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-button-group__icon--wrap"><path fill="currentColor" d="M16 7H3V5h13zM3 19h13v-2H3zm19-7-4-3v2H3v2h15v2z"></path></svg></button><button class="rp-code-button-group__button rp-code-copy-button" title="复制代码"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-copy-button__icon rp-code-copy-button__icon--copy"><path fill="currentColor" d="M20 8v12H8V8zm0-2H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2"></path><path fill="currentColor" d="M4 16H2V4a2 2 0 0 1 2-2h12v2H4Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-copy-button__icon rp-code-copy-button__icon--success"><path fill="currentColor" d="m9.55 18-5.7-5.7 1.425-1.425L9.55 15.15l9.175-9.175L20.15 7.4z"></path></svg></button></div></div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>字段</th><th>说明</th></tr></thead><tbody><tr><td><code>requestId</code></td><td>照请求原样带回。预判没有这个字段</td></tr><tr><td><code>allowed</code></td><td>布尔值。只有它为真才可以执行；别的字段都是细节。几个权限点全部放行才为真</td></tr><tr><td><code>reason</code></td><td>只在拒绝时有：第一个被拒绝的结果的原因</td></tr><tr><td><code>results</code></td><td>逐个权限点的结果，与输入同序、条数相同。每项有 <code>permission</code>、<code>allowed</code>、<code>reason</code> 与 <code>conditions</code>；执行前的判定每项另有 <code>decisionId</code> 与 <code>logged</code></td></tr><tr><td><code>results[].conditions</code></td><td>这个权限点的放行附带的条件，见下。没有就是空数组</td></tr><tr><td><code>results[].decisionId</code></td><td>这一次判定的编号，一个权限点一个，与进程内一样。<code>logged</code> 为真时审计里有一条同号的记录；为假时没有这条记录，即放行没有被采样到，或者拒绝没能写进去</td></tr><tr><td><code>evaluatedAt</code></td><td>判定的时间</td></tr><tr><td><code>authzRevision</code></td><td>判定时租户的授权修订号</td></tr><tr><td><code>ttlMs</code></td><td>这个结果最多可以缓存多久。执行前的判定恒为 0，见第 8 节</td></tr></tbody></table></div>
+<p><strong>没有只落在顶层的拒绝。</strong> 每一种拒绝都落到权限点的结果上，审计照结果记，不会出现审计里写着放行、执行却被拒的情形：</p>
+<ul>
+<li>针对整次请求的拒绝，比如主体令牌验不过、该带令牌没带、问了别的租户的主体、报的能力对不上、平台转调用的凭据验不过：每个权限点的结果都是拒绝，原因都写这一个。</li>
+<li>因能力上的标记拒绝的（第 10 节）：落在那项能力要求的权限点上。</li>
+<li>顶层的 <code>reason</code> 取第一个被拒绝的结果的原因。</li>
+</ul>
+<p><strong>原因码</strong>是稳定的字符串，小写加下划线。沿用现有的，比如 <code>role_grant</code>、<code>no_matching_grant</code>、<code>permission_not_registered</code>、<code>plugin_not_installed</code>、<code>invalid_subject</code>、<code>subject_tenant_mismatch</code>、<code>identity_revision_stale</code>、<code>audit_unavailable</code>、<code>decision_log_failed</code>、<code>decision_log_invalid</code>、<code>step_up_required</code>、<code>terminal_context_required</code>。新加的都是拒绝，名字没有定稿：<code>subject_token_invalid</code>（主体令牌验不过）、<code>subject_evidence_required</code>（要带主体令牌而没有带）、<code>permission_outside_component</code>（执行前的判定用了别的组件的权限点）、<code>capability_mismatch</code>（报的能力对不上）、<code>platform_invocation_invalid</code>（平台转调用的凭据验不过）、<code>condition_unsupported</code>（有调用方没有写明能处理的附带条件）、<code>confirmation_required</code> 与 <code>human_only</code>（见第 10 节）。</p>
+<p><strong>什么回 200，什么回别的。</strong> 请求格式对、调用方有资格调这个端点，平台就回 200，答案在 <code>allowed</code> 里；拒绝也是 200。问题被回答了，答案是「不行」，这不是接口出错。</p>
+<ul>
+<li>调用方越界的问法也是一次拒绝，用 200 回，照常记审计：该带令牌没带、用了别的组件的权限点、报的能力对不上、问了别的租户的主体。没有 <code>qian.authz:decide.assert</code> 却只报编号，算「该带令牌没带」，原因是 <code>subject_evidence_required</code>。</li>
+<li>出在调用方身上的 4xx 只有三种：请求格式不对（400），认不出调用方（401），调用方没有调这个端点的资格（403，比如令牌里没有 <code>qian.authz:decide</code>）。</li>
+<li>另有 404（授权组件没有挂载）、429（限流）与 5xx，都是平台这一次答不了。见第 5.6 节。</li>
+</ul>
+<p><strong>执行点对它自己的客户端回什么。</strong> 远程的执行前判定返回的就是执行端口的判定结果，把原因映射成对外的状态是执行点的事。客户端包照下表做：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>判定接口回的</th><th>执行点对外</th></tr></thead><tbody><tr><td><code>identity_revision_stale</code></td><td>401，让客户端换令牌后重发。与进程内一样</td></tr><tr><td><code>audit_unavailable</code>、<code>decision_log_failed</code>、<code>decision_log_invalid</code></td><td>503。这三个是平台一时记不了审计，不是没权限。进程内对外回的是 404 与 403；404 的理由是平台自己的入口在审计组件不在时等于不存在，远程的系统自己的资源是在的，不适用</td></tr><tr><td><code>human_only</code></td><td>403，错误码用冻结契约里预留的 <code>ACTION_HUMAN_ONLY</code>。这个码还没有登记进错误码目录，随契约定稿登记</td></tr><tr><td><code>confirmation_required</code></td><td>不执行，并告诉调用方这项操作要经平台的执行入口。回什么状态与错误码没有定，随等人输入的任务的契约定稿（S1-RT-041）</td></tr><tr><td>其余拒绝</td><td>403 <code>AUTHZ_DENIED</code></td></tr><tr><td>判不了，见第 5.4 节</td><td>503</td></tr></tbody></table></div>
+<p><strong>附带条件。</strong> 有的放行带着条件，比如「可以读，但只能读这些行」。提议这样处理，方向是保证不会有人漏掉条件还照样执行：</p>
+<ul>
+<li>调用方在 <code>accepts</code> 里写明自己能处理哪几种条件。</li>
+<li>平台只在调用方写了的范围里回带条件的放行；有调用方没写的条件，这个权限点直接回拒绝，原因是 <code>condition_unsupported</code>。</li>
+<li>条件写在它所属的那个权限点的结果里，一次判几个权限点时分得清。</li>
+<li>这一版预留两种，都还没有：<code>data_scope</code>（要按数据范围过滤）、<code>field_policy</code>（要按字段权限投影并校验写入）。它们随数据权限、字段权限的求值一起启用，启用之前不会出现。</li>
+</ul>
+<h3 class="rp-toc-include" id="54-判不了一律拒绝"><a href="#54-判不了一律拒绝" class="rp-header-anchor rp-link" aria-label="链接到 5.4 判不了一律拒绝">#</a>5.4 判不了一律拒绝</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>情形</th><th>结果</th></tr></thead><tbody><tr><td>没有匹配的授权、权限点没有登记、组件没有装进这个租户、主体不合法</td><td>平台回 <code>allowed: false</code></td></tr><tr><td>要记的放行写不进审计，含审计组件不在</td><td>平台回 <code>allowed: false</code>，原因是写不成的原因，与进程内的执行端口一样。拒绝写不进时原因照旧，只是 <code>logged</code> 为假</td></tr><tr><td>有调用方没有写明能处理的附带条件</td><td>平台回 <code>allowed: false</code></td></tr><tr><td>任何不是 200 的响应；超时、连不上；响应解析不了；响应里没有布尔的 <code>allowed</code></td><td>客户端包当作判不了，不执行</td></tr><tr><td>响应自己对不上：顶层 <code>allowed</code> 为真而某个结果为假；<code>results</code> 的条数或顺序与请求不符；<code>requestId</code> 与请求不符；回了没有写进 <code>accepts</code> 的条件</td><td>客户端包当作判不了，不执行</td></tr></tbody></table></div>
+<p>客户端包不提供「判不了就放行」的开关。本机开发与测试用的替身是一致性用例里那个可以本机起的服务（第 7.1 节），不是包里的开关。</p>
+<p>上表后两行，客户端包给调用方的是「判不了」，不是「没权限」：调用方应当对它自己的客户端回 503，不回 403，免得人看到「没权限」去找管理员。第二行里写不进审计的三个原因也照这样对外回（第 5.3 节）。不论回什么，都不执行。</p>
+<h3 class="rp-toc-include" id="55-数据权限与字段权限怎么表达"><a href="#55-数据权限与字段权限怎么表达" class="rp-header-anchor rp-link" aria-label="链接到 5.5 数据权限与字段权限怎么表达">#</a>5.5 数据权限与字段权限怎么表达</h3>
+<p>规划，随求值一起做；现在两个端口一律拒绝。这里只定形状，免得以后改接口。</p>
+<p>ADR-006 定了数据权限编译成谓词在本地执行、行级安全策略永远兜底（D6.4），可选的关系型授权引擎不接手行级过滤（D6.9）。本文的读法是：过滤要在数据所在的地方执行。远程的系统自己存数据，所以平台交出去的是「数据范围的计划」，由那个系统翻译成自己的查询条件，在自己的库里执行；平台不替它查数据。D6.4 的兜底在别人的库里不成立，见第 12 节。</p>
+<p>平台里现成的数据权限端口给出的是进程内的查询表达式，不能传给别的进程。能序列化的是合并以后的计划（现有的 <code>DataScopePlan</code>）：资源、是不是全部数据、各个角色的过滤条件。远程的形状沿用它，外面再包一层：</p>
+<div class="rp-codeblock language-json"><div class="rp-codeblock__content"><div class="rp-codeblock__content__scroll-container rp-scrollbar rp-scrollbar--always"><pre class="shiki css-variables" style="background-color:var(--shiki-background);color:var(--shiki-foreground)" tabindex="0" data-lang="json"><code><span class="line"><span style="color:var(--shiki-foreground)">{</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;resource&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;example.mes:work-order&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;enabled&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-constant)"> true</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;plan&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> {</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">    &quot;resource&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;example.mes:work-order&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">    &quot;allData&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-constant)"> false</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">    &quot;roles&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> [</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">      {</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">        &quot;role&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;tenant.user&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">        &quot;filters&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> [</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">          { </span><span style="color:var(--shiki-token-keyword)">&quot;logic&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;and&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span><span style="color:var(--shiki-token-keyword)"> &quot;groups&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> [ { </span><span style="color:var(--shiki-token-keyword)">&quot;logic&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;and&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span><span style="color:var(--shiki-token-keyword)"> &quot;conditions&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> [</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">            { </span><span style="color:var(--shiki-token-keyword)">&quot;field&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;owner_id&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span><span style="color:var(--shiki-token-keyword)"> &quot;op&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;eq&quot;</span><span style="color:var(--shiki-token-punctuation)">,</span><span style="color:var(--shiki-token-keyword)"> &quot;value&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-string-expression)"> &quot;5b0c7c0e-2f0a-4f0e-9c59-0d1f6c2e8b10&quot;</span><span style="color:var(--shiki-foreground)"> }</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">          ] } ] }</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">        ]</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">      }</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">    ]</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">  }</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;resolvedVariables&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-foreground)"> [</span><span style="color:var(--shiki-token-string-expression)">&quot;currentUser&quot;</span><span style="color:var(--shiki-foreground)">]</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;authzRevision&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-constant)"> 1287</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">  &quot;ttlMs&quot;</span><span style="color:var(--shiki-token-punctuation)">:</span><span style="color:var(--shiki-token-constant)"> 1000</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">}</span></span></code></pre></div><div class="rp-code-button-group"><button class="rp-code-button-group__button rp-code-wrap-button" title="切换代码换行" aria-label="切换代码换行"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-button-group__icon--wrapped"><path fill="currentColor" d="M21 5H3v2h18zM3 19h7v-2H3zm0-6h15c1 0 2 .43 2 2s-1 2-2 2h-2v-2l-4 3 4 3v-2h2c2.95 0 4-1.27 4-4 0-2.72-1-4-4-4H3z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-button-group__icon--wrap"><path fill="currentColor" d="M16 7H3V5h13zM3 19h13v-2H3zm19-7-4-3v2H3v2h15v2z"></path></svg></button><button class="rp-code-button-group__button rp-code-copy-button" title="复制代码"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-copy-button__icon rp-code-copy-button__icon--copy"><path fill="currentColor" d="M20 8v12H8V8zm0-2H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2"></path><path fill="currentColor" d="M4 16H2V4a2 2 0 0 1 2-2h12v2H4Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-copy-button__icon rp-code-copy-button__icon--success"><path fill="currentColor" d="m9.55 18-5.7-5.7 1.425-1.425L9.55 15.15l9.175-9.175L20.15 7.4z"></path></svg></button></div></div></div>
+<ul>
+<li><code>enabled</code> 为假表示这类资源没有开数据权限，不过滤，这时没有 <code>plan</code>。现有的计划里没有这一层，是外面加的。</li>
+<li><code>plan</code> 是现有计划的原样：<code>allData</code> 为真是全部数据；<code>roles</code> 为空是一行也看不到；否则一个角色里的各份条件是「并且」，角色之间是「或者」。合并的语义照现行，不可配置。</li>
+<li>过滤条件用已冻结的语法（<code>contracts/data/v1</code> 的 Filter AST），不另造一套。</li>
+<li><strong>系统变量由平台换成值。</strong> 「当前用户」「当前组织及全部后代组织」这些，远程的系统没有组织目录，算不出来。现有的计划里系统变量是原样留着的；远程多一步，平台把它们换成具体的编号再交出去。条件本身不加语法以外的字段，换过哪些变量另列在 <code>resolvedVariables</code> 里。只有当次请求才知道的五个变量（表单、关键词、流程、任务、流程的发起人）原样留着，由调用方填。</li>
+<li><strong>判不了的都按一行也看不到处理。</strong> 不认识的字段、不认识的运算符、字段不在调用方自己的字段清单里、变量填不上，都当作一行也看不到，不许忽略条件照查。</li>
+<li><strong>租户隔离是另一回事。</strong> 全部数据也不放开租户隔离。远程的系统要自己保证只查本租户的数据，见第 12 节。</li>
+</ul>
+<p>没有解决的一件：组织大了，「全部后代组织」换出来的编号会很多。上限是多少、超了怎么办，没有定。照现行口径，超了应当回结构化的错误，不静默截断。</p>
+<p>字段权限的形状照现有端口：可读、可写、要脱敏的三份字段清单。</p>
+<h3 class="rp-toc-include" id="56-错误"><a href="#56-错误" class="rp-header-anchor rp-link" aria-label="链接到 5.6 错误">#</a>5.6 错误</h3>
+<p>接口自己的错误一律是 <a href="https://github.com/CavaiLAB/kun/blob/main/contracts/v0/README.md" target="_blank" rel="noopener noreferrer" class="rp-link">ErrorDetail</a>，用已登记的平台错误码，这一版不加新的：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>状态</th><th>错误码</th><th>情形</th></tr></thead><tbody><tr><td>400</td><td><code>INPUT_INVALID</code></td><td>请求体不合 Schema：不认识的字段、权限点不是全名、超过上限。逐项的位置在 <code>errors[]</code> 里</td></tr><tr><td>401</td><td><code>UNAUTHENTICATED</code></td><td>调用方没有认证；调用方自己的令牌是旧的</td></tr><tr><td>403</td><td><code>INSUFFICIENT_SCOPE</code></td><td>调用方的令牌里没有 <code>qian.authz:decide</code>。没有 <code>decide.assert</code> 却只报编号不在这里，那是一次拒绝，见第 5.3 节</td></tr><tr><td>403</td><td><code>AUTHZ_DENIED</code></td><td>调用方没有调这个端点的资格：不是服务主体却调执行前的判定，或者带着委托链</td></tr><tr><td>404</td><td><code>NOT_FOUND</code></td><td>授权组件没有挂载或已卸载</td></tr><tr><td>429</td><td><code>RATE_LIMITED</code></td><td>网关限流</td></tr><tr><td>503、504</td><td><code>UNAVAILABLE</code>、<code>GATEWAY_TIMEOUT</code></td><td>平台判不了</td></tr></tbody></table></div>
+<p>被判定的主体的问题（令牌验不过、租户不一致、身份修订旧了）与调用方越界的问法，不是接口的错误：它们是一次拒绝，用 200 回，写在 <code>reason</code> 里，照常记审计。报的能力对不上也归这一类：要查能力目录、跨字段比对才知道对不对，不是 Schema 表达得了的约束，照冻结契约的分类不算格式错。</p>
+<h2 class="rp-toc-include" id="6-协议版本与兼容"><a href="#6-协议版本与兼容" class="rp-header-anchor rp-link" aria-label="链接到 6 协议、版本与兼容">#</a>6 协议、版本与兼容</h2>
+<p><strong>已定（问题 10）</strong>：先只做 HTTP。本节其余是提议：用 JSON，版本与兼容的规则。</p>
+<p><strong>协议。</strong> 先只做 HTTP 加 JSON。理由：</p>
+<ul>
+<li>现有的契约格式就是 OpenAPI 3.1 加 JSON Schema 2020-12，错误体、网关、限流都是按 HTTP 做的。</li>
+<li>使用方里有浏览器：匠心的界面是 TypeScript 写的，浏览器里用不了 gRPC。</li>
+<li>一次判定的请求与响应都很小，换协议省不了多少。</li>
+</ul>
+<p>gRPC 不排除：等量出来确实需要再加，语义照同一份契约，状态码照现有的映射。现在不做（问题 10）。</p>
+<p><strong>版本与兼容。</strong></p>
+<ol>
+<li>契约族叫 <code>authz-v1</code>。机器可读的契约是 OpenAPI 3.1 文档、JSON Schema 与样例，写法照 <code>contracts/v0</code>。放哪个目录随契约定稿的任务定：<code>contracts/authz/v1/</code> 里已经有冻结的数据范围规则，新文件放进去的话只做加法、各自带状态标记、不碰已冻结的那一份；也可以另开目录。</li>
+<li>起草期标 <code>x-status: draft</code>，可以做破坏性的修改；定稿后标 <code>frozen</code>，只做加法。</li>
+<li>加法指：请求里加可选的字段，响应里加字段，加原因码，加端点，加附带条件的种类。</li>
+<li>路径不带版本号，与现有的 <code>/api/authz/me/permissions</code> 一致。破坏性的修改新开 <code>authz-v2</code>，用新的契约目录与新的路径（比如 <code>/api/authz/v2/enforce</code>），旧的并行保留一段时间；保留多久没有定。</li>
+<li>兼容要朝安全的方向：
+<ul>
+<li>可以执行的信号只有布尔的 <code>allowed</code>。以后加的任何细分都放在原因码或新字段里，不改 <code>allowed</code> 的含义。</li>
+<li>客户端忽略响应里不认识的字段。原因码只对契约里点名的几个分支，不认识的一律按普通拒绝处理。</li>
+<li>请求体封闭：新客户端对着旧服务端发了它不认识的字段，会得到 400，客户端照「判不了」拒绝，不会悄悄少判一项。</li>
+<li>带条件的放行只回给写明能处理的调用方。</li>
+</ul>
+</li>
+<li>现有的 <code>GET /api/authz/me/permissions</code> 加两个字段 <code>ttlMs</code>、<code>authzRevision</code>，是加法。</li>
+</ol>
+<h2 class="rp-toc-include" id="7-客户端包"><a href="#7-客户端包" class="rp-header-anchor rp-link" aria-label="链接到 7 客户端包">#</a>7 客户端包</h2>
+<p><strong>已定（问题 9）</strong>：先出 TypeScript 与 .NET 两种；别的语言给契约与一致性用例，有了具体的使用方再出包。</p>
+<p><strong>条件（问题 9）</strong>：两个谁在前看第一个使用方；接第一个历史系统时再看要不要出 Java。</p>
+<p><strong>已定（S1-DEC-048 D3，2026-11-26）</strong>：两个里先 .NET。见第 7.1 节「两个包谁在前」。</p>
+<p>本节其余是提议：包里有什么，接口的样子。包名没有定稿。</p>
+<h3 class="rp-toc-include" id="71-先出哪几种"><a href="#71-先出哪几种" class="rp-header-anchor rp-link" aria-label="链接到 7.1 先出哪几种">#</a>7.1 先出哪几种</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>语言</th><th>先后</th><th>理由</th></tr></thead><tbody><tr><td>TypeScript</td><td>先出（已定）；排在 .NET 后面（S1-DEC-048 D3）</td><td>匠心的界面是 TypeScript 写的，浏览器里要用；Node 写的后端服务用 Node 的入口</td></tr><tr><td>.NET</td><td>先出（已定）；两个里在前（S1-DEC-048 D3）</td><td>Kun 是 .NET 的框架，不在平台宿主里的 .NET 服务是最自然的使用方。工作量不小：要在现有的库模式与平台模式之外加一种远程模式，见第 7.3 节</td></tr><tr><td>Java</td><td>接第一个历史系统时再看要不要出（条件）</td><td>现在没有具体的使用方</td></tr><tr><td>别的语言</td><td>先不出包（已定）</td><td>给契约与一套与语言无关的一致性用例，别的语言照着直接调 HTTP；有了具体的使用方再出包</td></tr></tbody></table></div>
+<p>两个包谁在前：</p>
+<ul>
+<li>起草时的提议是 TypeScript 在前。照问题 9 的条件，改成看第一个使用方。</li>
+<li>裁定十个问题的时候第一个使用方是谁没有定，两个包的任务之间先没有排先后，这一件另问了（S1-DEC-048 问题 3）。</li>
+<li>2026-11-26 定了先 .NET（S1-DEC-048 D3）。列给产品负责人的理由是工作区服务照现在的设计是 .NET 写的。</li>
+<li><strong>本文的读法</strong>：落到任务上，.NET 的包（<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-015.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-015</a>）排在 TypeScript 的包（<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-014.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-014</a>）前面，后者的依赖里加了前者。TypeScript 包里浏览器的入口只用现有只读端点 <code>me/permissions</code> 的那一部分不受先后影响，照旧可以先做；浏览器的入口里其余要等契约定稿的部分要不要赶在 .NET 的包之前单独出，没有问过。</li>
+<li>看得到的两个使用方：匠心的工作区服务要在服务端判权限，照 <a href="/design/adr/adr-010-gateway-layers.html" class="rp-link">ADR-010</a> 第 9 节它装本仓库的登录组件 <code>Kun.Identity.Client</code>，那是 .NET 的包，「照现在的设计」指的就是这一条；匠心的管理端只有浏览器一侧（S1-DEC-041 D5），用得上的是 TypeScript 包里浏览器的入口。两个都还没有开工。</li>
+</ul>
+<p>一致性用例是一组请求、响应的样例加一个可以本机起的替身服务，重点查「判不了一律拒绝」的那几条：超时、5xx、响应缺字段、不认识的条件。两个包与以后别的语言的实现都对着它跑。它由两个包里先做的那一个带出来，这一句是提议；先 .NET 定了以后，就是由 S1-AZ-015 带出来，S1-AZ-014 对着它跑。</p>
+<h3 class="rp-toc-include" id="72-typescriptnode-里和浏览器里的差别"><a href="#72-typescriptnode-里和浏览器里的差别" class="rp-header-anchor rp-link" aria-label="链接到 7.2 TypeScript：Node 里和浏览器里的差别">#</a>7.2 TypeScript：Node 里和浏览器里的差别</h3>
+<p>一个包，两个入口，按打包条件分开；浏览器的入口里没有任何取机器凭据的代码。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>比什么</th><th>Node 的入口</th><th>浏览器的入口</th></tr></thead><tbody><tr><td>给谁用</td><td>登记过的后端服务</td><td>管理端、页面插件</td></tr><tr><td>用什么身份</td><td>机器身份。包负责取、缓存、续期访问令牌</td><td>页面自己的登录会话。不持有任何服务的凭据</td></tr><tr><td>接法</td><td>乙</td><td>甲</td></tr><tr><td>能问谁</td><td>自己，或者别的主体</td><td>只能问自己。接口上没有主体这个参数</td></tr><tr><td>能调什么</td><td>执行前的判定、预判、代问允许的动作、带令牌的解释；数据范围与字段权限等求值做了再加</td><td>本人持有的权限点、本人允许的动作、预判、解释自己</td></tr><tr><td>结果能不能当执行的依据</td><td>能</td><td>不能。只用来决定显示什么；真正的判定在后端的入口上</td></tr><tr><td>缓存放哪</td><td>进程内存</td><td>页面内存。不放本地存储</td></tr><tr><td>缓存的键</td><td>带令牌问时，主体用主体令牌的摘要；只报编号时用编号。不用包自己从令牌里读出来的字段，见第 8 节</td><td>只有本人一份</td></tr><tr><td>判不了时</td><td>当作拒绝，告诉调用方是「判不了」</td><td>当作没有这项权限，界面按没有来显示</td></tr><tr><td>用到的端点</td><td>多数是 POST</td><td>能用 GET 的用 GET。预判与解释是 POST；带着登录会话的 POST 要带防伪的请求头，这是登录组件现行的要求，由包来带</td></tr></tbody></table></div>
+<p>浏览器的入口现在就有一大半能做：<code>GET /api/authz/me/permissions</code> 已经返回本人持有的全部权限点和当前判定，按钮、菜单显不显示，在页面里对着这份清单算就够了。</p>
+<p>各人 DSH 实例里的代码不用 Node 的入口，见第 3 节。拿着本人令牌的程序这一版不出入口，照契约直接调。</p>
+<p>接口的样子，只为说明，不是定稿：</p>
+<div class="rp-codeblock language-ts"><div class="rp-codeblock__content"><div class="rp-codeblock__content__scroll-container rp-scrollbar rp-scrollbar--always"><pre class="shiki css-variables" style="background-color:var(--shiki-background);color:var(--shiki-foreground)" tabindex="0" data-lang="ts"><code><span class="line"><span style="color:var(--shiki-token-comment)">// Node：执行点</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">const</span><span style="color:var(--shiki-token-constant)"> decision</span><span style="color:var(--shiki-token-keyword)"> =</span><span style="color:var(--shiki-token-keyword)"> await</span><span style="color:var(--shiki-token-constant)"> authz</span><span style="color:var(--shiki-token-function)">.enforce</span><span style="color:var(--shiki-foreground)">({</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">  subjectToken</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">  permissions</span><span style="color:var(--shiki-token-keyword)">:</span><span style="color:var(--shiki-foreground)"> [</span><span style="color:var(--shiki-token-string-expression)">&#x27;example.mes:work-order:release&#x27;</span><span style="color:var(--shiki-foreground)">]</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">  target</span><span style="color:var(--shiki-token-keyword)">:</span><span style="color:var(--shiki-token-string-expression)"> &#x27;POST /work-orders/{id}/release&#x27;</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">  resourceId</span><span style="color:var(--shiki-token-keyword)">:</span><span style="color:var(--shiki-foreground)"> workOrderId</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">})</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">if</span><span style="color:var(--shiki-foreground)"> (</span><span style="color:var(--shiki-token-keyword)">!</span><span style="color:var(--shiki-token-constant)">decision</span><span style="color:var(--shiki-foreground)">.allowed) </span><span style="color:var(--shiki-token-keyword)">return</span><span style="color:var(--shiki-token-function)"> reject</span><span style="color:var(--shiki-foreground)">(decision)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--shiki-token-comment)">// 浏览器：只决定显示什么</span></span>
+<span class="line"><span style="color:var(--shiki-token-keyword)">if</span><span style="color:var(--shiki-foreground)"> (</span><span style="color:var(--shiki-token-keyword)">await</span><span style="color:var(--shiki-token-constant)"> me</span><span style="color:var(--shiki-token-function)">.can</span><span style="color:var(--shiki-foreground)">(</span><span style="color:var(--shiki-token-string-expression)">&#x27;example.mes:work-order:release&#x27;</span><span style="color:var(--shiki-foreground)">)) </span><span style="color:var(--shiki-token-function)">showReleaseButton</span><span style="color:var(--shiki-foreground)">()</span></span></code></pre></div><div class="rp-code-button-group"><button class="rp-code-button-group__button rp-code-wrap-button" title="切换代码换行" aria-label="切换代码换行"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-button-group__icon--wrapped"><path fill="currentColor" d="M21 5H3v2h18zM3 19h7v-2H3zm0-6h15c1 0 2 .43 2 2s-1 2-2 2h-2v-2l-4 3 4 3v-2h2c2.95 0 4-1.27 4-4 0-2.72-1-4-4-4H3z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-button-group__icon--wrap"><path fill="currentColor" d="M16 7H3V5h13zM3 19h13v-2H3zm19-7-4-3v2H3v2h15v2z"></path></svg></button><button class="rp-code-button-group__button rp-code-copy-button" title="复制代码"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-copy-button__icon rp-code-copy-button__icon--copy"><path fill="currentColor" d="M20 8v12H8V8zm0-2H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2"></path><path fill="currentColor" d="M4 16H2V4a2 2 0 0 1 2-2h12v2H4Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-copy-button__icon rp-code-copy-button__icon--success"><path fill="currentColor" d="m9.55 18-5.7-5.7 1.425-1.425L9.55 15.15l9.175-9.175L20.15 7.4z"></path></svg></button></div></div></div>
+<h3 class="rp-toc-include" id="73-net"><a href="#73-net" class="rp-header-anchor rp-link" aria-label="链接到 7.3 .NET">#</a>7.3 .NET</h3>
+<p>不在平台宿主里的 .NET 服务今天用的是库模式（第 2.1 节）。端点、gRPC 方法、命令上声明权限点的三种写法，即 <code>.RequireKunPermission(…)</code>、<code>[RequiresPermission(…)]</code>、<code>IPermissionProtectedRequest</code>，最后都只调宿主登记的 <code>IPermissionChecker</code> 的「查一条」，不记决策审计，不比对身份修订。</p>
+<p>只给它换一个远程的 <code>IPermissionChecker</code> 不够：那样走的是预判，不是执行前的判定；「查一条」的输入里也没有入口与目标，填不出执行前判定的必填字段。所以包里要有三样：</p>
+<ul>
+<li>远程的执行端口：<code>IAuthzEnforcement</code> 的远程实现，调 <code>POST /enforce</code>，主体令牌取自当前请求。</li>
+<li>一种新的登记方式（远程模式），与现有的库模式、平台模式并列：HTTP 与 gRPC 的执行点走远程的执行端口；命令的管道行为现在直接调判定器，要改成能走执行端口。</li>
+<li>远程的 <code>IPermissionChecker</code>，给预判用。</li>
+</ul>
+<p>这样三种写法在使用方的代码里不用改，决策审计与身份修订的比对由平台一侧做。包属于内核档还是平台档、是契约还是提供者、叫什么，随任务定。</p>
+<p>现有的执行点一次只判一个权限点，远程模式照旧一个权限点问一次。<code>POST /enforce</code> 一次判几个的写法是给别的语言与 Node 用的；要不要在 .NET 里把同一个入口上的几个权限点合成一次请求，随实现定。</p>
+<h2 class="rp-toc-include" id="8-缓存超时与降级"><a href="#8-缓存超时与降级" class="rp-header-anchor rp-link" aria-label="链接到 8 缓存、超时与降级">#</a>8 缓存、超时与降级</h2>
+<p><strong>已定（问题 4）</strong>：守 3 秒。执行前的那一次每次都问、不缓存；界面显示用的结果与数据范围最多缓存 3 秒。</p>
+<p><strong>条件（问题 4）</strong>：执行前每次都问是硬的一条，权限收回后下一次执行就被拒；界面上按钮多久消失做成配置，缺省 3 秒，量出来撑不住再放宽，放宽不用再裁定。数据范围缓存多久，建议里没有单独写，照选项（一）原样，最多 3 秒。</p>
+<p>本节其余是提议：超时、重试与连续失败以后的做法，判不了一律拒绝。数字是起步的提议值，没有实测。</p>
+<p><strong>权限改了多久生效。</strong> 现行的口径是 3 秒以内（需求文档 7.5 节的验收；能力目录给客户端的缓存时长上限 3000 毫秒也是照它定的，而且执行入口每次重新判定）。远程守同一个口径：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>调用</th><th>缓存</th><th>生效时间</th><th>性质</th></tr></thead><tbody><tr><td>执行前的判定</td><td>不缓存，每次都问。响应里 <code>ttlMs</code> 恒为 0，不随任何配置变</td><td>下一次判定就生效，与进程内一样</td><td>已定，硬的一条</td></tr><tr><td>预判、本人持有的权限点、允许的动作</td><td>可以缓存，时长由平台在响应里给。最长多久是平台的一项配置，缺省 3 秒；量出来撑不住可以调大</td><td>缺省不超过 3 秒；调大以后不超过配置的时长</td><td>已定加条件；这项配置长什么样是提议</td></tr><tr><td>数据范围</td><td>可以缓存，最长 3 秒</td><td>不超过 3 秒</td><td>已定。不在上面那项配置里</td></tr></tbody></table></div>
+<ul>
+<li><strong>本文的读法</strong>：「界面上按钮多久消失做成配置」读作上表第二行的上限是一项配置。放宽只管这一行：执行前的判定不缓存，数据范围最多 3 秒，都不随它变。要把数据范围放宽过 3 秒，得另问。</li>
+<li>放宽不用再裁定，但要有依据。撑不撑得住由基线测试量（<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-017.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-017</a>），量出来的数字与改成多少记在那个任务里，并写回本节。</li>
+<li>放宽以后，别的系统界面上的按钮、菜单可能慢过 3 秒才变，人会点到已经没有权限的按钮，被拒一次。执行不受影响：执行前的判定照旧下一次就生效。</li>
+<li>仍是提议的细处：
+<ul>
+<li>在上限以内平台实际给多长。起草时提议 <code>ttlMs</code> 缺省 1000 毫秒，与能力目录同一口径；没有实测。</li>
+<li>这项配置叫什么、放在哪、按租户配还是整个平台一个值。</li>
+<li>契约里不把 3000 写死成 <code>ttlMs</code> 的上限，不然放宽要改契约。能力目录的那个上限在冻结的契约里，与这里无关，不动。</li>
+</ul>
+</li>
+<li>缓存只在这个主体名下用，键里有租户、主体、权限点、资源。带着主体令牌问时，键里的主体用令牌的摘要，不用客户端自己从令牌里读出来的字段：不然伪造一张写着某个人的令牌，就能命中这个人缓存着的结果。</li>
+<li>数据范围是真去查数据时用的过滤条件，不只是给界面看的。照上表，权限收回以后，按旧的范围最多还查得到 3 秒。要它像执行前的判定一样每次都问，就把它的 <code>ttlMs</code> 定成 0，代价是每次查数据多一次调用。</li>
+<li>客户端包照平台给的时长缓存；可以关掉，不可以调长。</li>
+<li>HTTP 层不缓存：响应照现有的两个端点带 <code>Cache-Control: private, no-store</code>。</li>
+<li>现在没有通到平台外的通知，失效只靠时长。授权变更的事件已经发到平台的事件总线；以后把它经实时推送或订阅送到平台外，可以把时长放宽、改由通知失效。这是规划。</li>
+</ul>
+<p><strong>超时与重试。</strong></p>
+<ul>
+<li>一次调用的总预算缺省 2 秒：单次尝试 1.5 秒，连不上或 503、504 时重试一次。预算可以调小；上限提议 5 秒。</li>
+<li>执行前的判定重试时 <code>requestId</code> 不变。审计里可能留下带同一个 <code>requestId</code> 的重复记录，不去重。</li>
+<li>连续失败到一定次数，客户端包在一小段时间里直接回「判不了」，不再发请求，免得把平台和自己都拖住。</li>
+</ul>
+<p><strong>判不了的时候。</strong> 只有一种做法：拒绝。</p>
+<ul>
+<li>执行前的判定判不了，就不执行。不用旧的结果。</li>
+<li>预判判不了，按没有这项权限处理。还在缓存时长以内的结果本来就有效，接着用；过了时长不再用。</li>
+<li>这意味着：Kun 的判定这条路一停，所有接它的系统里受保护的操作都停。本文照缺省拒绝的方向这样选，没有留放行的开关；可用性的要求见第 11 节，这个后果单列在第 14 节末尾。</li>
+</ul>
+<h2 class="rp-toc-include" id="9-不是-kun-组件的系统怎么把权限点角色数据范围声明进来提议"><a href="#9-不是-kun-组件的系统怎么把权限点角色数据范围声明进来提议" class="rp-header-anchor rp-link" aria-label="链接到 9 不是 Kun 组件的系统，怎么把权限点、角色、数据范围声明进来（提议）">#</a>9 不是 Kun 组件的系统，怎么把权限点、角色、数据范围声明进来（提议）</h2>
+<p>本节是提议，不在十个问题里。有两处受裁定影响：一个系统登记几个机器身份（问题 3，第 4.3 节）；标了要人确认的操作要登记成能力（问题 6，第 10 节）。</p>
+<p><strong>做成一个不带代码的组件。</strong> 组件模型的规格里本来就有不带代码的组件：一个文件夹加一份清单，里面只有声明。别的系统不用把代码搬进 Kun，只要交一个这样的文件夹：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>文件</th><th>写什么</th><th>现状</th></tr></thead><tbody><tr><td><code>.qian-plugin/plugin.json</code></td><td>组件 id（反向域名风格，比如 <code>example.mes</code>）、版本，加清单必填的说明、作者、许可、显示名与分类</td><td>规格已写</td></tr><tr><td><code>metadata/permissions.json</code></td><td>资源、动作、风险等级、哪些动作要二次验证、适用的终端</td><td>规格已写；预装的带代码的组件已经这样登记</td></tr><tr><td><code>metadata/roles.json</code></td><td>默认角色各拿到哪些权限点</td><td>同上。只带这一个文件的角色模板包能不能授别的组件的权限点，还没有结论（S1-AZ-007 验收第 4 条）</td></tr><tr><td><code>tools/&lt;名字&gt;.json</code></td><td>要给智能体用的操作，登记成能力；不带代码的组件用 <code>http</code> 绑定指到那个系统的端点。照问题 6 的裁定，标了要人确认的操作只能经平台执行，所以这类操作必须登记在这里</td><td>规格已写。代码里只找到对这种绑定的出口校验，没有找到按它转调用的执行器（对着代码读的）</td></tr></tbody></table></div>
+<p>由此：</p>
+<ul>
+<li>权限点的全名是 <code>&lt;组件 id&gt;:&lt;资源&gt;:&lt;动作&gt;</code>。一个系统一个组件 id，这就是它的名字空间。</li>
+<li><strong>一个系统对应一个组件 id。</strong> 机器身份登记时写上组件 id，执行前的判定只能用这个组件名下的权限点（第 4.3 节）。多租户版里几个租户共用的系统用一个身份，后台作业那一部分按租户各登记，各个身份带同一个组件 id（问题 3 与它的条件，第 4.3 节）。</li>
+<li>安装、升级、卸载走组件的那一套：校验、批准、激活。逐个组件卸载时撤销它的声明、已有的授予留着，是 S1-AZ-007 验收第 1 条要做的，没有开始。</li>
+<li>租户里谁有哪个角色，由租户管理员在授权的管理界面里定；管理端点归 S1-AZ-021，它自 S1-AZ-005 拆出。</li>
+</ul>
+<p><strong>不另开「系统自己调接口登记权限点」的路。</strong> 声明是分发与安装的单位，要过校验与批准；让系统运行时自己登记，会绕过这些。</p>
+<p><strong>缺的东西。</strong></p>
+<ul>
+<li>平台宿主现在装不进不带代码的组件（第 2.1 节），由 S1-AZ-016 承接。在它与 S1-AZ-007 做完以前，别的系统的声明进不了平台，随平台镜像预装也不行。</li>
+<li>运行期装进来的组件，权限点与默认角色现在不会登记（S1-AZ-007，没有开始）。</li>
+<li>数据范围：角色的数据范围是租户管理员配的，不是组件声明的。组件要声明的是「这类资源有哪些字段可以拿来写过滤条件」，平台才能校验管理员配的条件。这份字段清单放在哪个文件、什么格式，没有定；它随数据权限的求值一起做。</li>
+</ul>
+<h2 class="rp-toc-include" id="10-要人确认的能力在远程调用里怎么体现"><a href="#10-要人确认的能力在远程调用里怎么体现" class="rp-header-anchor rp-link" aria-label="链接到 10 要人确认的能力在远程调用里怎么体现">#</a>10 要人确认的能力在远程调用里怎么体现</h2>
+<p>「要人确认的能力由平台停」与「任务上的动作缺省只能人做」两条已定，都还没有实现；它们的接口形状没有定。本节只写判定接口这一侧，并说明它与冻结契约里已裁决的 <code>ACTION_HUMAN_ONLY</code>（R52）的关系。</p>
+<p>本节里 2026-11-26 已定的三件：</p>
+<ul>
+<li><strong>已定（问题 6）</strong>：别的系统里标了要人确认的操作只能经平台执行。</li>
+<li><strong>已定（问题 7）</strong>：别的系统替人来问时，只有登记成「只转达人在界面上的操作」的系统带着本人的令牌才算人自己在界面上直接操作，其余一律按不是人本人。它的条件写在第 4.3 节。</li>
+<li><strong>已定（问题 8）</strong>：拿着本人的登录令牌、不经浏览器直接连平台的程序，先一律按不是人本人，也不能在等人点头的任务上做动作。<strong>条件（问题 8）</strong>：这一条必要而不够，还要保证点「同意」的那个页面不受模型左右。</li>
+</ul>
+<p>其余是提议：原因码的名字，按权限点反查标记的做法，平台转调用时凭据要满足的条件，网关用哪种办法分清登录会话与访问令牌。</p>
+<p><strong>标记在哪。</strong> 两个标记都在能力条目上，不在权限点上：</p>
+<ul>
+<li>要人确认：<code>agent.requiresConfirmation</code> 为真。</li>
+<li>仅限人工：<code>agent.expose</code> 为假（R52）。冻结的契约已经定了服务端怎么办：不派生成模型看得见的工具，拒绝智能体主体的调用，错误码 <code>ACTION_HUMAN_ONLY</code>。它拦的是智能体，不是服务：本仓库里就有一项标了 <code>agent.expose</code> 为假、专给调度器调的能力（租户到期扫描）。所以这个标记现行的意思是「不给模型用」，不是「只许人用」。</li>
+</ul>
+<p>它们在平台的执行入口上生效：智能体调一项能力，平台在执行之前看标记。两个标记现在都只登记，平台宿主里的三处执行点只判权限点，不看它们。</p>
+<p><strong>现状：平台分不出浏览器里的登录会话与拿着本人令牌的程序。</strong> 下面几种情形怎么分，先要知道这一条：</p>
+<ul>
+<li>网关按请求里有没有 <code>Authorization</code> 头选认证方式：有就按访问令牌认人，没有就按登录会话认人。两条路换签出来的内部令牌是同一套声明，里面不记这个人是怎么进来的（第 2.1 节）。</li>
+<li>后果一：一个程序只要拿到本人的、受众是网关的访问令牌，到平台自己的执行入口时与浏览器里的本人没有区别。「人自己在界面上直接调不拦」落到实现上，不加区分，就等于「带着本人网关令牌的都不拦」。</li>
+<li>后果二：等人点头的任务上的动作只能人做，照现在的实现也分不出是人在浏览器里点的，还是拿着令牌的程序发的。</li>
+<li><strong>已定（问题 8）</strong>：这样的程序先一律按不是人本人。由此要补这一处区分：这一句出自提问时选项（一）的影响，照现在的实现两种请求分不出，定了选项（一）就得补。要补的东西在网关与平台宿主上，不在判定接口里；「要补」记在 ADR-010 第 10 节。用哪种办法补是提议，两种：网关给登录会话来的请求在内部令牌里加一个 scope（现行的决策是加能力就加 scope，不加声明），平台自己的执行入口与任务动作的端点凭它认；或者这几条路由在网关上只接登录会话，不接访问令牌。这是认证上的改动，照仓库的约定要先有决策记录，由 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-GW-004.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-GW-004</a> 先写再做（第 13.2 节第 10 项）。</li>
+<li><strong>条件（问题 8）</strong>：这一条必要而不够，还要保证点「同意」的那个页面不受模型左右。<strong>本文的读法</strong>：「这一条」指问题 8 的选项（一）。落到这处区分上，它分得出请求是不是带着登录会话经网关进来的，页面里是谁在点它看不出，所以单有它不够。页面那一侧属于确认卡与页面的设计，在匠心一侧，不在本文里，本仓库没有任务承接它。</li>
+</ul>
+<p><strong>远程调用里，怎样算「人本人」。</strong> 已定的那一条写的是（ADR-016 第 9 节）：「不是人本人」指调用方是 Agent，或者带着委托链；人自己在界面上直接调同一个能力，不拦。它没有说「在界面上直接调」落到请求上是什么样，也没有说别的系统替人来问时怎么算；后一件由问题 7 的裁定补上了，拿着本人令牌的程序由问题 8 补上了。下表各行的性质分开标：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>情形</th><th>算不算人本人</th><th>性质</th></tr></thead><tbody><tr><td>人自己在平台的界面上直接调：浏览器带着登录会话，经网关到平台自己的执行入口</td><td>算</td><td>「人自己在界面上直接调，不拦」是已定的字面；把它落到「浏览器带着登录会话经网关」是本文的读法</td></tr><tr><td>智能体主体，或者带着委托链</td><td>不算</td><td>已定的字面</td></tr><tr><td>乙：带着这个人的令牌，而且调用方登记成了「只转达人在界面上的操作」。提议用 <code>qian.authz:decide.interactive</code> 表达</td><td>算</td><td>已定（问题 7）；用哪个 scope 表达是提议</td></tr><tr><td>乙：其余的，即没有登记成那一种、只报编号、服务问自己</td><td>不算</td><td>已定（问题 7）。比 ADR-016 第 9 节的字面宽</td></tr><tr><td>拿着本人访问令牌的程序（命令行、桌面端）直接到平台自己的执行入口</td><td>不算</td><td>已定（问题 8）。照现在的实现它与第一行分不出，要先补上面那处区分（S1-GW-004）</td></tr></tbody></table></div>
+<ul>
+<li>第一行与最后一行说的是平台自己的执行入口，不是判定接口：甲调不了执行前的判定。列在这里是为了把几种情形放在一起看。</li>
+<li>第四行为什么比字面宽：智能体经一个服务转来的调用和这个服务自己的后台作业，平台分不出来，所以碰到要人确认的操作都按不是人本人处理。ADR-016 第 10 节留了一条提议「替身期间平台怎么认出要拦」，这一行是对它的回答。这一行只管「要人确认」这一个标记，不管「仅限人工」，见下。</li>
+<li><strong>委托链启用以后，第四行不收回。</strong> 平台认得出智能体，靠的是调用方交来的令牌里有委托链。里面跑着智能体的系统同时也保管着本人的普通令牌；它交普通令牌、不交委托令牌，平台就看不出来。所以委托链启用以后仍按调用方登记的种类判断，不因令牌里没有委托链就算人本人。这是照问题 7 的「其余一律按不是人本人」读出来的，是本文的读法；到时候的对齐在 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-019.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-019</a>。</li>
+<li>算不算人本人看的是证据，即有没有本人的令牌、调用方登记的是哪一种系统，不看调用方在这一次请求里怎么说。</li>
+</ul>
+<p><strong>判定接口怎么回答。</strong> 执行前的判定除了判权限点，还看能力上的标记。看哪项能力不靠调用方报：平台自己查调用方那个组件登记的能力，哪些要求的权限点（<code>requiredPermission</code>）是这次判的。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>能力上的标记</th><th>算人本人</th><th>智能体主体，或者带着委托链</th><th>乙里其余不算人本人的</th></tr></thead><tbody><tr><td>没有标记</td><td>只看权限点</td><td>只看权限点</td><td>只看权限点</td></tr><tr><td>要人确认</td><td>只看权限点</td><td><code>allowed: false</code>，<code>reason: confirmation_required</code></td><td><code>allowed: false</code>，<code>reason: confirmation_required</code>。不放行是已定（问题 6、7）；用这个原因码表达、按权限点反查标记是提议</td></tr><tr><td>仅限人工</td><td>只看权限点</td><td><code>allowed: false</code>，<code>reason: human_only</code></td><td>只看权限点</td></tr></tbody></table></div>
+<ul>
+<li>带着平台转调用的凭据来问的，「要人确认」一行另有说法，见下面「别的系统里要人确认的操作怎么走」。</li>
+<li>中间一列现在不会出现：智能体主体还没有签发，带委托链的令牌一律拒绝。它随委托链启用。R52 的字面是智能体主体；带着委托链的算不算在里面，提议算，与「要人确认的能力由平台停」里「不是人本人」的说法一致，随委托链启用时定。</li>
+<li>「仅限人工」照 R52 的字面，只拦智能体，不拦服务：系统自己的后台作业、调度器调这类能力，只看权限点。后果是：委托链启用以前，智能体经一个服务转来的调用平台认不出来，「仅限人工」拦不住它，靠转请求的那个服务自己不转。这一条列在第 14 节末尾。</li>
+<li>命中几项能力时，逐项照上表得出结果，取最严的：<code>human_only</code> 重于 <code>confirmation_required</code>，重于只看权限点。</li>
+<li>两种拒绝都是 <code>allowed: false</code>，落在那项能力要求的权限点的结果上，调用方不会执行。判定接口本身不执行任何能力，也不生成等人输入的任务。</li>
+<li>请求里的 <code>capability</code> 只写进审计，不能让结果变松。由此的一条建议：要人确认的操作用单独的权限点，不和别的入口共用，免得别的入口跟着被拦。</li>
+<li>能力条目里 <code>requiredPermission</code> 是选填。没写它的能力，平台按权限点对不上；所以别的系统登记带这两个标记的能力时要写明它，由校验把关。</li>
+<li><strong>预判不看标记。</strong> 预判只判权限点。预判说行，执行前的判定仍可能回 <code>confirmation_required</code> 或 <code>human_only</code>；界面拿预判决定显示什么时要知道这一点。要不要在预判的结果里带出标记，随契约定稿。</li>
+<li><strong>与进程内不一样的地方。</strong> 平台宿主里的三处执行点现在不看这两个标记。同一个权限点，远程的执行前判定会比进程内多拦；平台自己的执行入口按标记拦是已定而没有实现的。见第 12 节。</li>
+<li><code>human_only</code> 与 <code>ACTION_HUMAN_ONLY</code> 的关系：后者是冻结契约里平台的执行入口回给智能体的错误码，前者是判定接口回给执行点的原因码。执行点收到 <code>human_only</code>，对它自己的调用方回 <code>ACTION_HUMAN_ONLY</code>（第 5.3 节）。两者拦的范围相同，都是智能体主体。</li>
+</ul>
+<p><strong>别的系统里要人确认的操作怎么走。</strong> <strong>已定（问题 6）</strong>：只留一条路，只能经平台执行。那个系统把操作登记成平台的能力，智能体经平台调；平台停下来等人点，人点了，平台再把调用转给那个系统。停的时候生成一条等人输入的任务，是此前已定的（「要人确认的能力由平台停」）。方向与 ADR-016 D16.9 相同（Agent 的调用一律经 MCP 路由，不直连服务）。这条路怎么走的细处是提议：</p>
+<ul>
+<li><strong>平台转来的调用，那个系统照样问执行前的判定，没有免判。</strong> 平台转调用时随调用给一份凭据，那个系统把它原样放进请求的 <code>platformInvocation</code> 里交回来，另带它按收到的输入算出的摘要。凭据算不算数、这一刻权限还在不在，都由平台判，并记审计；判定点仍只有 Kun 一处。
+<ul>
+<li>平台核验凭据：是平台自己签发的，没有过期，没有用过，受众是这个调用方；凭据里的能力是这个调用方那个组件登记的，它要求的权限点在这次判的里面；交上来的输入摘要与签发时记下的相同。验不过回拒绝，原因是 <code>platform_invocation_invalid</code>。</li>
+<li>被判定的主体以凭据为准，调用方不另写。凭据里写的是谁（提出调用的那一方，还是点头的人），本文不定：人点了以后以谁的名义执行，由等人输入的任务与能力执行入口的契约定（S1-RT-041），凭据照它写。</li>
+<li>权限在这一刻重新判，不沿用生成任务时的结论。任务可能挂很久，权限收回以后不该照样执行；这与第 8 节「执行前的判定不缓存」是同一个口径。</li>
+<li>「要人确认」这一条：平台只在自己的入口上走完这一步以后才签发凭据，即调用本来就是人本人直接调的，或者等过人点。凭据验得过，判定接口就不再回 <code>confirmation_required</code>。凭据里带着任务编号的，判定接口另核一遍那条任务确实已经由人点过同意，并把任务编号记进审计。</li>
+<li>「仅限人工」不因凭据放宽，照上表看主体的种类。</li>
+<li>没有标记的能力，平台转来的调用也一样带凭据、一样问。没有哪一类平台转来的调用可以不问。</li>
+</ul>
+</li>
+<li>凭据要满足的条件，是提议。凭据的格式与怎么签发随转调用的执行器，它的任务等 S1-RT-041 定稿再建（第 13.3 节）；这里只写判定接口靠着的几条：只对这一次调用有效；受众是那个系统；带着主体、能力编号、输入摘要，等过人点的另带任务编号；时效短；只能用一次。一份通用的「这是平台来的」凭据不行：那样平台里任何能发请求的代码，都能叫那个系统执行任何操作。</li>
+<li>人在那个系统自己的界面上直接操作，由那个系统的执行点问权限点。那个系统登记了 <code>qian.authz:decide.interactive</code>、又带着本人的令牌，就算人本人，不拦。</li>
+<li>那个系统直接收到不是人本人的调用、又问到一项要人确认的操作，得到的是 <code>confirmation_required</code>：它不许自己执行，应当把调用方引到平台的执行入口去。怎么引、对外回什么，随等人输入的任务的契约定稿（S1-RT-041；第 5.3 节）。</li>
+</ul>
+<p>另一条路是让那个系统自己生成任务、人点了以后自己执行。这条路不开（问题 6）。</p>
+<p>只留的这一条路要有两样东西：等人输入的任务与能力执行入口的契约；平台按 <code>http</code> 绑定转调用的执行器，与转调用时随调用给的凭据。裁定十个问题的时候两样都没有任务承接，另问了（S1-DEC-048 问题 1）。<strong>已定（S1-DEC-048 D1，2026-11-26）</strong>：现在先建契约的任务，只出契约；执行器等契约定了再建。契约的任务是 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-RT-041.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-RT-041</a>；执行器现在还没有任务，凭据随它一起等，是整理时的读法。见第 13.3 节。在它们做出来以前，判定接口对不算人本人的调用回 <code>confirmation_required</code>，平台一侧还没有入口接。</p>
+<p><strong>等人点头的任务上的动作。</strong> 同意、拒绝这些动作由平台自己的端点执行，缺省只能人做，这是已定的。<strong>已定（问题 8）</strong>：拿着本人访问令牌的程序不能在这些任务上做动作。落到实现上，提议那个端点只认带着登录会话经网关进来的请求，不经过别的系统。照现在的实现这一点做不到，要先补上面说的那处区分（S1-GW-004）。乙即使登记成了「只转达人在界面上的操作」也不算：本仓库登记的是确认卡的点击由浏览器直接交给平台，匠心的文档写的是带着这个人自己的登录、不经过模型、也不经过 DSH 实例（第 1.2 节）。判定接口不提供替人在任务上做动作的路。</p>
+<p><strong>不在本文里的。</strong> 等人输入的任务长什么样、点击怎么交给平台、能力经平台的入口怎么调，属于等人输入的任务与能力执行入口的契约，由 S1-RT-041 承接。平台按什么绑定把调用转给别的系统、凭据的格式与怎么签发，随转调用的执行器，它的任务等那份契约定了再建。本节只写了判定接口对那份凭据的要求。</p>
+<h2 class="rp-toc-include" id="11-审计性能与可用性"><a href="#11-审计性能与可用性" class="rp-header-anchor rp-link" aria-label="链接到 11 审计、性能与可用性">#</a>11 审计、性能与可用性</h2>
+<p>本节里已定的是哪些判定留审计（问题 5，第 11.1 节）。审计里加哪些字段、性能与可用性的数字都是提议，数字没有实测。</p>
+<h3 class="rp-toc-include" id="111-审计"><a href="#111-审计" class="rp-header-anchor rp-link" aria-label="链接到 11.1 审计">#</a>11.1 审计</h3>
+<p><strong>已定（问题 5）</strong>：执行前的那一次留，拒绝必记，放行按现有的采样配置；界面为了决定显示什么而问的，不逐条留，只计数。这也是平台宿主里现行的分法。选它等于确认 ADR-006 D6.6 的「每次决策」与需求文档安全一章的「每次 <code>Check</code>」在远程接口上这样读。</p>
+<p><strong>条件（问题 5）</strong>：高风险的权限点，放行也每条都记，不参加采样。</p>
+<ul>
+<li><strong>本文的读法</strong>：「高风险」指权限点声明的风险等级是 <code>high</code> 或 <code>critical</code>。风险等级有四级，在组件的 <code>metadata/permissions.json</code> 里声明。</li>
+<li>现在的采样对所有放行一视同仁，不看风险等级（对着代码读的）。提议在执行端口上改，这样进程内的三处执行点一并这样处理；进程内要不要一并处理不在这次裁定里，随 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-012.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-012</a> 定。</li>
+<li>由此，高风险的权限点在审计写不进时一律得到拒绝：要记的放行写不进审计，放行变成拒绝，这一条照现行。</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>调用</th><th>留不留</th><th>留什么</th></tr></thead><tbody><tr><td>执行前的判定</td><td>留，一个权限点一条。拒绝必记；放行按现有的采样配置，缺省全记；高风险的权限点放行每条都记，不参加采样</td><td>写进被判定主体所在租户的审计链，能力编号照旧是 <code>qian.authz/decision</code>。现有的字段都留着：权限点、入口、目标、资源、通道、放行还是拒绝、原因、命中的角色与授权记录、命中的策略、缺少的权限点、身份修订、是否经超管旁路。新加的都放在载荷里：执行点是谁（调用方的客户端 id 与组件 id）、<code>requestId</code>、主体是怎么证明的（令牌、只报编号，还是平台转调用的凭据）、算不算人本人、命中的能力标记与调用方报的能力编号；带了平台转调用的凭据时，另记凭据的编号与任务编号</td></tr><tr><td>预判、本人持有的权限点、允许的动作</td><td>不逐条留</td><td>只记指标：按调用方、按结果计数</td></tr><tr><td>解释</td><td>不逐条留</td><td>这一版只有解释自己与带令牌解释那个人。持有授权管理权限的人解释别人随管理端点做，那时要留</td></tr><tr><td>数据范围、字段权限</td><td>不逐条留</td><td>只记指标</td></tr><tr><td>登记、改动、收回机器身份与它的调用资格</td><td>留</td><td>这是管理操作的审计，不是决策审计。「只转达人在界面上的操作」这项资格的给出、改动、收回必须留，是问题 7 的条件；别的登记项也留，是提议</td></tr></tbody></table></div>
+<ul>
+<li>审计里不存主体令牌。请求里 <code>context</code> 存哪几项、存原文还是哈希，随契约定稿。</li>
+<li>要记的放行写不进审计，放行变成拒绝。这一条照现行，不变。</li>
+<li><strong>记成谁。</strong> 审计记录里有「执行主体」与「代表谁」两栏。进程内的决策审计把被判定的主体记在「执行主体」里，「代表谁」留空。提议远程照同一口径：「执行主体」记被判定的主体，执行点是谁写进载荷。这样同一个人的判定，不论在进程内判还是远程判，按同一栏查得到。「代表谁」留给委托链启用以后。</li>
+<li>被判定的主体认不出来，或者不在调用方的租户里：这一条记在调用方自己的链上，不进别的租户的链，「执行主体」记调用方自己。调用方是平台级的服务时没有租户可落，记在平台链上；平台链要先配好（审计组件要另配平台角色），没有配的话这种拒绝只进日志，<code>logged</code> 为假。</li>
+<li>针对整次请求的拒绝与因能力标记的拒绝，也按权限点逐条记，原因照第 5.3 节。</li>
+<li>远程的系统应当把 <code>decisionId</code> 连同 <code>logged</code> 记进它自己的业务日志，两边才对得上。<code>logged</code> 为假的那些在审计里没有记录。</li>
+<li>入口这个维度现在有 <code>http</code>、<code>grpc</code>、<code>command</code> 三个取值，远程的记成一个新的取值。</li>
+</ul>
+<h3 class="rp-toc-include" id="112-性能"><a href="#112-性能" class="rp-header-anchor rp-link" aria-label="链接到 11.2 性能">#</a>11.2 性能</h3>
+<p>下面的数字是起步的提议值，没有实测，要先做基线测试再定（<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-017.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-017</a>）。已有的一个实测只能参考：两个宿主之间，一个授予以后另一个的首次判定用了 10 到 15 毫秒。它测的是直接调判定器，不含执行端口的审计、HTTP 与网关，不能和下表直接比。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>指标</th><th>提议的目标</th></tr></thead><tbody><tr><td>执行前的判定，平台宿主内的处理时间，放行并写审计，p95</td><td>20 毫秒以内</td></tr><tr><td>同一集群里经网关的端到端，p95</td><td>50 毫秒以内</td></tr><tr><td>批量预判 50 条，平台宿主内，p95</td><td>50 毫秒以内</td></tr><tr><td>客户端判不了时回拒绝</td><td>总预算以内，缺省 2 秒</td></tr><tr><td>权限变更的生效时间</td><td>执行前的判定：下一次判定。界面用的结果：缺省 3 秒以内，可以配置。数据范围：3 秒以内。这一行照问题 4，是已定的</td></tr></tbody></table></div>
+<p>几处要先量的：</p>
+<ul>
+<li>放行并写审计是这条路径上最贵的一步：审计链每个租户一条，同一个租户的写入是串行的。放行的采样比例可以配。</li>
+<li>每次判定经网关多一跳，网关要验一次令牌、签一次内部令牌。</li>
+<li>核验主体令牌如果问自省端点，每次再多一跳。</li>
+<li>网关对这条路由的限流现在按主体计，一个执行点替很多人问，全部计在它自己名下，要重新定额度。</li>
+<li>目标的吞吐量没有定。</li>
+</ul>
+<h3 class="rp-toc-include" id="113-可用性"><a href="#113-可用性" class="rp-header-anchor rp-link" aria-label="链接到 11.3 可用性">#</a>11.3 可用性</h3>
+<ul>
+<li>判定这条路成了每个接入系统的必经之路。它的可用性不能低于平台其余接口。</li>
+<li>企业版：网关与平台宿主至少各两个副本，判定不能依赖任何单点。</li>
+<li>单机版：身份与平台同一个进程，可用性等于那台机器。</li>
+<li>可用性的数字没有定。</li>
+</ul>
+<h2 class="rp-toc-include" id="12-与现行决策的出入"><a href="#12-与现行决策的出入" class="rp-header-anchor rp-link" aria-label="链接到 12 与现行决策的出入">#</a>12 与现行决策的出入</h2>
+<p>起草者的看法：下面没有一处与 ADR-006 相反，多数是范围比它写的大，或者要补一句才读得通。前四列是起草时写的，没有改。末一列是 2026-11-26 裁定以后的状态：裁定答到的，已照本仓库的做法在相应的 ADR 末尾追加带日期的小节，原文不改；没有答到的照旧是提议，写明由哪个任务接着做。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>现行的写法</th><th>出处</th><th>本文的提议</th><th>起草时的性质</th><th>2026-11-26 以后</th></tr></thead><tbody><tr><td>端口是查一条、批量查、列出允许的动作、列出权限点、解释</td><td>ADR-006 D6.1；需求文档 7.5 节的接口清单</td><td>远程多一个执行前的判定。它对应的执行端口已经在进程里（S1-AZ-004 交付），只是需求文档的接口清单里没有它</td><td>加上的内容</td><td>问题 1 定了先做登记过的系统代问，执行前的判定随它要做。记在 ADR-006 第 10 节；需求文档 7.5 节接口清单的修订注留给 S1-AZ-011</td></tr><tr><td>每次决策可解释并入审计的哈希链</td><td>ADR-006 D6.6；需求文档 13.9 节写「每次 <code>Check</code>」</td><td>执行前的判定记，预判不逐条记。平台宿主里现在记的是经执行端口的判定；「列出持有的权限点」与几处组件内直接调判定器的判定不逐条记</td><td>读法，要确认，见问题 5</td><td>已定（问题 5），连同高风险的放行每条都记的条件。记在 ADR-006 第 10 节，D6.6 前加了标注；需求文档 13.9 节的修订注留给 S1-AZ-011</td></tr><tr><td>数据权限编译成谓词在本地执行，行级安全策略永远兜底</td><td>ADR-006 D6.4</td><td>远程的系统在它自己的库里执行过滤。平台的行级安全策略管不到别人的库，兜底在那里不成立，租户隔离要那个系统自己保证</td><td>范围不同，要补一句，要确认</td><td>没有问过，仍是提议。写在第 14 节「没有列成问题、但应当知道的」里，随 S1-AZ-018</td></tr><tr><td>网关加服务端双层强制</td><td>ADR-006 D6.8</td><td>远程的系统有自己的入口，不在 Kun 的网关后面。它那里只有它自己的执行点这一层。平台转来的调用是例外：平台的入口判一次，那个系统再问一次</td><td>范围不同，要补一句</td><td>问题 6 定了要人确认的操作只能经平台执行，记在 ADR-016 第 11 节；「那个系统再问一次」仍是提议</td></tr><tr><td>主体和租户来自已验证的请求身份</td><td><code>AGENTS.md</code> 的运行时约定；现有 <code>me/permissions</code> 的做法；ADR-016 D16.9（用户态鉴权取服务间令牌里的主体、租户与 scope）</td><td>接法乙里被判定的主体写在请求体里，调用方是另一个主体。带主体令牌时，主体与租户仍然来自核验过的令牌；只报编号时不是</td><td>新的调用方式，要写进决策记录</td><td>问题 2 定了代问缺省带本人的令牌、由平台自己核对。记在 ADR-010 第 10 节与 ADR-005 第 10 节；<code>AGENTS.md</code> 里那一句的补充留给 S1-AZ-011</td></tr><tr><td>租户域的端点见到平台级的主体一律拒绝</td><td>冻结契约的说明（<code>contracts/v0/README.md</code> 第 4 节第 3 条）</td><td>平台级的服务带着主体令牌替某个租户的人问，是一处显式的例外，范围只有判定接口</td><td>例外，要裁定，见问题 3</td><td>已定（问题 3），连同后台作业按租户各登记的条件。记在 ADR-006 第 10 节；写进契约说明的对齐差异留给 S1-AZ-011，冻结的契约这次没有动</td></tr><tr><td>下游的服务只认网关签发的内部令牌</td><td><code>AGENTS.md</code> 的运行时约定（服务间零信任）；ADR-010</td><td>平台宿主另外核验身份服务签发的主体令牌。这是一条新的认证路径；仓库的约定是新的横切机制要先有决策记录，建议回写 ADR-010 与 <a href="/design/adr/adr-005-identity-sso.html" class="rp-link">ADR-005</a></td><td>新的机制，要先有决策记录</td><td>平台要自己核对本人的令牌，随问题 2 已定，记在 ADR-010 第 10 节与 ADR-005 第 10 节；核对落在平台宿主上、走哪条路核验是提议，由 S1-AZ-013 在动手前补进决策记录</td></tr><tr><td>带委托链的请求一律拒绝，不能把没有实现的委托解析当成普通调用</td><td>现有端点与执行端口的做法</td><td>不变。接法乙不带委托链，「服务替人问」写在请求体与审计里</td><td>没有出入</td><td>不变</td></tr><tr><td>统一主体模型加委托链，启用以后 Agent 的有效权限取交集</td><td>ADR-006 D6.12</td><td>不变。委托链启用以后，接法乙里带主体令牌的一种与委托令牌怎么并存，没有定</td><td>待定</td><td>问题 1 定了这一种接法随里程碑 M1；两种怎么并存仍没有定，在 S1-AZ-019</td></tr><tr><td>权限不进令牌；有效权限按主体缓存，身份修订递增加推送刷新即时失效</td><td>ADR-006 D6.7</td><td>执行前的判定每次都问；预判与数据范围按 3 秒以内的时长缓存，没有推送。按需求文档 7.5 节「3 秒以内生效」的口径读，这不算出入；按「即时失效」的字面读，预判与数据范围最多慢 3 秒</td><td>读法，要确认，见问题 4</td><td>已定（问题 4），连同界面用的结果缓存多久做成配置的条件。记在 ADR-006 第 10 节，D6.7 前加了标注</td></tr><tr><td>工具元数据生成默认的工具策略，运行时的权威仍是 Agent 运行时一侧的工具策略与风险门禁</td><td>ADR-016 D16.3 (c)；只在要人确认这一件上被修订，见它的第 9 节</td><td>本文提议判定接口对不是人本人的调用回 <code>confirmation_required</code>，方向与那次修订相同。那次修订没有说远程的判定接口回什么；「乙里怎样算人本人」是本文加的</td><td>加上的内容，是提议，见问题 7</td><td>怎样算人本人已定：别的系统替人来问时照问题 7，拿着本人令牌的程序照问题 8。记在 ADR-016 第 11 节；原因码的名字是提议</td></tr><tr><td><code>agent.expose</code> 为假：服务端拒绝智能体主体的调用，错误码 <code>ACTION_HUMAN_ONLY</code></td><td>冻结契约的说明第 8 节第 8 条（R52）</td><td>判定接口用原因码 <code>human_only</code> 回给执行点，执行点对外回 <code>ACTION_HUMAN_ONLY</code>。拦的范围照 R52 的字面，是智能体主体，不拦服务；带着委托链的算不算，随委托链启用时定</td><td>没有出入</td><td>不变。要不要连服务也拦没有问过</td></tr><tr><td>平台宿主里的三处执行点只判权限点，不看能力上的两个标记；标记现在只在给模型列能力时用到</td><td>现有的做法，对着代码读的。按标记拦是已定而没有实现的（ADR-016 第 9 节；R52）</td><td>远程的执行前判定按权限点反查能力上的标记。同一个权限点，远程判会比进程内多拦，直到平台自己的入口也按标记拦</td><td>加上的内容，是提议</td><td>仍是提议，随 S1-AZ-012</td></tr><tr><td>网关按有没有 <code>Authorization</code> 头选认证方式，换签出来的内部令牌里不记这个人是怎么进来的</td><td>现有的做法，对着代码读的；冻结的服务间令牌契约</td><td>平台自己的执行入口与任务动作的端点要认得出登录会话。提议网关给登录会话来的请求加一个 scope，或者相应的路由只接登录会话。照冻结契约的说法，加的是 scope，不是声明</td><td>新的机制，要先有决策记录，见问题 8</td><td>「要补这一处区分」已定（问题 8），记在 ADR-010 第 10 节、ADR-016 第 11 节与 ADR-012 第 10 节；用哪种办法是提议，由 S1-GW-004 先写决策记录</td></tr><tr><td>不带代码的组件用 <code>http</code> 绑定把能力指到自己的端点</td><td>组件模型规格。代码里只有对这种绑定的出口校验，没有按它转调用的执行器</td><td>平台转来的调用，那个系统照样问执行前的判定，交上平台给的凭据。凭据要满足的条件见第 10 节，格式不在本文里</td><td>加上的内容，是提议，见问题 6</td><td>只能经平台执行已定（问题 6）。先建契约的任务、执行器等契约定了再建，已定（S1-DEC-048 D1）；契约的任务是 S1-RT-041，凭据随执行器一起等是整理时的读法，见第 13.3 节</td></tr><tr><td>最小角色授权页用前端框架的授权树等组件</td><td>S1-AZ-005 的背景与验收第 2 条</td><td>前端框架的仓库已归档（S1-DEC-043 D1）。已定的是最终的界面放匠心或另一个仓库（S1-DEC-041 D6）；Kun 自己的管理页面怎么办没有定。本文提议把这一页从 S1-AZ-005 里拆出来，免得端点等界面</td><td>要改任务，见第 13 节</td><td>已拆成 S1-AZ-023。后来另问过，2026-11-26 定了这一页不在本仓库里做，页面放匠心的管理端，本仓库只交付接口（S1-DEC-048 D2）。照此 S1-AZ-023 关闭，见第 13.1 节</td></tr></tbody></table></div>
+<h2 class="rp-toc-include" id="13-任务清单"><a href="#13-任务清单" class="rp-header-anchor rp-link" aria-label="链接到 13 任务清单">#</a>13 任务清单</h2>
+<p>起草时本节是提议，看板上的任务没有动。2026-11-26 裁定以后照本节建了任务，下面两张表各加了一列编号。任务都还没有开始。</p>
+<p>优先级是整理时标的：拆出的四个沿用原任务的优先级 P0，其中最小角色授权页后来关闭（第 13.1 节）；契约定稿（S1-AZ-011）因为拆出的 S1-AZ-020 依赖它，也标优先级 P0；新建的其余任务标优先级 P1 或 P2。</p>
+<p>排期后来另问过（S1-DEC-048 问题 4）。<strong>已定（S1-DEC-048 D4，2026-11-26）</strong>：这些任务不排进「初步可用」；等确认卡的最小一圈排上时，再把它要用的三样提前。<strong>本文的读法</strong>：「这些任务」「不排」说的是远程接口最小的一条线，即执行前的判定、登记过的系统代问、第一个使用方用的客户端包，它们排在「初步可用」之后，照现在标的优先级；所以优先级这次都不动。已经在路径上的 S1-AZ-020 至 S1-AZ-022 与 S1-AZ-011 不在那一问里，照旧标优先级 P0。「三样」列给产品负责人时没有点名，照 S1-DEC-048 问题 4 的建议读作：登记机器身份的入口（S1-AZ-024）、网关那处区分（S1-GW-004）、等人输入的任务与能力执行入口的契约（S1-RT-041）；这三个任务的背景里各写了「确认卡的最小一圈排上时跟着提前」。那一圈什么时候排上，没有定。</p>
+<h3 class="rp-toc-include" id="131-s1-az-005-怎么拆"><a href="#131-s1-az-005-怎么拆" class="rp-header-anchor rp-link" aria-label="链接到 13.1 S1-AZ-005 怎么拆">#</a>13.1 S1-AZ-005 怎么拆</h3>
+<p><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-005.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-005</a> 原来一个任务里有四样东西，估 3 天，依赖组织目录与前端框架的组件。已照下表拆成四个，原任务照任务看板拆分的规矩关闭。原任务的六条验收分到后三个里，不丢；第一个没有对应的验收，是新写的。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>拆出的任务</th><th>编号</th><th>内容</th><th>承接原任务的验收</th><th>依赖</th></tr></thead><tbody><tr><td>判定的端点（本人）</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-020.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-020</a></td><td><code>check</code>、<code>batch-check</code>、<code>me/allowed-actions</code>、<code>explain</code>（只解释自己），现有端点加 <code>ttlMs</code> 与 <code>authzRevision</code>。就是接法甲</td><td>没有对应的，新写了</td><td>S1-AZ-003、S1-AZ-004 已完成；端点的形状等契约定稿（第 13.2 节第 1 项）</td></tr><tr><td>角色与授权的管理端点</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-021.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-021</a></td><td>角色与授权的增、改、撤；管理用的权限点；授予平台超管标仅限人工，授权变更标要人确认；持有授权管理权限的人解释别人</td><td>第 3、6 条；第 5 条里端点的那一半</td><td>S1-AZ-003、S1-AZ-004 已完成</td></tr><tr><td>目录主体解析</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-022.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-022</a></td><td>组织、岗位、用户组的归属接进判定；归属变了按成员递增身份修订</td><td>第 1、4 条</td><td>S1-AZ-003、S1-IDP-009、S1-IDP-010，都已完成</td></tr><tr><td>最小角色授权页</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-023.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-023</a>，已关闭</td><td>界面。不在本仓库里做，见表下</td><td>第 2 条；第 5 条里页面的那一半。两条随页面走</td><td>前三项</td></tr></tbody></table></div>
+<p><strong>已定（S1-DEC-048 D2，2026-11-26）</strong>：最小角色授权页不在本仓库里做，本仓库只交付接口，页面放匠心的管理端。列给产品负责人的代价是：管理端做出来以前，给人授角色只有接口、没有页面。<strong>本文的读法</strong>：「接口」是上表前三项的端点与契约；S1-AZ-023 照任务看板的规矩关闭，它承接的两条验收随页面走，由做页面的一方接，本仓库只测端点，其中「成员里不含平台超管」端点的那一半在 S1-AZ-021。匠心的管理端还是规划，这两条验收现在没有任务接着。用什么做这一页，随匠心的管理端，不在本仓库里定。</p>
+<h3 class="rp-toc-include" id="132-远程接口新建的任务"><a href="#132-远程接口新建的任务" class="rp-header-anchor rp-link" aria-label="链接到 13.2 远程接口新建的任务">#</a>13.2 远程接口新建的任务</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>序</th><th>任务</th><th>编号</th><th>内容</th><th>依赖</th></tr></thead><tbody><tr><td>1</td><td>契约定稿与决策记录</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-011.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-011</a></td><td>OpenAPI 文档、Schema、样例，起草期标 draft，放哪个目录见第 6 节；把仍是提议的形状逐项定下来。决策记录里已经做了的：ADR-005、ADR-006、ADR-010、ADR-012、ADR-016 各追加了小节。留给它的：平台级服务的例外写进契约说明的对齐差异；<code>human_only</code> 与 <code>ACTION_HUMAN_ONLY</code> 的关系；需求文档 7.5 节与 13.9 节的修订注；<code>AGENTS.md</code> 里「主体和租户来自已验证的请求身份」的补充</td><td>第 14 节的裁定，已有</td></tr><tr><td>2</td><td>执行前的判定</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-012.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-012</a></td><td><code>POST /api/authz/enforce</code>；一个权限点一条审计，审计里加执行点等字段，入口加一个取值；高风险的放行每条都记（问题 5 的条件）；按能力上的标记回答（第 10 节）。核验平台转调用的凭据不在它的验收里：那要等转调用的执行器与凭据的任务（第 13.3 节），它先让带着凭据的请求一律得到拒绝</td><td>1；S1-AZ-004 已完成。按标记回答这一条在别的系统身上用得上，要等第 6 项把它的能力装进平台；用例拿平台宿主里已有的能力来验，不等它</td></tr><tr><td>3</td><td>登记过的系统代问</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-013.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-013</a></td><td>三个 scope；请求体里的主体；核验主体令牌（问题 2）；平台级的服务只能带主体令牌问，共用的系统在各租户名下的身份随租户开通自动登记（问题 3 与它的条件）；「只转达人在界面上的操作」这项登记的条件（问题 7）；代问的预判（<code>check</code>、<code>batch-check</code>）、<code>allowed-actions</code> 与带令牌的 <code>explain</code>；网关给这条路由的限流按什么计，额度先给起步值。登记机器身份的入口单列成了第 11 项</td><td>1、11；与 2 一起才用得上</td></tr><tr><td>4</td><td>TypeScript 客户端包</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-014.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-014</a></td><td>Node 与浏览器两个入口；缓存、超时、判不了一律拒绝</td><td>1、5。先 .NET 已定（S1-DEC-048 D3），第 5 项这条依赖是整理时连的。浏览器的入口里只用 <code>me/permissions</code> 的那部分不等 1 与 5，可以先做</td></tr><tr><td>5</td><td>.NET 远程模式的包</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-015.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-015</a></td><td>远程的执行端口与判定器，加一种远程模式（第 7.3 节）；包的档位与角色；一致性用例与替身服务由它带出来（见下面「先后」）</td><td>1、2、3</td></tr><tr><td>6</td><td>别的系统声明权限点</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-016.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-016</a></td><td>平台宿主认不带代码的组件；一个给别的系统照着写的样例与指南；运行期登记靠 S1-AZ-007</td><td>S1-AZ-007</td></tr><tr><td>7</td><td>基线测试</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-017.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-017</a></td><td>量第 11.2 节的几项，定目标与限流的额度，量出来的额度由它落进配置；界面用的结果缺省 3 秒撑不撑得住（问题 4 的条件）</td><td>2、3</td></tr><tr><td>8</td><td>数据范围与字段权限的端点</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-018.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-018</a></td><td>第 5.5 节</td><td>1、3；数据权限、字段权限的求值。求值排在 S2，看板上没有任务</td></tr><tr><td>9</td><td>委托链启用以后的对齐</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-019.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-019</a></td><td>接法丙；乙与委托令牌怎么并存；「仅限人工」算不算带着委托链的。乙里按调用方登记的种类判断，这一条不随委托链收回（第 10 节）</td><td>2、3；里程碑 M1 的智能体主体与委托链，看板上相邻的是 S1-AGT-003</td></tr><tr><td>10</td><td>网关分清登录会话与访问令牌</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-GW-004.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-GW-004</a></td><td>网关给登录会话来的请求加记号，或者相应的路由只接登录会话；平台自己的执行入口与任务动作的端点凭它认人本人。它不属于远程接口，是第 10 节靠着的前提。「要补」已定（问题 8）；用哪种办法由它先写决策记录</td><td>S1-GW-001 已完成；先有决策记录</td></tr><tr><td>11</td><td>登记机器身份的入口</td><td><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-024.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-024</a></td><td>平台宿主里在运行期登记机器身份：归属的租户（空表示平台级）、组件 id、系统作为资源的标识；登记、改动、收回留审计。自第 3 项单列出来：第 3 项原估 8 天，超过看板拆到 1 至 5 天的粒度，这个入口另有两处等着用</td><td>不等第 1 项；S1-IDP-002 已完成</td></tr></tbody></table></div>
+<p>先后：</p>
+<ul>
+<li>第 1 项定稿以后，第 2、3 项可以并行；第 3 项另要等第 11 项。</li>
+<li>两个客户端包（第 4、5 项）谁在前看第一个使用方（问题 9 的条件）。<strong>已定（S1-DEC-048 D3，2026-11-26）</strong>：先 .NET。<strong>本文的读法</strong>：第 5 项排在第 4 项前面；一致性用例与替身服务照第 7.1 节的提议由先做的那一个带，现在就是第 5 项；第 4 项里浏览器的入口只用现有只读端点的那一部分不受先后影响，照旧可以先做。.NET 的包要等第 2、3 项。第 5 项的估时是没有定谁带用例与替身服务时估的，没有重估。</li>
+<li>第 10 项与远程接口的几项不相干，可以单独排；平台自己的执行入口按标记拦、等人点头的任务实现的时候要有它。它是本节开头读出来的三样之一，确认卡的最小一圈排上时跟着提前。</li>
+<li>第 11 项（登记机器身份的入口）不等第 1 项，可以最先做。有三处等着用它：第 3 项；<a href="/design/prd/specs/model-service-interface.html" class="rp-link">模型服务标准接口的草案</a>里平台上的服务与应用用自己的服务身份取令牌，那份草案的问题还没有裁定，这里只记依赖，没有动它和它的任务【经 S1-DEC-049 标注（2026-11-27）：那份草案的九个问题都答了，见 S1-DEC-044；本句不改】；确认卡的最小一圈用替身演示时，匠心的工作区服务用自己的服务身份调平台（ADR-016 第 10 节）。它是本节开头读出来的三样之一，确认卡的最小一圈排上时跟着提前；另外两处先排上的话它也跟着提前，这一句是整理时写的，没有问过。第 2 项的用例可以用配置里登记的机器身份，不等它。</li>
+</ul>
+<h3 class="rp-toc-include" id="133-经平台执行要有的两样与没有动的"><a href="#133-经平台执行要有的两样与没有动的" class="rp-header-anchor rp-link" aria-label="链接到 13.3 经平台执行要有的两样，与没有动的">#</a>13.3 经平台执行要有的两样，与没有动的</h3>
+<p>问题 6 定了要人确认的操作只能经平台执行，这条路要有两样东西。裁定十个问题的时候它们都没有任务承接，另问了（S1-DEC-048 问题 1）。<strong>已定（S1-DEC-048 D1，2026-11-26）</strong>：现在先建契约的任务，只出契约；平台把调用转给别的系统的执行器等契约定了再建。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>要有的</th><th>现状</th><th>归到哪个领域</th><th>什么时候建</th></tr></thead><tbody><tr><td>等人输入的任务与能力执行入口的契约：任务长什么样、点击怎么交给平台、能力经平台的入口怎么调</td><td>任务已建，是 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-RT-041.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-RT-041</a>，只出契约，还没有开始。看板上相邻的 S1-RT-007 预留 Operation 资源的形状，只定接口、不落实现；两个任务怎么分写在 S1-RT-041 的背景里。确认卡的最小一圈也要用到这一样；那一圈拆出来的任务进不进看板，没有定（S1-DEC-042）</td><td>运行时与能力（RT）。列给产品负责人的话里没有写领域，照 S1-DEC-048 问题 1 选项（一）的写法，是整理时的读法</td><td>现在先建（已定）；任务已建</td></tr><tr><td>平台按 <code>http</code> 绑定把调用转给别的系统的执行器，与转调用时随调用给的凭据</td><td>没有任务承接。代码里只有对这种绑定的出口校验</td><td>提议也归运行时与能力（RT）；判定接口核验凭据的那一侧留在鉴权，就是 S1-AZ-012 没有放进验收的那一条。这两句在 S1-DEC-048 问题 1 的选项（一）里，列给产品负责人的话里没有</td><td>执行器等上一样的契约定了再建（已定）；凭据随执行器一起等，是整理时的读法。由谁建没有说，写进了 S1-RT-041 的验收：契约定稿时建</td></tr></tbody></table></div>
+<p>还有一样没有任务承接，这次也没有问：平台一侧的实现，即执行入口按标记停、任务的存取、提交动作的端点。S1-RT-041 只出契约；实现谁做、什么时候做，没有定。</p>
+<p>本文没有替表里的两样定范围：契约的范围写在 S1-RT-041 里，是建任务时写的，没有问过；第 10 节只写了判定接口对那份凭据的要求。</p>
+<p>没有动的：</p>
+<ul>
+<li><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-007.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AZ-007</a>（运行期组件的权限目录）不改，上表第 6 项依赖它。</li>
+<li><a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-IDP-012.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-IDP-012</a>（拆分部署下的身份修订递增）、<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-SCH-003.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-SCH-003</a>（实时推送）、<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AGT-003.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-AGT-003</a>（主体模型与委托链的验证）不改。</li>
+<li>把授权变更的通知送到平台外，没有任务承接；现在靠按时长缓存（第 8 节）。</li>
+<li>指到 S1-AZ-005 的地方，拆分以后要跟着改指。本仓库文档站「在 .NET 里接权限」一页文末「还没有的」里的两行已经改了。匠心《总体架构》第 2.1 节那张「谁怎么问 Kun」的提议表与《路线》里权限统一的一行还没有改，在匠心的仓库里改。最小角色授权页放匠心的管理端这一条（S1-DEC-048 D2）是项目之间的分工，也在匠心的仓库里写，这次没有改。</li>
+</ul>
+<h2 class="rp-toc-include" id="14-向产品负责人问过的十个问题与答复"><a href="#14-向产品负责人问过的十个问题与答复" class="rp-header-anchor rp-link" aria-label="链接到 14 向产品负责人问过的十个问题与答复">#</a>14 向产品负责人问过的十个问题与答复</h2>
+<p>产品负责人 2026-11-26 答：「远程的授权接口 也按照建议执行」。「建议」是整理时列给他的十条，一条对一个问题，都是该问题的选项（一），其中六条在选项（一）之外加了条件或说明；列给他的十条照录在 <a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-045.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-045</a> 里。他只说了这一句，没有逐条回；条件算进已定，是整理时的读法（第 1.2 节）。</p>
+<p>下面每个问题的背景、选项、影响与建议是提问时的原文，没有改；各问末尾加了一条「答复」。提问时写的是：每个问题能用一句话问出来；「建议」是起草者的建议；前八个改了以后在产品上看得见，或者是安全的边界；后两个是技术上的选择，可以回头改。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar" tabindex="0" role="region" aria-label="可滚动表格"><table><thead><tr><th>序</th><th>问题</th><th>提问时的建议</th><th>答复（2026-11-26）</th></tr></thead><tbody><tr><td>1</td><td>远程的授权接口，先做哪几种接法？</td><td>先做人问自己与登记过的系统代问，智能体那一种随 M1</td><td>选项（一）</td></tr><tr><td>2</td><td>别的系统替某个人问权限时，缺省要不要带上这个人的登录令牌？</td><td>要带，例外逐个登记</td><td>选项（一）</td></tr><tr><td>3</td><td>多租户版里几个租户共用的后端系统，用一个身份替各租户的人问，还是每个租户各登记一个身份？</td><td>用一个身份，但只能带着本人的登录令牌问</td><td>选项（一），带条件</td></tr><tr><td>4</td><td>别的系统里，权限改了以后最长多久生效？</td><td>守 3 秒</td><td>选项（一），带条件</td></tr><tr><td>5</td><td>别的系统来问的判定，哪些留审计记录？</td><td>执行前的那一次留，界面用的只计数</td><td>选项（一），带条件</td></tr><tr><td>6</td><td>别的系统里标了要人确认的操作，只能经平台来执行，还是也允许那个系统自己执行？</td><td>只能经平台</td><td>选项（一）</td></tr><tr><td>7</td><td>别的系统替人来问时，什么情况算「人自己在界面上直接操作」、不用等人确认？</td><td>只有登记成「只转达人在界面上的操作」的系统带着本人的令牌才算</td><td>选项（一），带条件</td></tr><tr><td>8</td><td>拿着本人的登录令牌、不经浏览器直接连平台的程序，做要人确认的操作时要不要也等人点？</td><td>要等，先一律按不是人本人</td><td>选项（一），带条件</td></tr><tr><td>9</td><td>客户端包先出哪几种语言？</td><td>TypeScript 与 .NET</td><td>选项（一），带条件</td></tr><tr><td>10</td><td>协议只做 HTTP，还是 HTTP 与 gRPC 都做？</td><td>先只做 HTTP</td><td>选项（一）</td></tr></tbody></table></div>
+<h3 class="rp-toc-include" id="问题-1远程的授权接口先做哪几种接法"><a href="#问题-1远程的授权接口先做哪几种接法" class="rp-header-anchor rp-link" aria-label="链接到 问题 1：远程的授权接口，先做哪几种接法？">#</a>问题 1：远程的授权接口，先做哪几种接法？</h3>
+<ul>
+<li>背景：这一件在 ADR-006 第 9 节里写明没有定。远程的接法有三种（进程内的那一种已有，不在这一问里）：人问自己能做什么，给界面用；登记过的后端系统替某个人问，给业务系统当执行点用；智能体带着委托链问，等里程碑 M1。</li>
+<li>选项：
+<ul>
+<li>（一）先做前两种，第三种随 M1。</li>
+<li>（二）只先做第一种，后端系统替人问等 M1 的委托链一起做。</li>
+<li>（三）三种一起，等 M1。</li>
+</ul>
+</li>
+<li>影响：
+<ul>
+<li>选（二）或（三），M1 之前别的后端系统当不了执行点。它只能拿着这个人的令牌、以这个人的名义问一句预判，问出来的不记审计，审计里也没有「哪个系统执行的」；匠心的工作区服务要判「这个人能不能用工作区」，也只能这样问。</li>
+<li>这样问还有一层：以这个人的名义经网关问，后端系统手里就得保管这个人受众是网关的访问令牌。这种令牌拿到网关就是这个人本人；照现在的实现，它在平台自己的入口上还绕得过要人确认（第 10 节）。</li>
+<li>选（一）要多做一种调用方式，委托链启用以后它和委托令牌怎么并存还要再定。</li>
+</ul>
+</li>
+<li>建议：（一）。取舍的方向与确认卡那一圈「先用替身、不等 M1」相同（ADR-016 第 10 节）；那一条只定了确认卡那一圈，不覆盖这一问。</li>
+<li>答复（2026-11-26）：选项（一）。先做前两种，第三种随 M1。没有加条件。列给他时写的理由是匠心的工作区服务和管理端现在就要在服务端判权限，等不了 M1。整理者的更正（2026-11-26）：其中「管理端」不准，管理端只有浏览器一侧（S1-DEC-041 D5），用的是本人问自己的预判，要在服务端判权限的只有工作区服务；结论不变。写在第 3 节；本人问自己的端点是 S1-AZ-020，登记过的系统代问是 S1-AZ-012 与 S1-AZ-013，登记机器身份的入口是 S1-AZ-024，第三种的对齐是 S1-AZ-019。</li>
+</ul>
+<h3 class="rp-toc-include" id="问题-2别的系统替某个人问权限时缺省要不要带上这个人的登录令牌让平台自己核对"><a href="#问题-2别的系统替某个人问权限时缺省要不要带上这个人的登录令牌让平台自己核对" class="rp-header-anchor rp-link" aria-label="链接到 问题 2：别的系统替某个人问权限时，缺省要不要带上这个人的登录令牌，让平台自己核对？">#</a>问题 2：别的系统替某个人问权限时，缺省要不要带上这个人的登录令牌，让平台自己核对？</h3>
+<ul>
+<li>选项：
+<ul>
+<li>（一）缺省要带；拿不到本人令牌的场合（比如后台作业）逐个登记成例外。</li>
+<li>（二）登记过的系统报一个人的编号就可以问。</li>
+</ul>
+</li>
+<li>影响：（二）接起来简单，但登记过的系统可以查本租户任何人在它那个组件里的权限，审计里「替这个人判定过」只凭那个系统一句话。（一）接入的系统要先接平台的登录、拿到受众是它自己的本人令牌；后台作业要逐个登记。</li>
+<li>建议：（一）。</li>
+<li>答复（2026-11-26）：选项（一）。缺省要带，例外逐个登记。没有加条件。写在第 4.3 节，由 S1-AZ-013 承接。</li>
+</ul>
+<h3 class="rp-toc-include" id="问题-3多租户版里几个租户共用的一个后端系统是用一个身份替各租户的人问还是每个租户各登记一个身份"><a href="#问题-3多租户版里几个租户共用的一个后端系统是用一个身份替各租户的人问还是每个租户各登记一个身份" class="rp-header-anchor rp-link" aria-label="链接到 问题 3：多租户版里几个租户共用的一个后端系统，是用一个身份替各租户的人问，还是每个租户各登记一个身份？">#</a>问题 3：多租户版里几个租户共用的一个后端系统，是用一个身份替各租户的人问，还是每个租户各登记一个身份？</h3>
+<ul>
+<li>背景：冻结的契约写着，租户域的端点见到不属于任何租户的主体一律拒绝。几个租户共用的系统用一个身份来问，是这条规则之外的事。</li>
+<li>选项：
+<ul>
+<li>（一）允许用一个身份，但只能带着本人的登录令牌问，租户以令牌为准。例外只开在判定接口上，写进决策记录。</li>
+<li>（二）不开例外，每个租户各登记一个身份。</li>
+<li>（三）用一个身份，登记时写明它可以服务哪些租户，只能问这张单子上的租户；登记了可以只报编号的，在单子以内也能这样问。</li>
+</ul>
+</li>
+<li>影响：
+<ul>
+<li>（一）给那条规则开一处例外。这个身份的凭据泄露会波及所有租户，不过没有本人的令牌它问不了。这条例外管不到两样：系统的后台作业，以及它以自己的身份问。平台级的服务不能只报编号，问自己一律拒绝，这两样仍然要每个租户各登记一个身份。</li>
+<li>（二）规则不动，泄露只波及一个租户；每开一个租户要多登记一次，系统要管多份凭据。</li>
+<li>（三）系统只管一份凭据，后台作业也用得上。代价是每开一个租户要改一次登记；凭据泄露会波及单子上的所有租户，而且不用本人的令牌就能问。它也是那条规则的例外，比（一）开得宽。</li>
+<li>单租户版与单机版里几种选法没有差别。</li>
+</ul>
+</li>
+<li>建议：（一）。后台作业本来就要逐个登记（问题 2），按租户各登记一个身份与它是同一件事。</li>
+<li>答复（2026-11-26）：选项（一）。条件：后台作业那一部分仍要按租户各登记，建议随租户开通自动登记，不靠人手；单租户版与单机版里这一问没有差别。「建议随租户开通自动登记」读作要做，是整理时的读法。写在第 4.3 节与第 9 节，由 S1-AZ-013 承接；例外写进契约说明的对齐差异由 S1-AZ-011 承接。</li>
+</ul>
+<h3 class="rp-toc-include" id="问题-4别的系统里权限改了以后最长多久生效"><a href="#问题-4别的系统里权限改了以后最长多久生效" class="rp-header-anchor rp-link" aria-label="链接到 问题 4：别的系统里，权限改了以后最长多久生效？">#</a>问题 4：别的系统里，权限改了以后最长多久生效？</h3>
+<ul>
+<li>背景：平台自己现在的口径是 3 秒以内。</li>
+<li>选项：
+<ul>
+<li>（一）守 3 秒：执行前的那一次每次都问，不缓存；界面显示用的结果与数据范围最多缓存 3 秒。</li>
+<li>（二）执行前的那一次仍然每次都问，数据范围仍守 3 秒；只把界面显示用的结果放宽到几十秒。</li>
+<li>（三）都放宽到几十秒：执行前的那一次也可以缓存。</li>
+</ul>
+</li>
+<li>影响：
+<ul>
+<li>（一）别的系统里每个受保护的操作多一次到平台的调用。数据范围是真去查数据时用的过滤条件：权限收回以后，按旧的范围最多还查得到 3 秒。</li>
+<li>（二）执行不受影响，权限收回以后下一次执行就被拒；只是界面上的按钮、菜单最多慢几十秒才变，人会点到已经没有权限的按钮，被拒一次。</li>
+<li>（三）权限收回以后还有几十秒的窗口照样执行得了；缓存命中的那几次不到平台，审计里也没有。</li>
+</ul>
+</li>
+<li>建议：（一）。量出来撑不住，先退到（二），再配合事件通知放宽。</li>
+<li>答复（2026-11-26）：选项（一）。条件：执行前每次都问是硬的一条，权限收回后下一次执行就被拒；界面上按钮多久消失做成配置，缺省 3 秒，量出来撑不住再放宽，放宽不用再裁定。数据范围缓存多久建议里没有单独写，照选项（一）原样，最多 3 秒。提问时建议里「量出来撑不住，先退到（二）」的那一步，照这个条件不用再问。写在第 8 节；执行前的判定是 S1-AZ-012，界面用的结果是 S1-AZ-020 与两个客户端包，量是 S1-AZ-017。</li>
+</ul>
+<h3 class="rp-toc-include" id="问题-5别的系统来问的判定哪些留审计记录"><a href="#问题-5别的系统来问的判定哪些留审计记录" class="rp-header-anchor rp-link" aria-label="链接到 问题 5：别的系统来问的判定，哪些留审计记录？">#</a>问题 5：别的系统来问的判定，哪些留审计记录？</h3>
+<ul>
+<li>选项：
+<ul>
+<li>（一）执行前的那一次留：拒绝必记，放行按现有的采样配置，缺省全记。界面为了决定显示什么而问的，不逐条留，只计数。</li>
+<li>（二）全部都留。</li>
+</ul>
+</li>
+<li>影响：（一）事后查得到每一次执行前的判定，查不到界面为显示而问的每一次。需求文档安全一章的字面是「每次 <code>Check</code>」，比这宽，选（一）等于确认这样读。（二）一个页面打开就要问几十条，记录量大很多，页面会变慢。</li>
+<li>建议：（一）。平台宿主里的三处执行点现在也是这样分的。</li>
+<li>答复（2026-11-26）：选项（一）。条件：高风险的权限点，放行也每条都记，不参加采样。写在第 11.1 节，由 S1-AZ-012 承接。</li>
+</ul>
+<h3 class="rp-toc-include" id="问题-6别的系统里标了要人确认的操作是只能经平台来执行还是也允许那个系统在人点了以后自己执行"><a href="#问题-6别的系统里标了要人确认的操作是只能经平台来执行还是也允许那个系统在人点了以后自己执行" class="rp-header-anchor rp-link" aria-label="链接到 问题 6：别的系统里标了要人确认的操作，是只能经平台来执行，还是也允许那个系统在人点了以后自己执行？">#</a>问题 6：别的系统里标了要人确认的操作，是只能经平台来执行，还是也允许那个系统在人点了以后自己执行？</h3>
+<ul>
+<li>背景：已定的是人点了平台才执行（ADR-016 第 9 节）。对登记成能力的操作，选（二）等于给它开一处例外。</li>
+<li>选项：
+<ul>
+<li>（一）只能经平台：那个系统把操作登记成平台的能力，智能体经平台调；平台停下来等人点，人点了，平台再把调用转给那个系统。</li>
+<li>（二）也允许那个系统自己停、自己执行：平台只管记任务和核对人点了没有。</li>
+</ul>
+</li>
+<li>影响：
+<ul>
+<li>（一）只有一条路，确认与执行都在平台手里。代价有三样：那个系统要把这类操作登记成能力；平台一侧要新做把调用转给别的系统的执行器与转调用时的凭据，现在都没有（第 9、10 节）；那个系统对平台转来的调用照样要问一次执行前的判定。</li>
+<li>（二）接起来灵活，平台不用做转调用。但人点了才执行要靠那个系统自己守，平台只能事后核对。</li>
+</ul>
+</li>
+<li>建议：（一）。</li>
+<li>答复（2026-11-26）：选项（一）。只能经平台。没有加条件。写在第 10 节。判定接口这一侧由 S1-AZ-012 承接，别的系统把操作登记成能力由 S1-AZ-016 承接；平台一侧要新做的两样当时没有任务承接；后来另问过（S1-DEC-048 问题 1），2026-11-26 定了先建契约的任务、执行器等契约定了再建；契约的任务是 S1-RT-041，见第 13.3 节。</li>
+</ul>
+<h3 class="rp-toc-include" id="问题-7别的系统替人来问时什么情况算人自己在界面上直接操作不用等人确认"><a href="#问题-7别的系统替人来问时什么情况算人自己在界面上直接操作不用等人确认" class="rp-header-anchor rp-link" aria-label="链接到 问题 7：别的系统替人来问时，什么情况算「人自己在界面上直接操作」、不用等人确认？">#</a>问题 7：别的系统替人来问时，什么情况算「人自己在界面上直接操作」、不用等人确认？</h3>
+<ul>
+<li>背景：已定的是人自己在界面上直接调不拦，调用方是 Agent 或带着委托链要拦（ADR-016 第 9 节）。别的系统替人来问时，平台看到的是那个系统，看不到背后是人在点还是智能体在调。这一问只管「要人确认」这一个标记；「仅限人工」照冻结的契约只拦智能体，不在这一问里。平台自己的入口上怎样算人本人是另一件事，见问题 8。</li>
+<li>选项：
+<ul>
+<li>（一）只有登记时写明「只转达人在界面上的操作、里面不跑智能体」的系统，带着本人的登录令牌来问，才算。其余一律按不是人本人。</li>
+<li>（二）只要带着本人的登录令牌就算。</li>
+<li>（三）别的系统转来的一律不算。人在别的系统自己的界面上做要人确认的操作，也要到平台的确认卡上再点一次。</li>
+</ul>
+</li>
+<li>影响：
+<ul>
+<li>（一）里面跑着智能体的系统转来的调用，碰到要人确认的操作都要等人点；系统自己的后台作业碰到这类操作也会被拦。「里面不跑智能体」靠登记时把关，平台核不了：登记错了，或者那个系统以后加了智能体，这道确认就漏了。</li>
+<li>（二）智能体只要用得到这个人的令牌，就能绕过确认。</li>
+<li>（三）不靠登记把关，最严。代价是人在那个系统的界面上每做一次这类操作要点两次，一次在那个系统，一次在平台的确认卡上；那个系统的界面要接平台的确认卡。</li>
+</ul>
+</li>
+<li>建议：（一）。</li>
+<li>答复（2026-11-26）：选项（一）。条件：新接的系统缺省不算；里面跑智能体的系统（比如匠心的工作区服务）不许登记成这一种；这项登记本身按高风险操作对待，留审计、能收回。写在第 4.3 节与第 10 节；登记由 S1-AZ-013 承接，判定时怎么回答由 S1-AZ-012 承接。</li>
+</ul>
+<h3 class="rp-toc-include" id="问题-8拿着本人的登录令牌不经浏览器直接连平台的程序做要人确认的操作时要不要也等人点"><a href="#问题-8拿着本人的登录令牌不经浏览器直接连平台的程序做要人确认的操作时要不要也等人点" class="rp-header-anchor rp-link" aria-label="链接到 问题 8：拿着本人的登录令牌、不经浏览器直接连平台的程序，做要人确认的操作时要不要也等人点？">#</a>问题 8：拿着本人的登录令牌、不经浏览器直接连平台的程序，做要人确认的操作时要不要也等人点？</h3>
+<ul>
+<li>背景：这一问说的是平台自己的入口，不是远程接口；放在这里，是因为第 10 节有两处靠它。已定的是人自己在界面上直接调不拦。平台现在分不出两种请求：浏览器带着登录会话来的，与程序（命令行、桌面端）带着本人的访问令牌来的；网关换签以后两种一样。不加区分，就等于程序带着本人的令牌也不拦，它还能替人在等人点头的任务上点同意。桌面端怎么带着本人的身份连平台，在匠心《DSH 与企业级平台的对接》里写的是待定，没有问过。</li>
+<li>选项：
+<ul>
+<li>（一）要等：这样的程序先一律按不是人本人，也不能在等人点头的任务上做动作。等桌面端怎么连平台定了，再看要不要给它单开一条路。</li>
+<li>（二）不用等：带着本人的令牌就算本人。</li>
+</ul>
+</li>
+<li>影响：
+<ul>
+<li>（一）要在网关与平台宿主上补一处区分（第 13.2 节第 10 项），是认证上的改动，要先有决策记录。命令行与桌面程序做这类操作时，要等人到界面上点。</li>
+<li>（二）不用改。但智能体只要拿得到这个人受众是网关的令牌，就能直接调要人确认的能力，也能自己把等人点头的任务点掉；「要人确认的能力由平台停」与「任务上的动作缺省只能人做」两条在这条路上都不起作用。</li>
+</ul>
+</li>
+<li>建议：（一）。</li>
+<li>答复（2026-11-26）：选项（一）。要等。条件：这一条必要而不够，还要保证点「同意」的那个页面不受模型左右。写在第 10 节。网关与平台宿主上的那一处区分由 S1-GW-004 承接，用哪种办法是提议，它先写决策记录；页面那一侧在匠心，本仓库没有任务。</li>
+</ul>
+<h3 class="rp-toc-include" id="问题-9客户端包先出哪几种语言"><a href="#问题-9客户端包先出哪几种语言" class="rp-header-anchor rp-link" aria-label="链接到 问题 9：客户端包先出哪几种语言？">#</a>问题 9：客户端包先出哪几种语言？</h3>
+<ul>
+<li>选项：
+<ul>
+<li>（一）TypeScript 与 .NET；别的语言给契约与一致性用例，有了具体的使用方再出包。</li>
+<li>（二）只出 TypeScript。</li>
+<li>（三）TypeScript、.NET 之外再加一种，Python 或 Java。</li>
+</ul>
+</li>
+<li>影响：每多一种语言多一份要长期维护的包。选（二），不在平台宿主里的 .NET 服务要么照契约自己写调用，要么接着用现在的库模式，判定不记审计。.NET 的包工作量不小，见第 7.3 节。</li>
+<li>建议：（一），TypeScript 在前。</li>
+<li>答复（2026-11-26）：选项（一）。条件：两个谁在前看第一个使用方；接第一个历史系统时再看要不要出 Java。提问时建议的「TypeScript 在前」照这个条件改了。写在第 7 节，由 S1-AZ-014 与 S1-AZ-015 承接。谁在前后来另问过（S1-DEC-048 问题 3），2026-11-26 定了先 .NET。</li>
+</ul>
+<h3 class="rp-toc-include" id="问题-10协议只做-http还是-http-与-grpc-都做"><a href="#问题-10协议只做-http还是-http-与-grpc-都做" class="rp-header-anchor rp-link" aria-label="链接到 问题 10：协议只做 HTTP，还是 HTTP 与 gRPC 都做？">#</a>问题 10：协议只做 HTTP，还是 HTTP 与 gRPC 都做？</h3>
+<ul>
+<li>选项：（一）先只做 HTTP；（二）两种都做。</li>
+<li>影响：（二）要多维护一份接口定义与一套客户端；浏览器用不了 gRPC。一次判定的数据很小，换协议快不了多少。</li>
+<li>建议：（一）。量出来确实需要再加。</li>
+<li>答复（2026-11-26）：选项（一）。先只做 HTTP。没有加条件。写在第 6 节，由 S1-AZ-011 承接。</li>
+</ul>
+<h3 class="rp-toc-include" id="没有列成问题但应当知道的"><a href="#没有列成问题但应当知道的" class="rp-header-anchor rp-link" aria-label="链接到 没有列成问题、但应当知道的">#</a>没有列成问题、但应当知道的</h3>
+<p>下面几条在十个问题的答复里没有新的说法。其中三条后来另问过，2026-11-26 有了答复（S1-DEC-048），写在各条里；其余照旧。</p>
+<p>2026-11-27 补记：前三条是远程授权的三条缺省，产品负责人 2026-11-27 答复《决策表》时列在成批的丙批里，按提议推进（<a href="https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-049.md" target="_blank" rel="noopener noreferrer" class="rp-link">S1-DEC-049</a>）。</p>
+<ul>
+<li><strong>判不了一律拒绝，不留放行的开关。</strong> Kun 的判定这条路一停，所有接它的系统里受保护的操作都停。本文照缺省拒绝的方向这样选；不接受的话要另开一问。</li>
+<li><strong>别的系统里的数据过滤，平台兜不了底。</strong> 平台只交出过滤条件，执行在那个系统自己的库里；租户隔离与条件执行得对不对，靠那个系统自己。</li>
+<li><strong>「仅限人工」只拦智能体，不拦服务。</strong> 这是冻结契约的字面。委托链启用以前，智能体经一个服务转来的调用平台认不出来，「仅限人工」拦不住它，靠转请求的那个服务自己不转。要它连服务也拦，系统自己的后台作业与调度器对这类能力就一律被拒，本仓库里给调度器调的租户到期扫描就是这样一项；要这样改的话另开一问。</li>
+<li><strong>平台转来的调用，别的系统照样要问一次。</strong> 第 10 节的提议没有给平台转来的调用免判。转调用的执行器与凭据现在都没有。执行器的任务等等人输入的任务与能力执行入口的契约定了再建（S1-DEC-048 D1），契约的任务是 S1-RT-041；凭据随执行器一起等，是整理时的读法。见第 13.3 节。</li>
+<li><strong>排期后来问过。</strong> 这些任务排在「初步可用」之前还是之后，裁定十个问题时没有问。后来另问过，2026-11-26 定了不排进「初步可用」，等确认卡的最小一圈排上时再把它要用的三样提前（S1-DEC-048 D4）。优先级因此这次都不动、三样是哪三样，是整理时的读法，见第 13 节开头。谁做没有问。</li>
+<li><strong>数字都没有实测。</strong> 第 8、11 节的数字是提议值，要先做基线测试。</li>
+<li><strong>最小角色授权页放在哪，后来问过。</strong> 这一页已拆成 S1-AZ-023。2026-11-26 定了它不在本仓库里做，页面放匠心的管理端，本仓库只交付接口（S1-DEC-048 D2）。照此 S1-AZ-023 关闭。见第 12 节末一行与第 13.1 节。用什么做随匠心的管理端，不在本仓库里定。</li>
+</ul>
+<h2 class="rp-toc-include" id="15-没有做的"><a href="#15-没有做的" class="rp-header-anchor rp-link" aria-label="链接到 15 没有做的">#</a>15 没有做的</h2>
+<ul>
+<li>没有写实现，没有加契约文件：<code>contracts/</code> 没有动，机器可读的契约由 S1-AZ-011 做。</li>
+<li>没有改 ADR 与需求文档现有各篇的原文，没有动冻结的契约。2026-11-26 的裁定回写在五份 ADR 末尾追加的小节里；需求文档 7.5 节与 13.9 节的修订注、契约说明的对齐差异留给 S1-AZ-011。</li>
+<li>没有定等人输入的任务的契约，它由 S1-RT-041 承接。平台把调用转给别的系统时带的凭据，本文只写了判定接口对它的要求（第 10 节），格式与怎么签发没有定，随转调用的执行器；那个任务等契约定了再建（第 13.3 节）。</li>
+<li>没有定网关怎么分清登录会话与访问令牌，只写了两种做法（第 10 节）。「要补」已定，用哪种由 S1-GW-004 先写决策记录。</li>
+<li>没有定共用的系统在各租户名下的身份怎么自动登记、凭据怎么交到它手里（第 4.3 节），随 S1-AZ-013。</li>
+<li>没有展开智能体主体与委托链（里程碑 M1）。</li>
+<li>没有展开角色与授权的管理端点（S1-AZ-021）。</li>
+<li>没有做任何实测。第 8、11 节的数字都是提议值，由 S1-AZ-017 量。</li>
+<li>端点、scope、原因码与包的名字都没有定稿。</li>
+<li>没有实际装过不带代码的组件，也没有运行验证平台按 <code>http</code> 绑定转调用实现到了哪一步；这两处是对着代码读的。</li>
+</ul><!--/$--></div><footer class="rp-doc-footer"><div class="rp-doc-footer__edit"></div><div class="rp-doc-footer__divider"></div><div class="rp-prev-next-page"><a href="/design/prd/specs/auth-pages.html" class="rp-prev-next-page__item rp-prev-next-page__prev rp-link"><span class="rp-prev-next-page__item__desc">上一页</span><span class="rp-prev-next-page__item__title"><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon rp-prev-next-page__rotate_180"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg><span>认证页族设计规格（登录 / 第二因子 / 租户选择与切换 / 强制改密 / 绑定 / 设备码 / 授权同意）</span></span></a><a href="/design/prd/specs/component-model.html" class="rp-prev-next-page__item rp-prev-next-page__next rp-link"><span class="rp-prev-next-page__item__desc">下一页</span><span class="rp-prev-next-page__item__title"><span>专题 spec · 组件模型 v2（清单 · 表面 · 运行时 · profile · 市场 · CLI）</span><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></span></a></div></footer></main></div><aside class="rp-doc-layout__outline rp-scrollbar"><div class="rp-outline"><div class="rp-outline__title">目录<svg width="14" height="14" class="rp-progress-circle"><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-divider-light)" stroke-width="2"></circle><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-brand)" stroke-width="2" stroke-dasharray="37.69911184307752" stroke-dashoffset="37.69911184307752" transform="rotate(-90 7 7)" style="transition:stroke-dashoffset 0.3s"></circle></svg></div><nav class="rp-outline__toc rp-scrollbar"><a href="#1-已定的读法与没有定的" class="rp-toc-item rp-link" title="1 已定的、读法与没有定的" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">1 已定的、读法与没有定的</span></a><a href="#11-已定" class="rp-toc-item rp-link" title="1.1 已定" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">1.1 已定</span></a><a href="#12-整理时的读法" class="rp-toc-item rp-link" title="1.2 整理时的读法" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">1.2 整理时的读法</span></a><a href="#13-没有定" class="rp-toc-item rp-link" title="1.3 没有定" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">1.3 没有定</span></a><a href="#2-现状与缺口" class="rp-toc-item rp-link" title="2 现状与缺口" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">2 现状与缺口</span></a><a href="#21-已有" class="rp-toc-item rp-link" title="2.1 已有" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">2.1 已有</span></a><a href="#22-一个不在平台宿主里的服务今天要判一次权限缺什么" class="rp-toc-item rp-link" title="2.2 一个不在平台宿主里的服务，今天要判一次权限，缺什么" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">2.2 一个不在平台宿主里的服务，今天要判一次权限，缺什么</span></a><a href="#3-几种接法" class="rp-toc-item rp-link" title="3 几种接法" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">3 几种接法</span></a><a href="#4-调用方怎么证明自己是谁" class="rp-toc-item rp-link" title="4 调用方怎么证明自己是谁" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">4 调用方怎么证明自己是谁</span></a><a href="#41-都经网关" class="rp-toc-item rp-link" title="4.1 都经网关" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">4.1 都经网关</span></a><a href="#42-甲本人问自己" class="rp-toc-item rp-link" title="4.2 甲：本人问自己" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">4.2 甲：本人问自己</span></a><a href="#43-乙登记过的系统代问" class="rp-toc-item rp-link" title="4.3 乙：登记过的系统代问" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">4.3 乙：登记过的系统代问</span></a><a href="#44-委托链" class="rp-toc-item rp-link" title="4.4 委托链" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">4.4 委托链</span></a><a href="#45-和身份服务怎么接" class="rp-toc-item rp-link" title="4.5 和身份服务怎么接" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">4.5 和身份服务怎么接</span></a><a href="#5-判定接口形状是提议" class="rp-toc-item rp-link" title="5 判定接口（形状是提议）" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">5 判定接口（形状是提议）</span></a><a href="#51-端点一览" class="rp-toc-item rp-link" title="5.1 端点一览" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">5.1 端点一览</span></a><a href="#52-请求" class="rp-toc-item rp-link" title="5.2 请求" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">5.2 请求</span></a><a href="#53-响应" class="rp-toc-item rp-link" title="5.3 响应" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">5.3 响应</span></a><a href="#54-判不了一律拒绝" class="rp-toc-item rp-link" title="5.4 判不了一律拒绝" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">5.4 判不了一律拒绝</span></a><a href="#55-数据权限与字段权限怎么表达" class="rp-toc-item rp-link" title="5.5 数据权限与字段权限怎么表达" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">5.5 数据权限与字段权限怎么表达</span></a><a href="#56-错误" class="rp-toc-item rp-link" title="5.6 错误" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">5.6 错误</span></a><a href="#6-协议版本与兼容" class="rp-toc-item rp-link" title="6 协议、版本与兼容" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">6 协议、版本与兼容</span></a><a href="#7-客户端包" class="rp-toc-item rp-link" title="7 客户端包" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">7 客户端包</span></a><a href="#71-先出哪几种" class="rp-toc-item rp-link" title="7.1 先出哪几种" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">7.1 先出哪几种</span></a><a href="#72-typescriptnode-里和浏览器里的差别" class="rp-toc-item rp-link" title="7.2 TypeScript：Node 里和浏览器里的差别" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">7.2 TypeScript：Node 里和浏览器里的差别</span></a><a href="#73-net" class="rp-toc-item rp-link" title="7.3 .NET" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">7.3 .NET</span></a><a href="#8-缓存超时与降级" class="rp-toc-item rp-link" title="8 缓存、超时与降级" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">8 缓存、超时与降级</span></a><a href="#9-不是-kun-组件的系统怎么把权限点角色数据范围声明进来提议" class="rp-toc-item rp-link" title="9 不是 Kun 组件的系统，怎么把权限点、角色、数据范围声明进来（提议）" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">9 不是 Kun 组件的系统，怎么把权限点、角色、数据范围声明进来（提议）</span></a><a href="#10-要人确认的能力在远程调用里怎么体现" class="rp-toc-item rp-link" title="10 要人确认的能力在远程调用里怎么体现" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">10 要人确认的能力在远程调用里怎么体现</span></a><a href="#11-审计性能与可用性" class="rp-toc-item rp-link" title="11 审计、性能与可用性" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">11 审计、性能与可用性</span></a><a href="#111-审计" class="rp-toc-item rp-link" title="11.1 审计" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">11.1 审计</span></a><a href="#112-性能" class="rp-toc-item rp-link" title="11.2 性能" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">11.2 性能</span></a><a href="#113-可用性" class="rp-toc-item rp-link" title="11.3 可用性" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">11.3 可用性</span></a><a href="#12-与现行决策的出入" class="rp-toc-item rp-link" title="12 与现行决策的出入" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">12 与现行决策的出入</span></a><a href="#13-任务清单" class="rp-toc-item rp-link" title="13 任务清单" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">13 任务清单</span></a><a href="#131-s1-az-005-怎么拆" class="rp-toc-item rp-link" title="13.1 S1-AZ-005 怎么拆" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">13.1 S1-AZ-005 怎么拆</span></a><a href="#132-远程接口新建的任务" class="rp-toc-item rp-link" title="13.2 远程接口新建的任务" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">13.2 远程接口新建的任务</span></a><a href="#133-经平台执行要有的两样与没有动的" class="rp-toc-item rp-link" title="13.3 经平台执行要有的两样，与没有动的" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">13.3 经平台执行要有的两样，与没有动的</span></a><a href="#14-向产品负责人问过的十个问题与答复" class="rp-toc-item rp-link" title="14 向产品负责人问过的十个问题与答复" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">14 向产品负责人问过的十个问题与答复</span></a><a href="#问题-1远程的授权接口先做哪几种接法" class="rp-toc-item rp-link" title="问题 1：远程的授权接口，先做哪几种接法？" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">问题 1：远程的授权接口，先做哪几种接法？</span></a><a href="#问题-2别的系统替某个人问权限时缺省要不要带上这个人的登录令牌让平台自己核对" class="rp-toc-item rp-link" title="问题 2：别的系统替某个人问权限时，缺省要不要带上这个人的登录令牌，让平台自己核对？" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">问题 2：别的系统替某个人问权限时，缺省要不要带上这个人的登录令牌，让平台自己核对？</span></a><a href="#问题-3多租户版里几个租户共用的一个后端系统是用一个身份替各租户的人问还是每个租户各登记一个身份" class="rp-toc-item rp-link" title="问题 3：多租户版里几个租户共用的一个后端系统，是用一个身份替各租户的人问，还是每个租户各登记一个身份？" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">问题 3：多租户版里几个租户共用的一个后端系统，是用一个身份替各租户的人问，还是每个租户各登记一个身份？</span></a><a href="#问题-4别的系统里权限改了以后最长多久生效" class="rp-toc-item rp-link" title="问题 4：别的系统里，权限改了以后最长多久生效？" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">问题 4：别的系统里，权限改了以后最长多久生效？</span></a><a href="#问题-5别的系统来问的判定哪些留审计记录" class="rp-toc-item rp-link" title="问题 5：别的系统来问的判定，哪些留审计记录？" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">问题 5：别的系统来问的判定，哪些留审计记录？</span></a><a href="#问题-6别的系统里标了要人确认的操作是只能经平台来执行还是也允许那个系统在人点了以后自己执行" class="rp-toc-item rp-link" title="问题 6：别的系统里标了要人确认的操作，是只能经平台来执行，还是也允许那个系统在人点了以后自己执行？" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">问题 6：别的系统里标了要人确认的操作，是只能经平台来执行，还是也允许那个系统在人点了以后自己执行？</span></a><a href="#问题-7别的系统替人来问时什么情况算人自己在界面上直接操作不用等人确认" class="rp-toc-item rp-link" title="问题 7：别的系统替人来问时，什么情况算「人自己在界面上直接操作」、不用等人确认？" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">问题 7：别的系统替人来问时，什么情况算「人自己在界面上直接操作」、不用等人确认？</span></a><a href="#问题-8拿着本人的登录令牌不经浏览器直接连平台的程序做要人确认的操作时要不要也等人点" class="rp-toc-item rp-link" title="问题 8：拿着本人的登录令牌、不经浏览器直接连平台的程序，做要人确认的操作时要不要也等人点？" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">问题 8：拿着本人的登录令牌、不经浏览器直接连平台的程序，做要人确认的操作时要不要也等人点？</span></a><a href="#问题-9客户端包先出哪几种语言" class="rp-toc-item rp-link" title="问题 9：客户端包先出哪几种语言？" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">问题 9：客户端包先出哪几种语言？</span></a><a href="#问题-10协议只做-http还是-http-与-grpc-都做" class="rp-toc-item rp-link" title="问题 10：协议只做 HTTP，还是 HTTP 与 gRPC 都做？" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">问题 10：协议只做 HTTP，还是 HTTP 与 gRPC 都做？</span></a><a href="#没有列成问题但应当知道的" class="rp-toc-item rp-link" title="没有列成问题、但应当知道的" style="padding-left:12px" data-depth="1"><span class="rp-toc-item__text rp-doc">没有列成问题、但应当知道的</span></a><a href="#15-没有做的" class="rp-toc-item rp-link" title="15 没有做的" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">15 没有做的</span></a></nav><div class="rp-outline__divider"></div><div class="rp-outline__bottom"></div></div></aside></div></div>
+    <div id="__rspress_modal_container"></div>
+  </body>
+</html>
